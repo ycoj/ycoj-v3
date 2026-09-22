@@ -9,9 +9,13 @@ import type {
 import { getClangdWorkerUrl } from './clangd-support';
 import type { ClangdStatus } from './clangd-support';
 import type { OnMount } from '@monaco-editor/react';
-import type * as MonacoApi from 'monaco-editor/esm/vs/editor/editor.api';
+import type * as MonacoApi from 'monaco-editor';
 
 type Editor = Parameters<OnMount>[0];
+type ModelVersion = Pick<
+  NonNullable<ReturnType<Editor['getModel']>>,
+  'isDisposed' | 'getVersionId'
+>;
 const uri = 'file:///workspace/main.cpp';
 const markerOwner = 'scratchpad-clangd';
 const range = (value: Range) => ({
@@ -32,7 +36,7 @@ const markdown = (value: Markup) => ({
 
 export function startClangdSession(
   editor: Editor,
-  monaco: typeof MonacoApi,
+  monaco: Parameters<OnMount>[1],
   standard: string,
   onStatus: (status: ClangdStatus) => void
 ) {
@@ -45,7 +49,7 @@ export function startClangdSession(
   const subscriptions: { dispose: () => void }[] = [];
   onStatus('loading');
 
-  const severityByLsp: Record<number, MonacoApi.MarkerSeverity> = {
+  const severityByLsp: Record<number, number> = {
     1: monaco.MarkerSeverity.Error,
     2: monaco.MarkerSeverity.Warning,
     3: monaco.MarkerSeverity.Info,
@@ -117,10 +121,7 @@ export function startClangdSession(
     });
   }
 
-  function isStale(
-    current: MonacoApi.editor.ITextModel,
-    requestedVersion: number
-  ) {
+  function isStale(current: ModelVersion, requestedVersion: number) {
     return (
       disposed ||
       current.isDisposed() ||
@@ -140,7 +141,7 @@ export function startClangdSession(
 
   async function requestPositionInfo<T>(
     method: string,
-    current: MonacoApi.editor.ITextModel,
+    current: ModelVersion,
     position: MonacoApi.Position,
     token: MonacoApi.CancellationToken
   ): Promise<T | undefined> {
@@ -207,10 +208,7 @@ export function startClangdSession(
       })
     );
     const kinds = monaco.languages.CompletionItemKind;
-    const completionKinds: Record<
-      number,
-      MonacoApi.languages.CompletionItemKind
-    > = {
+    const completionKinds: Record<number, number> = {
       1: kinds.Text,
       2: kinds.Method,
       3: kinds.Function,
