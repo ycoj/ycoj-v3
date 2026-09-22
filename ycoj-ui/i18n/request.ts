@@ -1,0 +1,28 @@
+import {
+  defaultLocale,
+  isLocale,
+  normalizeAcceptLanguage,
+  normalizeLocale,
+  type Locale,
+} from './config';
+import { getRequestConfig } from 'next-intl/server';
+import { cookies, headers } from 'next/headers';
+
+const messageLoaders = {
+  en: () => import('../messages/en').then((module) => module.default),
+  zh: () => import('../messages/zh').then((module) => module.default),
+};
+
+export default getRequestConfig(async () => {
+  const cookieLocale = (await cookies()).get('NEXT_LOCALE')?.value;
+  const acceptLanguage = (await headers()).get('accept-language');
+  const locale: Locale = isLocale(cookieLocale)
+    ? cookieLocale
+    : cookieLocale
+      ? normalizeLocale(cookieLocale)
+      : normalizeAcceptLanguage(acceptLanguage);
+
+  const messages = await messageLoaders[locale]();
+
+  return { locale: locale || defaultLocale, messages };
+});

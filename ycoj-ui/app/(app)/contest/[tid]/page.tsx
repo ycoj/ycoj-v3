@@ -1,0 +1,90 @@
+import ContestTimer from '@/features/contest/contest-timer';
+import ContestTitle from '@/features/contest/contest-title';
+import ContestContent from '@/features/contest/detail/contest-content';
+import ContestSidebar from '@/features/contest/detail/contest-sidebar';
+import { canShowContestScoreboard } from '@/features/contest/detail/contest-utils';
+import { getContestDetail } from '@/features/contest/detail/get-contest-detail';
+import { canEditContest } from '@/features/contest/lib/can-edit-contest';
+import ContestSolutionList from '@/features/contest/solution/contest-solution-list';
+import { getUser } from '@/features/user/lib/get-user';
+import { Errored } from '@/shared/components/errored';
+import TwoColumnLayout from '@/shared/layout/two-column';
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+
+type Params = {
+  tid: string;
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<Params>;
+}): Promise<Metadata> {
+  const { tid } = await params;
+  const data = await getContestDetail(tid);
+  const t = await getTranslations('metadata');
+
+  if ('error' in data) {
+    return {
+      title: t('contestDetail'),
+    };
+  }
+
+  return {
+    title: data.tdoc.title || t('contestDetail'),
+  };
+}
+
+export default async function ContestDetailPage({
+  params,
+}: {
+  params: Promise<Params>;
+}) {
+  const { tid } = await params;
+  const [data, user] = await Promise.all([getContestDetail(tid), getUser()]);
+  const t = await getTranslations('error');
+
+  if ('error' in data) {
+    return <Errored title={t('unavailable')} error={data.error} />;
+  }
+
+  const owner = data.udict[data.tdoc.owner];
+  const showScoreboard = canShowContestScoreboard(data.tdoc, user);
+
+  return (
+    <div className="space-y-6">
+      <ContestTimer contest={data.tdoc} status={data.tsdoc} />
+      <ContestTitle tdoc={data.tdoc} />
+      <TwoColumnLayout
+        ratio="8-2"
+        left={
+          <div className="space-y-8">
+            <ContestContent
+              tid={tid}
+              introduction={data.tdoc.content ?? ''}
+              files={data.tdoc.files ?? []}
+            />
+            <ContestSolutionList
+              tid={tid}
+              showContestSolutions={data.showContestSolutions}
+              items={data.csdocs}
+              udict={data.udict}
+              canManage={data.canManage}
+            />
+          </div>
+        }
+        right={
+          <ContestSidebar
+            tid={tid}
+            contest={data.tdoc}
+            contestStatus={data.tsdoc}
+            owner={owner}
+            showScoreboard={showScoreboard}
+            canEdit={canEditContest(user, data.tdoc)}
+          />
+        }
+      />
+    </div>
+  );
+}

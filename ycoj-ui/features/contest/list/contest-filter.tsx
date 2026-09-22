@@ -1,0 +1,128 @@
+'use client';
+
+import { Button } from '@/shared/components/ui/button';
+import { Input } from '@/shared/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
+import { CONTEST_RULES } from '@/shared/types/contest';
+import { Award, Plus, Search, Tag } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useMemo, useState, type FormEvent } from 'react';
+
+type Props = {
+  groups: string[];
+  canCreate: boolean;
+};
+
+const ruleOptions = CONTEST_RULES.filter((rule) => rule !== 'homework');
+
+export default function ContestFilter({ groups, canCreate }: Props) {
+  const t = useTranslations('contest');
+  const common = useTranslations('common');
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [rule, setRule] = useState(searchParams.get('rule') || 'all');
+  const [group, setGroup] = useState(searchParams.get('group') || 'all');
+  const uniqueGroups = useMemo(
+    () => Array.from(new Set(groups.filter(Boolean))),
+    [groups]
+  );
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const q = String(formData.get('q') ?? '').trim();
+    const params = new URLSearchParams(searchParams.toString());
+
+    const syncParam = (key: string, value: string) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    };
+
+    syncParam('q', q);
+    syncParam('rule', rule === 'all' ? '' : rule);
+    syncParam('group', group === 'all' ? '' : group);
+    params.delete('page');
+
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname);
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[240px]">
+          <Input
+            name="q"
+            defaultValue={searchParams.get('q') || ''}
+            placeholder={t('searchPlaceholder')}
+            className="pl-9 pr-3 text-sm"
+          />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        </div>
+
+        <Select value={rule} onValueChange={setRule}>
+          <SelectTrigger className="w-44 min-w-[176px]">
+            <div className="flex items-center gap-2">
+              <Award className="size-4 text-muted-foreground" />
+              <SelectValue placeholder={t('rulePlaceholder')} />
+            </div>
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectItem value="all">{t('allRules')}</SelectItem>
+            {ruleOptions.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`rule.${value}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={group} onValueChange={setGroup}>
+          <SelectTrigger className="w-44 min-w-[176px]">
+            <div className="flex items-center gap-2">
+              <Tag className="size-4 text-muted-foreground" />
+              <SelectValue placeholder={common('group')} />
+            </div>
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectItem value="all">{common('allGroups')}</SelectItem>
+            {uniqueGroups.map((groupName) => (
+              <SelectItem key={groupName} value={groupName}>
+                {groupName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button
+          type="submit"
+          variant="secondary"
+          className="ml-auto gap-2 hover:bg-foreground/15"
+        >
+          <Search strokeWidth={2} />
+          {common('filter')}
+        </Button>
+        {canCreate && (
+          <Button asChild>
+            <Link href="/contest/create">
+              <Plus />
+              {t('create')}
+            </Link>
+          </Button>
+        )}
+      </div>
+    </form>
+  );
+}

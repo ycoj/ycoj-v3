@@ -30,8 +30,11 @@ globalConfig.json
 /config.json
 yarn.lock
 pnpm-lock.yaml
+!/ycoj-ui/pnpm-lock.yaml
 tsconfig.json
 tsconfig.*.json
+!/ycoj-ui/tsconfig.json
+!/ycoj-ui/tsconfig.*.json
 .oxlintrc.json
 
 # Project Rules
