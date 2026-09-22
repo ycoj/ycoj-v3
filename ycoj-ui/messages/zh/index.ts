@@ -8,6 +8,7 @@ import common from './common.json';
 import contestCreate from './contest-create.json';
 import contestEdit from './contest-edit.json';
 import contestManagement from './contest-management.json';
+import contestPrint from './contest-print.json';
 import contestSolution from './contest-solution.json';
 import contest from './contest.json';
 import difficulty from './difficulty.json';
@@ -63,6 +64,7 @@ const catalog = {
   metadata,
   contest,
   contestManagement,
+  contestPrint,
   homework,
   contestCreate,
   contestEdit,
