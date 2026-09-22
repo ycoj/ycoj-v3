@@ -17,6 +17,7 @@ git lfs install --local
 git lfs pull
 git submodule status
 git lfs ls-files
+git lfs fsck
 ```
 
 将现有后端运行配置放到 `/srv/ycoj-v3` 下原有的相对位置；将现有前端 `.env` 等配置放到 `/srv/ycoj-v3/ycoj-ui` 下原有的相对位置。不要把密钥提交进 Git。后端继续使用项目原有的 Yarn 4 安装与构建命令；前端执行：
@@ -36,7 +37,7 @@ pnpm build
 3. 验证前端页面、后端 API、上传与静态资源。服务仍按原端口分别运行。
 4. 如使用 `ycoj-ui/scripts/build.js` 远程更新前端，将本地 `ycoj-ui/scripts/.env.local` 中的 `FRONTEND_DIR` 指向 `/srv/ycoj-v3/ycoj-ui`。脚本会在父目录执行 `git pull --ff-only` 和 `git lfs pull`，随后仅构建并重启前端。
 
-以后一次 `git pull` 会更新检出中的前后端文件；按需要分别安装、构建和重启两个服务。若需要两套服务长期停留在不同提交，应改用两份检出。
+以后在仓库根目录执行 `git pull --ff-only`，并在后端子模块发生变化时执行 `git submodule update --init --recursive`，在前端 LFS 文件发生变化时执行 `git lfs pull`。按改动分别安装、构建和重启两个服务。两个服务共用同一 Git 提交；若需要长期停留在不同提交，应改用两份检出。
 
 ## 回退与收尾
 
