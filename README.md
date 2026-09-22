@@ -9,6 +9,18 @@
 
 请在对应目录运行命令；前端通过 `BACKEND_BASEURL` 连接独立运行的后端。部署检出和切换步骤见 [deploy.md](deploy.md)。原仓库 [YCOJ](https://github.com/ycoj/YCOJ) 与 [ycoj-ui](https://github.com/ycoj/ycoj-ui) 保留为历史档案。
 
+CNB 的 [`ycoj-ui/ycoj-v3`](https://cnb.cool/ycoj-ui/ycoj-v3) 只保存 Git 镜像，不运行流水线。GitHub `master` 或 tag 更新后，在已配置 CNB 凭据的开发检出中执行：
+
+```sh
+git remote add cnb https://cnb.cool/ycoj-ui/ycoj-v3  # 首次配置
+git fetch origin master --tags
+git lfs fetch origin master
+git lfs push cnb refs/remotes/origin/master
+git push cnb refs/remotes/origin/master:refs/heads/master --tags
+```
+
+已有 `cnb` 远端时跳过第一行；以上命令不会改变本地当前分支，也不会将旧仓库的其他分支推送到 CNB。
+
 ## Hydro 后端
 
 [![Backend Tests](https://github.com/ycoj/ycoj-v3/actions/workflows/test.yml/badge.svg)](https://github.com/ycoj/ycoj-v3/actions/workflows/test.yml)
