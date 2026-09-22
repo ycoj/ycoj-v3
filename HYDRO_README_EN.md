@@ -1,5 +1,7 @@
 # Hydro
 
+> This file is the original README of the Hydro backend; it applies only to the Hydro-based backend code at the repository root, not to the whole ycoj-v3 repository. The Next.js frontend under `ycoj-ui/` is MIT-licensed; see [ycoj-ui/README.md](ycoj-ui/README.md) and the top-level [README.md](README.md).
+
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/hydro-dev/hydro/build.yml?branch=master)
 ![hydrooj](https://img.shields.io/npm/dm/hydrooj)
 ![npm](https://img.shields.io/npm/v/hydrooj?label=hydrooj)
@@ -34,13 +36,13 @@ The software is distributed under AGPLv3 with additional terms.
 
 Additional terms under AGPLv3 Section 7:
 
-1. You must not remove the copyright declaration displayed in the software. (Under [AGPLv3, 7(b)](LICENSE#L356))  
-2. When you distribute a modified version of the software, you must change the software name or the version number in a reasonable way in order to distinguish it from the original version. (Under [AGPLv3, 7(c)](LICENSE#360))
-3. Unless permitted, you are not allowed to use author's name, trademark or logo to promote the software. (Under [AGPLv3, 7(d)](LICENSE#L364))
+1. You must not remove the copyright declaration displayed in the software. (Under [AGPLv3, 7(b)](HYDRO_LICENSE#L356))  
+2. When you distribute a modified version of the software, you must change the software name or the version number in a reasonable way in order to distinguish it from the original version. (Under [AGPLv3, 7(c)](HYDRO_LICENSE#360))
+3. Unless permitted, you are not allowed to use author's name, trademark or logo to promote the software. (Under [AGPLv3, 7(d)](HYDRO_LICENSE#L364))
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+See [HYDRO_CONTRIBUTING.md](HYDRO_CONTRIBUTING.md)
 
 ## Thanks to
 

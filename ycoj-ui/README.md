@@ -17,7 +17,7 @@
 
 ## 开源
 
-本项目（前端）采用 MIT 开源协议。后端采用 AGPL-3.0 开源协议。详情见每个项目的 LICENSE 文件。
+本项目（前端）采用 MIT 开源协议，全文见 [LICENSE](LICENSE)。后端（仓库根目录的 Hydro 代码）采用 AGPL-3.0（含附加条款）开源协议，全文见仓库根目录的 [HYDRO_LICENSE](../HYDRO_LICENSE)。两个许可证各自只覆盖对应目录下的代码。
 
 ## LLMs-Ready
 
