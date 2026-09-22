@@ -238,7 +238,12 @@ export function startClangdSession(
     subscriptions.push(
       monaco.languages.registerCompletionItemProvider('cpp', {
         triggerCharacters: ['.', '>', ':'],
-        async provideCompletionItems(current, position, _context, token) {
+        async provideCompletionItems(
+          current: MonacoApi.editor.ITextModel,
+          position: MonacoApi.Position,
+          _context: MonacoApi.languages.CompletionContext,
+          token: MonacoApi.CancellationToken
+        ) {
           const result = await requestPositionInfo<CompletionResult>(
             'textDocument/completion',
             current,
@@ -286,7 +291,11 @@ export function startClangdSession(
     );
     subscriptions.push(
       monaco.languages.registerHoverProvider('cpp', {
-        async provideHover(current, position, token) {
+        async provideHover(
+          current: MonacoApi.editor.ITextModel,
+          position: MonacoApi.Position,
+          token: MonacoApi.CancellationToken
+        ) {
           const result = await requestPositionInfo<Hover>(
             'textDocument/hover',
             current,
