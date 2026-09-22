@@ -1,0 +1,128 @@
+import {
+  formatTime,
+  getProfileExtras,
+  getProfileUser,
+  type UserProfileProps,
+} from './shared';
+import CcfHook from '@/features/user/ccf-hook';
+import UserAvatar from '@/features/user/user-avatar';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/shared/components/ui/tooltip';
+import { AtSign, Calendar, CalendarClock, Clock3, Send } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+
+export default function HeaderSection({ data }: UserProfileProps) {
+  const t = useTranslations('user');
+  const profileUser = getProfileUser(data);
+  const extras = getProfileExtras(data);
+
+  return (
+    <section className="border-b pb-6" data-llm-visible="true">
+      <div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-muted/40 via-background to-background px-4 py-5 sm:px-6">
+        <div className="bg-primary/10 absolute -top-10 -right-10 size-32 rounded-full blur-2xl" />
+        <div className="relative space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <UserAvatar user={profileUser} className="size-16 border" />
+              <div className="min-w-0">
+                <h1
+                  className="flex min-w-0 items-center gap-0.5 text-2xl leading-snug font-medium"
+                  data-llm-text={data.udoc.uname}
+                >
+                  <span className="truncate">{data.udoc.uname}</span>
+                  <CcfHook level={profileUser.ccfLevel} />
+                </h1>
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-llm-text={String(data.udoc._id)}
+                >
+                  UID {data.udoc._id}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button asChild variant="ghost" size="icon-sm">
+                      <Link
+                        href={`/home/messages?target=${data.udoc._id}`}
+                        aria-label={t('sendMessage')}
+                      >
+                        <Send aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('sendMessage')}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              {data.isSelfProfile && (
+                <>
+                  <Button asChild variant="outline" size="sm">
+                    <Link
+                      href="/home/settings/account"
+                      data-llm-text={t('editProfile')}
+                    >
+                      {t('editProfile')}
+                    </Link>
+                  </Button>
+                  <Badge variant="secondary" data-llm-text={t('myProfile')}>
+                    {t('myProfile')}
+                  </Badge>
+                </>
+              )}
+              {extras.rp !== undefined && (
+                <Badge
+                  variant="secondary"
+                  data-llm-text={String(Math.round(extras.rp))}
+                >
+                  RP {Math.round(extras.rp)}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
+            <div className="inline-flex items-center gap-2">
+              <AtSign className="size-4" />
+              <span data-llm-text={data.udoc.mail || '-'}>
+                {data.udoc.mail || '-'}
+              </span>
+            </div>
+            <div className="inline-flex items-center gap-2">
+              <Calendar className="size-4" />
+              <span data-llm-text={formatTime(data.udoc.regat)}>
+                {t('registeredAt', { time: formatTime(data.udoc.regat) })}
+              </span>
+            </div>
+            <div className="inline-flex items-center gap-2">
+              <Clock3 className="size-4" />
+              <span data-llm-text={formatTime(data.udoc.loginat)}>
+                {t('lastLogin', { time: formatTime(data.udoc.loginat) })}
+              </span>
+            </div>
+            {typeof data.accountExpireDate === 'string' && (
+              <div className="inline-flex items-center gap-2">
+                <CalendarClock className="size-4" />
+                <span
+                  data-llm-text={data.accountExpireDate || t('neverExpires')}
+                >
+                  {data.accountExpireDate
+                    ? t('expiresAt', { date: data.accountExpireDate })
+                    : t('neverExpires')}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

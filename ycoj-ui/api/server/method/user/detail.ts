@@ -1,0 +1,76 @@
+import { alova } from '@/api/server';
+import type { CheckinHistory } from '@/shared/types/checkin';
+import type { Contest } from '@/shared/types/contest';
+import type { Homework } from '@/shared/types/homework';
+import type {
+  ProblemDict,
+  ProblemDoc,
+  SolutionDoc,
+} from '@/shared/types/problem';
+import type { User } from '@/shared/types/user';
+
+export type AwardRecord = {
+  _id: string;
+  oierId: number;
+  contestName: string;
+  contestType: string;
+  year: number;
+  award: string;
+  score: number | null;
+  rank: number;
+  school: string;
+  province: string;
+  grade: string;
+};
+
+/** User document as returned by the user detail API. */
+export type Udoc = Pick<
+  User,
+  '_id' | 'mail' | 'uname' | 'priv' | 'regat' | 'loginat' | 'ccfLevel'
+>;
+
+/** Recent session info (login/refresh time). */
+export type UserDetailSessionDoc = {
+  createAt: string;
+  updateAt: string;
+};
+
+/** Problem solution list item (user's published solutions). Requires PERM_VIEW_PROBLEM_SOLUTION. */
+export type SolutionDocumentDoc = Pick<
+  SolutionDoc,
+  'docId' | '_id' | 'owner' | 'vote' | 'parentId' | 'parentType'
+>;
+
+export type UserDetailResponse = {
+  checkinHistory: CheckinHistory;
+  /** Whether this is the current logged-in user's own profile. */
+  isSelfProfile: boolean;
+  udoc: Udoc;
+  /** Latest session info, or null. */
+  sdoc: UserDetailSessionDoc | null;
+  /** Problems the user has passed. Requires PERM_VIEW_PROBLEM. */
+  pdocs: ProblemDoc[];
+  /** Tag stats for passed problems (top 20). [tag, count][] */
+  tags: [string, number][];
+  /** Contests/homework the user has participated in. */
+  tdocs: (Contest | Homework)[];
+  /** Certified competition awards associated with this account. */
+  awardRecords: AwardRecord[];
+  /**
+   * Account's last valid day (YYYY-MM-DD), or '' when it never expires.
+   * Null unless the viewer is the account owner or holds PRIV_EDIT_SYSTEM.
+   * May be absent on older backends.
+   */
+  accountExpireDate?: string | null;
+  /** User's published problem solutions. Requires PERM_VIEW_PROBLEM_SOLUTION. */
+  psdocs?: SolutionDocumentDoc[];
+  /** Problem dict for solutions. Requires PERM_VIEW_PROBLEM_SOLUTION and PERM_VIEW_PROBLEM. */
+  pdict?: ProblemDict;
+};
+
+/**
+ * Fetches user detail by uid.
+ * GET /user/:uid — uid must not be 0 (returns UserNotFoundError).
+ */
+export const getUserDetail = (uid: number) =>
+  alova.Get<UserDetailResponse>(`/user/${uid}`);

@@ -1,0 +1,107 @@
+import parseErrorMessage from '@/shared/components/errored/parse-message';
+import type { Errorable } from '@/shared/types/error';
+
+const DOMAIN_PREFIX = /^\/d\/[^/]+(?=\/)/;
+const AUTH_SESSION_PATHS = new Set([
+  '/login',
+  '/logout',
+  '/register',
+  '/user/sudo',
+  '/user/webauthn',
+]);
+
+export class BackendResponseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BackendResponseError';
+  }
+}
+
+const BACKEND_ERROR_STATUSES: [token: string, status: number][] = [
+  ['NotFound', 404],
+  ['Permission', 403],
+  ['Privilege', 403],
+  ['Forbidden', 403],
+  ['Hidden', 403],
+];
+
+/** Maps a Hydro error name to the HTTP status a route should return. */
+export function backendErrorStatus(name?: string) {
+  return (
+    BACKEND_ERROR_STATUSES.find(([token]) => name?.includes(token))?.[1] ?? 502
+  );
+}
+
+export function throwBackendError(response: object) {
+  if (!('error' in response)) return;
+  const error = (response as { error: unknown }).error;
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message: unknown }).message;
+    if (typeof message === 'string' && message) {
+      const params = (error as { params?: unknown }).params;
+      const name = (error as { name?: unknown }).name;
+      throw new BackendResponseError(
+        parseErrorMessage({
+          message,
+          name: typeof name === 'string' ? name : 'Error',
+          params: Array.isArray(params)
+            ? params.map((value) => String(value))
+            : undefined,
+        })
+      );
+    }
+  }
+  throw new BackendResponseError(
+    error == null ? 'Request failed' : String(error)
+  );
+}
+
+export function normalizeBackendPathname(pathname: string) {
+  return pathname.replace(DOMAIN_PREFIX, '');
+}
+
+export function backendPathname(url: string) {
+  try {
+    return normalizeBackendPathname(
+      new URL(url, 'https://backend.invalid').pathname
+    );
+  } catch {
+    return null;
+  }
+}
+
+export function matchesBackendPath(url: string, path: string) {
+  return backendPathname(url) === path;
+}
+
+export function isSudoRequired(response: unknown) {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'url' in response &&
+    typeof response.url === 'string' &&
+    matchesBackendPath(response.url, '/user/sudo')
+  );
+}
+
+export function isLoginRedirect(url: string) {
+  const pathname = backendPathname(url);
+  return pathname === '/login' || Boolean(pathname?.startsWith('/login'));
+}
+
+export function isAuthSessionPath(url: string) {
+  const pathname = backendPathname(url);
+  return pathname !== null && AUTH_SESSION_PATHS.has(pathname);
+}
+
+/** Unwraps an Errorable mutation response that must carry the document id. */
+export function requireTid(
+  response: Errorable<{ tid?: string }> | null | undefined,
+  fallbackMessage: string
+): string {
+  if (response && 'error' in response) {
+    throw new Error(parseErrorMessage(response.error));
+  }
+  if (!response?.tid) throw new Error(fallbackMessage);
+  return response.tid;
+}

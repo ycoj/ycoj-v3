@@ -1,0 +1,80 @@
+name: Frontend Checks
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'ycoj-ui/**'
+      - '.github/**'
+      - 'AGENTS.md'
+      - '.gitattributes'
+      - '.gitignore'
+  pull_request:
+    branches: ['**']
+    paths:
+      - 'ycoj-ui/**'
+      - '.github/**'
+      - 'AGENTS.md'
+      - '.gitattributes'
+      - '.gitignore'
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Frontend lint and tests
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    defaults:
+      run:
+        working-directory: ycoj-ui
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          package_json_file: ycoj-ui/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: ycoj-ui/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Run TypeScript type check
+        run: pnpm lint:type
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run tests
+        id: test
+        run: pnpm test
+
+      - name: Upload Playwright artifacts
+        if: steps.test.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            ycoj-ui/**/__traces__/
+            ycoj-ui/test-results/
+            ycoj-ui/.vitest-attachments/
+          if-no-files-found: ignore
+          retention-days: 7

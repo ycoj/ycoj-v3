@@ -1,12 +1,23 @@
-# Hydro
+# YCOJ v3
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/hydro-dev/hydro/build.yml?branch=master)
+本仓库统一管理 YCOJ 后端与 Next.js 前端，生产环境仍将它们作为两个服务分别构建、启动和更新。
+
+| 目录 | 内容 | 常用命令 |
+| --- | --- | --- |
+| 仓库根目录 | 基于 [Hydro](https://github.com/hydro-dev/Hydro) 的后端及旧前端 | `yarn install`、`yarn test`、`yarn start` |
+| [`ycoj-ui/`](ycoj-ui/) | 当前开发的 Next.js 前端 | `pnpm install`、`pnpm dev`、`pnpm build`、`pnpm start` |
+
+请在对应目录运行命令；前端通过 `BACKEND_BASEURL` 连接独立运行的后端。部署检出和切换步骤见 [deploy.md](deploy.md)。原仓库 [YCOJ](https://github.com/ycoj/YCOJ) 与 [ycoj-ui](https://github.com/ycoj/ycoj-ui) 保留为历史档案。
+
+## Hydro 后端
+
+[![Backend Tests](https://github.com/ycoj/ycoj-v3/actions/workflows/test.yml/badge.svg)](https://github.com/ycoj/ycoj-v3/actions/workflows/test.yml)
 ![hydrooj](https://img.shields.io/npm/dm/hydrooj)
 ![npm](https://img.shields.io/npm/v/hydrooj?label=hydrooj)
 ![node-current](https://img.shields.io/node/v/hydrooj)
 ![GitHub contributors](https://img.shields.io/github/contributors/hydro-dev/Hydro)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/hydro-dev/Hydro)
-[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/ycoj/YCOJ?utm_source=badge)
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/ycoj/ycoj-v3?utm_source=badge)
 
 Hydro 是一个高效信息学在线测评系统。易安装，跨平台，多功能，可扩展，有题库。
 

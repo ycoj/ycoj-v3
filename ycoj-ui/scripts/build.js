@@ -1,0 +1,76 @@
+import dotenv from 'dotenv';
+import { NodeSSH } from 'node-ssh';
+import path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), './scripts/.env.local') });
+
+const { SSH_HOST, SSH_PORT, SSH_USER, SSH_PASSWORD, FRONTEND_DIR } =
+  process.env;
+
+if (!FRONTEND_DIR || path.posix.basename(FRONTEND_DIR) !== 'ycoj-ui') {
+  throw new Error('FRONTEND_DIR must point to the ycoj-ui directory');
+}
+
+const repositoryDir = path.posix.dirname(FRONTEND_DIR);
+
+const ssh = new NodeSSH();
+
+await ssh.connect({
+  host: SSH_HOST,
+  port: SSH_PORT,
+  username: SSH_USER,
+  password: SSH_PASSWORD,
+});
+
+const pullChanges = async () => {
+  const result = await ssh.execCommand(
+    `cd "${repositoryDir}" && git pull --ff-only`
+  );
+  console.log(result.stdout);
+  if (result.code !== 0) throw new Error('Failed to pull changes');
+};
+
+const installDependencies = async () => {
+  const result = await ssh.execCommand(
+    `cd "${FRONTEND_DIR}" && pnpm install --frozen-lockfile`
+  );
+  console.log(result.stdout);
+  if (result.code !== 0) throw new Error('Failed to install dependencies');
+};
+
+const pullGitLfsObjects = async () => {
+  const result = await ssh.execCommand(
+    `cd "${repositoryDir}" && git lfs install --local && git lfs pull`
+  );
+  console.log(result.stdout);
+  if (result.code !== 0) throw new Error('Failed to pull Git LFS objects');
+};
+
+const build = async () => {
+  const result = await ssh.execCommand(`cd "${FRONTEND_DIR}" && pnpm build`);
+  console.log(result.stdout);
+  if (result.code !== 0) throw new Error('Failed to build');
+};
+
+const restartService = async () => {
+  const result = await ssh.execCommand(`pm2 restart ycoj-ui`);
+  console.log(result.stdout);
+  if (result.code !== 0) throw new Error('Failed to restart service');
+};
+
+const steps = [
+  pullChanges,
+  pullGitLfsObjects,
+  installDependencies,
+  build,
+  restartService,
+];
+
+for (const step of steps) {
+  console.time(step.name);
+  await step();
+  console.timeEnd(step.name);
+}
+
+console.log('Build completed');
+ssh.dispose();

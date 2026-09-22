@@ -1,0 +1,168 @@
+import type { TrainingDetailResponse } from '@/api/server/method/training/detail';
+import { formatProblemPid } from '@/features/problem/lib/format-problem-pid';
+import ProblemDifficulty from '@/features/problem/problem-difficulty';
+import ProblemLink from '@/features/problem/problem-link';
+import ProblemStatus from '@/features/problem/problem-status';
+import { getTrainingChapterAnchorId } from '@/features/training/detail/training-detail-utils';
+import TrainingTagsToggle from '@/features/training/detail/training-tags-toggle';
+import Markdown from '@/shared/components/markdown';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/shared/components/ui/accordion';
+import { Badge } from '@/shared/components/ui/badge';
+import { Separator } from '@/shared/components/ui/separator';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from '@/shared/components/ui/table';
+import { useTranslations } from 'next-intl';
+
+type Props = {
+  data: TrainingDetailResponse;
+  showTags: boolean;
+};
+
+export default function TrainingContent({ data, showTags }: Props) {
+  const t = useTranslations('training');
+  const tp = useTranslations('problem');
+  const common = useTranslations('common');
+  const description = data.tdoc.description.trim();
+  const sections = data.tdoc.dag ?? [];
+  const defaultOpenSections = sections.map((node) => String(node._id));
+  const toggleShowTagsHref = `/training/${data.tdoc.docId}?showTags=${!showTags}`;
+
+  return (
+    <div className="space-y-4" data-llm-visible="true">
+      <section className="-mt-3">
+        {/* To align with right bar. */}
+        <Markdown>{description}</Markdown>
+      </section>
+
+      <Separator />
+
+      <section className="space-y-3">
+        <Accordion
+          type="multiple"
+          defaultValue={defaultOpenSections}
+          className="w-full"
+        >
+          {sections.map((node, index) => {
+            const sectionTitle = node.title.trim();
+            const chapterLabel = t('chapter', {
+              number: index + 1,
+              title: sectionTitle,
+            });
+
+            return (
+              <AccordionItem
+                key={node._id}
+                value={String(node._id)}
+                id={getTrainingChapterAnchorId(node._id)}
+                className="border-t first:border-t-0"
+              >
+                <AccordionTrigger className="cursor-pointer gap-3 px-0 py-3 hover:no-underline">
+                  <div className="flex min-w-0 items-center pr-2">
+                    <span
+                      className="truncate text-base md:text-lg"
+                      data-llm-text={chapterLabel}
+                    >
+                      {chapterLabel}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+
+                <AccordionContent className="h-auto pb-1">
+                  <Table className="table-fixed">
+                    <colgroup>
+                      <col className="w-20 md:w-28" />
+                      <col className="w-24" />
+                      <col />
+                      <col className="w-32 md:w-48" />
+                      <col className="w-26 md:w-32" />
+                    </colgroup>
+                    <TableHeader>
+                      <TableRow>
+                        <TableCell>{common('status')}</TableCell>
+                        <TableCell>{t('problemNumber')}</TableCell>
+                        <TableCell>{common('problem')}</TableCell>
+                        <TableCell className="text-right">
+                          <TrainingTagsToggle href={toggleShowTagsHref}>
+                            {showTags ? tp('hideTags') : tp('showTags')}
+                          </TrainingTagsToggle>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {t('difficulty')}
+                        </TableCell>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {node.pids.map((pid) => {
+                        const problem = data.pdict[pid];
+                        const statusDoc =
+                          data.selfPsdict[pid] ?? data.psdict[pid];
+
+                        return (
+                          <TableRow key={`${node._id}-${pid}`}>
+                            <TableCell>
+                              <div className="inline-flex">
+                                {statusDoc?.status !== undefined &&
+                                statusDoc?.status !== null ? (
+                                  <ProblemStatus status={statusDoc} />
+                                ) : null}
+                              </div>
+                            </TableCell>
+
+                            <TableCell
+                              className="tabular-nums"
+                              data-llm-text={formatProblemPid(problem)}
+                            >
+                              {formatProblemPid(problem)}
+                            </TableCell>
+
+                            <TableCell>
+                              <ProblemLink problem={problem} openInNewTab />
+                            </TableCell>
+
+                            <TableCell className="text-right">
+                              {showTags && (
+                                <div className="flex min-w-0 flex-wrap justify-end gap-2">
+                                  {problem.tag.map((tag) => (
+                                    <Badge
+                                      variant="secondary"
+                                      key={tag}
+                                      data-llm-text={tag}
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </TableCell>
+
+                            <TableCell className="text-center">
+                              <div className="inline-flex">
+                                <ProblemDifficulty
+                                  difficulty={problem.difficulty}
+                                />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </section>
+    </div>
+  );
+}

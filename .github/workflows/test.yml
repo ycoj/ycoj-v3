@@ -1,8 +1,14 @@
-name: Tests
+name: Backend Tests
 
 on:
   push:
+    paths:
+      - '**'
+      - '!ycoj-ui/**'
   pull_request:
+    paths:
+      - '**'
+      - '!ycoj-ui/**'
   workflow_dispatch:
 
 permissions:
@@ -18,7 +24,7 @@ env:
 
 jobs:
   test:
-    name: Test
+    name: Backend Test
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
