@@ -1,0 +1,45 @@
+name: Mirror to CNB
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mirror-cnb-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Mirror to CNB
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore LFS object cache
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: mirror-lfs-${{ github.run_id }}
+          restore-keys: mirror-lfs-
+
+      - name: Push mirror to CNB
+        env:
+          CNB_TOKEN: ${{ secrets.CNB_TOKEN }}
+        run: |
+          git remote add cnb "https://cnb:${CNB_TOKEN}@cnb.cool/ycoj-ui/ycoj-v3.git"
+          # `git push --mirror` moves refs only; sync LFS objects for all refs
+          # to CNB's LFS store so mirrored commits resolve their pointers.
+          git lfs fetch --all origin
+          git lfs push --all cnb
+          # Drop remote-tracking refs so the mirror push only carries heads,
+          # tags, and other real refs instead of refs/remotes/origin/*.
+          git for-each-ref --format='delete %(refname)' refs/remotes/ | git update-ref --stdin
+          git push cnb --mirror --no-verify
