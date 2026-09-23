@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   lint:
-    name: Frontend lint and tests
+    name: Frontend lint, build and tests
     runs-on: blacksmith-4vcpu-ubuntu-2404
     defaults:
       run:
@@ -60,6 +60,11 @@ jobs:
 
       - name: Run TypeScript type check
         run: pnpm lint:type
+
+      - name: Build frontend
+        run: pnpm build
+        env:
+          BACKEND_BASEURL: http://127.0.0.1:2333
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
