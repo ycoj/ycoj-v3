@@ -44,12 +44,15 @@ function validConfig(value: unknown): value is ProblemConfig {
 }
 
 /**
- * Printable `name` characters. The problem `pid` is used verbatim except for
- * characters outside this set, which become `_`; the fixture documents that
- * casing is preserved (`P1001` stays `P1001`).
+ * Printable `name` characters. Characters outside this set become `_`;
+ * letters are lowercase and only the first seven characters are kept.
  */
 function sanitizeShortName(raw: string): string {
-  return raw.replace(/[^A-Za-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '');
+  return raw
+    .replace(/[^A-Za-z0-9_-]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase()
+    .slice(0, 7);
 }
 
 /** Format the exact date/time line consumed by the CNOI title block. */
@@ -184,7 +187,8 @@ function buildProblem(
       location: { problemId: pdoc.docId },
     });
   }
-  const name = sanitizeShortName(pdoc.pid ?? '') || `p${pdoc.docId}`;
+  const name =
+    sanitizeShortName(pdoc.pid ?? '') || sanitizeShortName(`p${pdoc.docId}`);
   const fileIo = config !== null && isFileIoProblem(pdoc);
   // File-I/O names use the task file stem verbatim — `a+b.in`/`a+b.out`
   // pair with directory `a+b` and program `a+b.cpp`.
@@ -218,7 +222,7 @@ function buildProblem(
       Number.isFinite(config?.count) && (config?.count ?? 0) > 0
         ? String(config?.count)
         : '',
-    scoreNote: '',
+    scoreNote: '是',
     // Hydro has no per-problem pretest count, so the row stays hidden until
     // the editor fills it in.
     pretestCount: '',

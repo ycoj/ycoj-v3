@@ -32,7 +32,8 @@ export type PrintProblem = {
   /**
    * Short ASCII identifier used as a fallback for generated file names.
    * YCOJ problems have no dedicated short name, so the builder derives it from
-   * `pid` or falls back to `p${docId}`.
+   * the first seven characters of a sanitized lowercase `pid` or falls back
+   * to `p${docId}`.
    */
   name: string;
   /** Title shown in the problem heading and the overview table. */
@@ -62,7 +63,7 @@ export type PrintProblem = {
   testcaseCount: string;
   /**
    * Subtask/score note for the overview table (equal-split, subtask weights,
-   * …). Empty string hides the row.
+   * …). Defaults to `是`; empty string hides the row.
    */
   scoreNote: string;
   /** Pretest count text; empty string hides the row. */

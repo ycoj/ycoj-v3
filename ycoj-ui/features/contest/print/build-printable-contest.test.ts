@@ -73,7 +73,7 @@ describe('buildPrintableContest', () => {
     });
     const { document, diagnostics } = buildPrintableContest(response);
     expect(document.problems[0]).toMatchObject({
-      name: 'P1001',
+      name: 'p1001',
       problemType: '',
       timeLimit: '',
       memoryLimit: '',
@@ -308,17 +308,28 @@ describe('buildPrintableContest', () => {
     expect(document.problems[3].submitFilenames).toEqual(['a+b.cpp']);
   });
 
-  it('derives names from pid with sanitizing, else p<docId>', () => {
+  it('derives lowercase names from pid with sanitizing and seven-character limit, else p<docId>', () => {
     const response = makeResponse({
       1: makeProblem(1, {}, { pid: 'P1001' }),
       2: makeProblem(2, {}, { pid: 'a b/c' }),
       3: makeProblem(3),
       4: makeProblem(4, {}, { pid: '!!!' }),
+      5: makeProblem(5, {}, { pid: 'AbCdEfGh' }),
+      6: makeProblem(6, {}, { pid: 'abcdefg' }),
+      12345678: makeProblem(12345678),
     });
     const names = buildPrintableContest(response).document.problems.map(
       (p) => p.name
     );
-    expect(names).toEqual(['P1001', 'a_b_c', 'p3', 'p4']);
+    expect(names).toEqual([
+      'p1001',
+      'a_b_c',
+      'p3',
+      'p4',
+      'abcdefg',
+      'abcdefg',
+      'p123456',
+    ]);
   });
 
   it('defaults to one C++ submission language regardless of contest and problem languages', () => {

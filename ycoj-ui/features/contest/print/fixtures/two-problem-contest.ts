@@ -226,7 +226,7 @@ export const twoProblemContest: PrintFixture = {
       {
         problemId: 1001,
         pid: 'P1001',
-        name: 'P1001',
+        name: 'p1001',
         title: 'A+B Problem',
         problemType: 'default',
         statement: problem1001Statement.zh.trim(),
@@ -238,7 +238,7 @@ export const twoProblemContest: PrintFixture = {
         outputFile: 'aplusb.out',
         submitFilenames: ['aplusb.cpp'],
         testcaseCount: '10',
-        scoreNote: '',
+        scoreNote: '是',
         pretestCount: '',
       },
       {
@@ -255,7 +255,7 @@ export const twoProblemContest: PrintFixture = {
         outputFile: '',
         submitFilenames: ['p1002.cpp'],
         testcaseCount: '20',
-        scoreNote: '',
+        scoreNote: '是',
         pretestCount: '',
       },
     ],
