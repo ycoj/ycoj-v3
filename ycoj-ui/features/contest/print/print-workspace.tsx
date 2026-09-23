@@ -4,8 +4,9 @@ import type { PrintAssetProvider } from './assets';
 import type { CreatePrintCompiler, PrintSupport } from './compiler';
 import type { PrintableContest, PrintProblemOverrides } from './model';
 import PrintContestSettings from './print-contest-settings';
-import { nextExtraSectionId } from './print-draft';
+import { nextExtraSectionId, problemLetter } from './print-draft';
 import PrintPreviewPanel from './print-preview-panel';
+import PrintProblemEditor from './print-problem-editor';
 import PrintProblemList from './print-problem-list';
 import type { PrintDraftActions } from './use-print-draft';
 import type { ContestManagementResponse } from '@/api/server/method/contests/management';
@@ -109,7 +110,7 @@ export default function PrintWorkspace({
       <div className="flex items-center gap-1 border-b bg-card px-1 py-1">
         <TabsList
           variant="line"
-          className="h-9 min-w-0 flex-1 justify-start overflow-x-auto"
+          className="h-9 min-w-0 flex-1 justify-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label={t('editorPanels')}
         >
           <TabsTrigger value="basic">
@@ -159,7 +160,6 @@ export default function PrintWorkspace({
             data={data}
             document={document}
             order={order}
-            problemOverrides={problemOverrides}
             isDirty={isDirty}
             actions={actions}
           />
@@ -209,15 +209,33 @@ export default function PrintWorkspace({
         </TabsContent>
       ))}
 
-      {document.problems.map((problem) => (
+      {document.problems.map((problem, index) => (
         <TabsContent
           key={problem.problemId}
           value={panelValueForProblem(problem.problemId)}
-          className="min-h-0 p-0"
+          className="min-h-0 space-y-3 overflow-auto p-3"
         >
+          <PrintProblemEditor
+            problem={problem}
+            letter={problemLetter(index)}
+            isFirst={index === 0}
+            isLast={index === document.problems.length - 1}
+            showNoiStyle={document.noiStyle}
+            showFileIo={document.fileIo}
+            showPretest={document.usePretest}
+            languages={document.languages}
+            hasOverrides={
+              Object.keys(problemOverrides[problem.problemId] ?? {}).length > 0
+            }
+            onPatch={(patch) => actions.updateProblem(problem.problemId, patch)}
+            onMoveUp={() => actions.moveProblem(problem.problemId, 'up')}
+            onMoveDown={() => actions.moveProblem(problem.problemId, 'down')}
+            onRemove={() => actions.removeProblem(problem.problemId)}
+            onRestore={() => actions.restoreProblemDefaults(problem.problemId)}
+          />
           <Textarea
             aria-label={t('statementFor', { title: problem.title })}
-            className="size-full min-h-80 resize-none rounded-none border-0 p-4 font-mono text-sm shadow-none focus-visible:ring-0"
+            className="min-h-80 resize-y font-mono text-sm"
             value={problem.statement}
             onChange={(event) =>
               actions.updateProblem(problem.problemId, {
@@ -250,7 +268,7 @@ export default function PrintWorkspace({
   }
 
   return (
-    <div className="h-[clamp(42rem,82vh,72rem)] min-h-0 overflow-hidden rounded-md border">
+    <div className="min-h-[42rem] flex-1 overflow-hidden rounded-md border">
       <Group orientation="horizontal" className="h-full">
         <Panel id="contest-print-editor" defaultSize="50" minSize={250}>
           <div className="h-full min-w-0">{editor}</div>

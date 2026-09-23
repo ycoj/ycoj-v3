@@ -23,7 +23,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   if (!canEditContest(user, data.tdoc))
     return <Errored title={t('unavailable')} error={t('unavailable')} />;
   return (
-    <div data-app-full-width>
+    <div className="flex min-h-0 flex-1 flex-col" data-app-full-width>
       <PrintPage tid={tid} data={data} />
     </div>
   );

@@ -50,6 +50,17 @@ type Props = {
   onRestore: () => void;
 };
 
+const PROBLEM_TYPE_KEYS = {
+  default: 'default',
+  traditional: 'default',
+  objective: 'objective',
+  submit_answer: 'submitAnswer',
+  fileio: 'fileIo',
+  interactive: 'interactive',
+  communication: 'communication',
+  remote_judge: 'default',
+} as const;
+
 /**
  * One problem card in the print order: a summary header with per-card
  * actions, a collapsible editor for the printed fields, and an advanced
@@ -72,6 +83,7 @@ export default function PrintProblemEditor({
   onRestore,
 }: Props) {
   const t = useTranslations('contestPrint');
+  const tProblemType = useTranslations('problemType');
   const id = useId();
   const [advanced, setAdvanced] = useState(false);
   const advancedId = `${id}-advanced`;
@@ -79,6 +91,16 @@ export default function PrintProblemEditor({
   const limits = [problem.timeLimit, problem.memoryLimit]
     .filter(Boolean)
     .join(' · ');
+  const problemTypeKey =
+    PROBLEM_TYPE_KEYS[
+      problem.problemType as keyof typeof PROBLEM_TYPE_KEYS
+    ];
+  const localizedProblemType =
+    problem.problemType === 'default'
+      ? t('problemTypeDefault')
+      : problemTypeKey
+        ? tProblemType(problemTypeKey)
+        : problem.problemType;
 
   const patchFilename = (index: number, value: string) => {
     onPatch({
@@ -208,7 +230,7 @@ export default function PrintProblemEditor({
             </FieldLabel>
             <Input
               id={`${id}-type`}
-              value={problem.problemType}
+              value={localizedProblemType}
               onChange={(event) => onPatch({ problemType: event.target.value })}
             />
           </Field>

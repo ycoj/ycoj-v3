@@ -71,7 +71,7 @@ export default function PrintPage({ tid, data, createCompiler }: Props) {
   );
 
   return (
-    <div className="space-y-6" data-llm-visible="true">
+    <div className="flex min-h-0 flex-1 flex-col gap-6" data-llm-visible="true">
       <header className="space-y-1">
         <h1 className="text-xl font-semibold" data-llm-text={t('title')}>
           {t('title')}

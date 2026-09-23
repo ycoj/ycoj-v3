@@ -64,6 +64,7 @@
   "fieldProblemName": "短名称",
   "fieldProblemNameDescription": "用作默认目录名和可执行文件名的 ASCII 标识符。",
   "fieldProblemType": "题目类型",
+  "problemTypeDefault": "传统题",
   "fieldStatement": "题面（Markdown）",
   "statementFor": "{title} 的题面",
   "fieldTimeLimit": "时间限制",

@@ -21,9 +21,9 @@ export default async function AppFrame({ children, banner }: Props) {
       <SidebarProvider>
         <OmnibarProvider>
           <AppSidebar />
-          <SidebarInset className="overflow-auto p-4 has-data-[app-full-width]:px-2 md:overflow-visible">
+          <SidebarInset className="overflow-auto p-4 has-data-[app-full-width]:px-2 has-data-[app-full-width]:pb-0 md:overflow-visible">
             <CollapsedTrigger />
-            <div className="container mx-auto has-data-[app-full-width]:max-w-none">
+            <div className="container mx-auto has-data-[app-full-width]:flex has-data-[app-full-width]:flex-1 has-data-[app-full-width]:flex-col has-data-[app-full-width]:max-w-none">
               <div className="mb-2 flex px-2 md:hidden">
                 <Link href="/home" aria-label={siteName}>
                   <ThemeLogo
@@ -34,7 +34,10 @@ export default async function AppFrame({ children, banner }: Props) {
                   />
                 </Link>
               </div>
-              <div id="app-body" className="pt-4">
+              <div
+                id="app-body"
+                className="pt-4 has-data-[app-full-width]:flex has-data-[app-full-width]:flex-1 has-data-[app-full-width]:flex-col"
+              >
                 {banner}
                 {children}
               </div>

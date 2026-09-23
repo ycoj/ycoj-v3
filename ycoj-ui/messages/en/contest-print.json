@@ -64,6 +64,7 @@
   "fieldProblemName": "Short name",
   "fieldProblemNameDescription": "ASCII identifier used as the default directory and executable name.",
   "fieldProblemType": "Problem type",
+  "problemTypeDefault": "Default",
   "fieldStatement": "Statement (markdown)",
   "statementFor": "Statement for {title}",
   "fieldTimeLimit": "Time limit",
