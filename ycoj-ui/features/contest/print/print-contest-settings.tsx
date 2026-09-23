@@ -45,6 +45,8 @@ import { useId, useRef } from 'react';
 type Props = {
   /** The effective document — every field shows the built (merged) value. */
   document: PrintableContest;
+  /** Sparse edits, including problems currently omitted from the paper. */
+  problemOverrides: Record<number, PrintProblemOverrides>;
   /** `actions.updateContest` from `usePrintDraft`. */
   onPatch: (patch: PrintContestPatch) => void;
   onProblemPatch: (problemId: number, patch: PrintProblemOverrides) => void;
@@ -56,6 +58,7 @@ type Props = {
  */
 export default function PrintContestSettings({
   document,
+  problemOverrides,
   onPatch,
   onProblemPatch,
 }: Props) {
@@ -76,9 +79,13 @@ export default function PrintContestSettings({
     onPatch({
       languages: document.languages.filter((_, i) => i !== index),
     });
-    for (const problem of document.problems) {
-      onProblemPatch(problem.problemId, {
-        submitFilenames: problem.submitFilenames.filter((_, i) => i !== index),
+    for (const [id, override] of Object.entries(problemOverrides)) {
+      if (override.submitFilenames === undefined) continue;
+      onProblemPatch(Number(id), {
+        submitFilenames: [
+          ...override.submitFilenames.slice(0, index),
+          ...override.submitFilenames.slice(index + 1),
+        ],
       });
     }
     requestAnimationFrame(() => addLanguageRef.current?.focus());
@@ -90,9 +97,12 @@ export default function PrintContestSettings({
         { id: '', displayName: '', compileOptions: '' },
       ],
     });
-    for (const problem of document.problems) {
-      onProblemPatch(problem.problemId, {
-        submitFilenames: [...problem.submitFilenames, ''],
+    for (const [id, override] of Object.entries(problemOverrides)) {
+      if (override.submitFilenames === undefined) continue;
+      const submitFilenames = [...override.submitFilenames];
+      submitFilenames[document.languages.length] = '';
+      onProblemPatch(Number(id), {
+        submitFilenames,
       });
     }
   };

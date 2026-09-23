@@ -39,6 +39,14 @@ describe('markdownToTypst', () => {
     ['`x++`', '#par[#raw(block: false, lang: "txt", "x++")]\n\n'],
     ['```cpp\nint a;\n```', '#raw(block: true, lang: "cpp", "int a;")\n\n'],
     ['```py\nx = 1\n```', '#raw(block: true, lang: "python", "x = 1")\n\n'],
+    [
+      '```input1\n1 2\n```\n\n```output1\n3\n```',
+      '#heading(level: 2, [#"样例输入 1"])\n#raw(block: true, lang: "txt", "1 2")\n#heading(level: 2, [#"样例输出 1"])\n#raw(block: true, lang: "txt", "3")\n\n',
+    ],
+    [
+      '```input2\n4\n```',
+      '#heading(level: 2, [#"样例输入 2"])\n#raw(block: true, lang: "txt", "4")\n\n',
+    ],
     ['```unknownlang\nx\n```', '#raw(block: true, lang: "txt", "x")\n\n'],
     ['```\nx\n```', '#raw(block: true, lang: "txt", "x")\n\n'],
     ['- a\n- b', '#list(\n[#"a"],\n[#"b"],\n)\n\n'],
@@ -49,7 +57,7 @@ describe('markdownToTypst', () => {
     ],
     ['> quoted', '#quote(block: true)[\n#par[#"quoted"]\n]\n\n'],
     ['a\n\n---\n\nb', '#par[#"a"]\n#print-rule()\n#par[#"b"]\n\n'],
-    ['a  \nb', '#par[#"a"#linebreak#"b"]\n\n'],
+    ['a  \nb', '#par[#"a"#linebreak()#"b"]\n\n'],
     [
       'inline $a+b$ math',
       '#par[#"inline "#print-math(block: false, "a+b")#" math"]\n\n',
@@ -107,7 +115,7 @@ describe('markdownToTypst', () => {
       options(files)
     );
     expect(typst).toBe(
-      '#par[#box(image("asset-44f6cc42.png", alt: "alt"))]\n\n'
+      '#par[#box(image("asset-ef69e8b0.png", alt: "alt"))]\n\n'
     );
     expect(diagnostics).toEqual([]);
     expect(assets).toEqual([
@@ -115,7 +123,7 @@ describe('markdownToTypst', () => {
         uri: 'file://x.png',
         url: '/api/p/7/file/x.png?tid=7',
         scope: { kind: 'problem', tid: '7', problemId: 7 },
-        path: 'asset-44f6cc42.png',
+        path: 'asset-ef69e8b0.png',
       },
     ]);
   });
@@ -127,9 +135,32 @@ describe('markdownToTypst', () => {
       options(files)
     );
     expect(typst).toBe(
-      '#par[#box(image("asset-44f6cc42.png", alt: "a"))#" and "#box(image("asset-44f6cc42.png", alt: "b"))]\n\n'
+      '#par[#box(image("asset-ef69e8b0.png", alt: "a"))#" and "#box(image("asset-ef69e8b0.png", alt: "b"))]\n\n'
     );
     expect(assets).toHaveLength(1);
+  });
+
+  it('keeps equal attachment names distinct across problems and the contest', () => {
+    const markdown = '![a](file://x.png)';
+    const first = markdownToTypst(
+      markdown,
+      options({ 'x.png': '/p/7/x.png' }, 7)
+    );
+    const second = markdownToTypst(
+      markdown,
+      options({ 'x.png': '/p/8/x.png' }, 8)
+    );
+    const contest = markdownToTypst(markdown, {
+      scope: { kind: 'contest', tid: '7' },
+      resolveFile: () => '/contest/x.png',
+    });
+    expect(
+      new Set([
+        first.assets[0].path,
+        second.assets[0].path,
+        contest.assets[0].path,
+      ]).size
+    ).toBe(3);
   });
 
   it('collects remote images and data URIs as fetchable assets', () => {
@@ -138,7 +169,7 @@ describe('markdownToTypst', () => {
       options()
     );
     expect(typst).toBe(
-      '#par[#box(image("asset-be949c97.png", alt: "p"))#" "#box(image("asset-45aa79c6.png", alt: "d"))]\n\n'
+      '#par[#box(image("asset-196bb661.png", alt: "p"))#" "#box(image("asset-0388e0a4.png", alt: "d"))]\n\n'
     );
     expect(assets.map((a) => a.url)).toEqual([
       'https://e.com/a.png',
@@ -156,7 +187,7 @@ describe('markdownToTypst', () => {
       expect.objectContaining({
         uri: 'file://missing.png',
         url: null,
-        path: 'asset-e4c422aa.png',
+        path: 'asset-b85b5818.png',
       }),
     ]);
     expect(diagnostics).toEqual([
@@ -170,13 +201,13 @@ describe('markdownToTypst', () => {
       '![a](FILE://x.png)',
       options(files)
     );
-    expect(typst).toBe('#par[#box(image("asset-18d79582.png", alt: "a"))]\n\n');
+    expect(typst).toBe('#par[#box(image("asset-3ab9cef0.png", alt: "a"))]\n\n');
     expect(assets).toEqual([
       {
         uri: 'FILE://x.png',
         url: '/u/x.png',
         scope: { kind: 'problem', tid: '7', problemId: 7 },
-        path: 'asset-18d79582.png',
+        path: 'asset-3ab9cef0.png',
       },
     ]);
     expect(diagnostics).toEqual([]);
@@ -204,7 +235,7 @@ describe('markdownToTypst', () => {
       options(files)
     );
     expect(typst).toBe(
-      '#par[#link("https://e.com")[#"l"]#" and "#box(image("asset-44f6cc42.png", alt: "i"))]\n\n'
+      '#par[#link("https://e.com")[#"l"]#" and "#box(image("asset-ef69e8b0.png", alt: "i"))]\n\n'
     );
     expect(assets).toHaveLength(1);
     expect(diagnostics).toEqual([]);
@@ -274,7 +305,7 @@ describe('markdownToTypst', () => {
       options()
     );
     expect(typst).toBe(
-      '#figure(caption: ["c"])[#box(image("asset-be949c97.png"))]\n'
+      '#figure(caption: ["c"])[#box(image("asset-196bb661.png"))]\n'
     );
     expect(assets).toHaveLength(1);
     expect(diagnostics).toEqual([]);

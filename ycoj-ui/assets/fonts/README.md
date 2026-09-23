@@ -26,17 +26,3 @@ The font is intentionally not subset. Exported scoreboards contain arbitrary
 usernames, real names, and problem titles, so removing glyphs would replace
 unknown characters with tofu. The tradeoff is a ~16 MiB deployment artifact,
 which output tracing already carries.
-
-## NotoSerifCJKsc-Regular.otf
-
-Source for `public/fonts/typst/NotoSerifCJKsc-Regular.otf`, the CJK serif face
-of the browser print compiler (`features/contest/print`). Copied — not
-downloaded — by `scripts/prepare-typst.mjs` because upstream has no small
-stable single-file URL for it.
-
-Source: [notofonts/noto-cjk release `Serif2.003`](https://github.com/notofonts/noto-cjk/releases/tag/Serif2.003),
-asset `09_NotoSerifCJKsc.zip`, member
-`OTF/SimplifiedChinese/NotoSerifCJKsc-Regular.otf`
-(SHA-256 `2a2eae2628df83556c54018c41e20fa532c1b862c5256ae8b3f23feb918d12ca`).
-SIL Open Font License 1.1 (`noto-sans-cjk-OFL.txt` is byte-identical to the
-release's `LICENSE`).

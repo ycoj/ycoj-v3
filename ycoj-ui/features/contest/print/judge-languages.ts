@@ -1,8 +1,7 @@
 /**
  * Display metadata for Hydro judge language ids (`family.version`, e.g.
- * `cc.cc17o2`). The contest management response does not carry the server's
- * `/ui/languages` catalog, so the print draft relies on this static table;
- * ids it does not know fall back to the raw id so editors can fix the label.
+ * `cc.cc17o2`). Callers without the server's `/ui/languages` catalog can
+ * use this static table; unknown ids fall back to the raw id.
  *
  * `compileOptions` mirrors what the paper's submission table prints: the
  * `o2` version suffix adds `-O2`, versioned `cc.ccXX`/`c.cXX` ids add the

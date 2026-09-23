@@ -232,7 +232,7 @@ export const MAIN_SOURCE = `#import "preamble.typ": print-math, print-rule
       (
         [目录],
         ..for i in problems { (raw(i.directory),) },
-        [可执行文件名],
+        [程序文件名],
         ..for i in problems { (raw(i.executable),) },
       )
     },

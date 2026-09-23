@@ -66,6 +66,34 @@ function makeResponse(
 }
 
 describe('buildPrintableContest', () => {
+  it('keeps a problem printable when its config is missing', () => {
+    const problem = makeProblem(1, {}, { pid: 'P1001' });
+    const response = makeResponse({
+      1: { ...problem, config: null } as unknown as ProblemDoc,
+    });
+    const { document, diagnostics } = buildPrintableContest(response);
+    expect(document.problems[0]).toMatchObject({
+      name: 'P1001',
+      problemType: '',
+      timeLimit: '',
+      memoryLimit: '',
+      inputFile: '',
+      outputFile: '',
+    });
+    expect(document.languages).toEqual([
+      {
+        id: 'cc.cc14o2',
+        displayName: 'C++',
+        compileOptions: '-O2 -std=c++14 -static',
+      },
+    ]);
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({
+        severity: 'warning',
+        code: 'internal-error',
+      })
+    );
+  });
   it('derives the documented default draft for the two-problem fixture', () => {
     const result = buildPrintableContest(twoProblemContest.response);
     expect(result).toEqual({
@@ -103,7 +131,7 @@ describe('buildPrintableContest', () => {
       beginAt: '2026-02-08T00:00:00.000Z',
       endAt: '2026-02-08T04:00:00.000Z',
       noiStyle: false,
-      usePretest: false,
+      usePretest: true,
       fileIo: false,
       extraSections: [{ id: 'rules', markdown: 'rules text' }],
     };
@@ -147,10 +175,11 @@ describe('buildPrintableContest', () => {
     const [problem] = document.problems;
     expect(problem.title).toBe('Renamed problem');
     expect(problem.name).toBe('sum');
-    // directory/executable/submitFilenames were already derived from the
-    // original name and do not cascade.
-    expect(problem.directory).toBe('P1001');
-    expect(problem.submitFilenames).toEqual(['aplusb.cpp', 'aplusb.py']);
+    // Directory/program/submission names were derived before the short-name
+    // override and do not cascade.
+    expect(problem.directory).toBe('aplusb');
+    expect(problem.executable).toBe('aplusb.cpp');
+    expect(problem.submitFilenames).toEqual(['aplusb.cpp']);
   });
 
   it('reports overrides for problems absent from the printed list', () => {
@@ -240,7 +269,7 @@ describe('buildPrintableContest', () => {
 
   it('maps file-I/O problems to .in/.out names and sets fileIo', () => {
     const response = makeResponse({
-      1: makeProblem(1, { type: 'default', subType: 'task' }),
+      1: makeProblem(1, { type: 'default', subType: 'dec' }, { pid: 'P1001' }),
       2: makeProblem(2, { type: 'default' }),
       3: makeProblem(3, { type: 'interactive', subType: 'ignored' }),
       // The judge treats subType verbatim, so `a+b` stays `a+b` in both the
@@ -254,16 +283,27 @@ describe('buildPrintableContest', () => {
     const { document } = buildPrintableContest(response);
     expect(document.fileIo).toBe(true);
     expect(document.problems.map((p) => p.inputFile)).toEqual([
-      'task.in',
+      'dec.in',
       '',
       '',
       'a+b.in',
     ]);
     expect(document.problems[3].outputFile).toBe('a+b.out');
-    // `languages` is the document-level union of config.langs, so every
-    // problem gets one submit name per language — file-I/O problems use the
-    // raw subType stem, others their short name.
-    expect(document.problems[0].submitFilenames).toEqual(['task.cpp']);
+    expect(document.problems[0].outputFile).toBe('dec.out');
+    expect(document.problems.map((p) => p.directory)).toEqual([
+      'dec',
+      'p2',
+      'p3',
+      'a+b',
+    ]);
+    expect(document.problems.map((p) => p.executable)).toEqual([
+      'dec.cpp',
+      'p2.cpp',
+      'p3.cpp',
+      'a+b.cpp',
+    ]);
+    // The default C++ row gives each problem one submission filename.
+    expect(document.problems[0].submitFilenames).toEqual(['dec.cpp']);
     expect(document.problems[1].submitFilenames).toEqual(['p2.cpp']);
     expect(document.problems[3].submitFilenames).toEqual(['a+b.cpp']);
   });
@@ -281,43 +321,38 @@ describe('buildPrintableContest', () => {
     expect(names).toEqual(['P1001', 'a_b_c', 'p3', 'p4']);
   });
 
-  it('prefers tdoc.langs over the union of config.langs', () => {
+  it('defaults to one C++ submission language regardless of contest and problem languages', () => {
     const response = makeResponse(
       { 1: makeProblem(1, { langs: ['cc.cc17o2', 'py.py3'] }) },
       { langs: ['java'] }
     );
     const { document } = buildPrintableContest(response);
     expect(document.languages).toEqual([
-      { id: 'java', displayName: 'Java', compileOptions: '' },
+      {
+        id: 'cc.cc14o2',
+        displayName: 'C++',
+        compileOptions: '-O2 -std=c++14 -static',
+      },
     ]);
-    expect(document.problems[0].submitFilenames).toEqual(['p1.java']);
+    expect(document.usePretest).toBe(false);
+    expect(document.problems[0].submitFilenames).toEqual(['p1.cpp']);
   });
 
-  it('maps judge language ids to display names and submit filenames', () => {
-    const response = makeResponse({
-      1: makeProblem(1, {
-        langs: ['cc.cc17o2', 'cc.cc14', 'py.py3', 'java', 'weird.lang'],
-      }),
-    });
-    const { document } = buildPrintableContest(response);
-    expect(document.languages).toEqual([
-      {
-        id: 'cc.cc17o2',
-        displayName: 'C++17',
-        compileOptions: '-O2 -std=c++17',
+  it('honors explicit submission language and pretest overrides', () => {
+    const response = makeResponse({ 1: makeProblem(1) });
+    const { document } = buildPrintableContest(response, {
+      overrides: {
+        usePretest: true,
+        languages: [
+          { id: 'py.py3', displayName: 'Python 3', compileOptions: '' },
+        ],
       },
-      { id: 'cc.cc14', displayName: 'C++14', compileOptions: '-std=c++14' },
+    });
+    expect(document.languages).toEqual([
       { id: 'py.py3', displayName: 'Python 3', compileOptions: '' },
-      { id: 'java', displayName: 'Java', compileOptions: '' },
-      { id: 'weird.lang', displayName: 'weird.lang', compileOptions: '' },
     ]);
-    expect(document.problems[0].submitFilenames).toEqual([
-      'p1.cpp',
-      'p1.cpp',
-      'p1.py',
-      'p1.java',
-      'p1.weird',
-    ]);
+    expect(document.usePretest).toBe(true);
+    expect(document.problems[0].submitFilenames).toEqual(['p1.py']);
   });
 
   it('formats dateText as the exact contest time range', () => {

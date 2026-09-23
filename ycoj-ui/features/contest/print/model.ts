@@ -11,11 +11,11 @@ export type PrintStatementLanguage = SupportedProblemLanguage;
  * One row of the submission-language / compile-options table in the paper.
  */
 export type PrintLanguageSpec = {
-  /** Judge language id from `pdoc.config.langs`, e.g. `cc.cc17o2`. */
+  /** Judge language id, defaulting to `cc.cc14o2`. */
   id: string;
   /** Human-facing label printed in the paper, e.g. `C++17 (GCC 9)`. */
   displayName: string;
-  /** Compile command or options line printed verbatim, e.g. `-O2 -std=c++17`. */
+  /** Compile options printed verbatim, e.g. `-O2 -std=c++14 -static`. */
   compileOptions: string;
 };
 
@@ -30,7 +30,7 @@ export type PrintProblem = {
   /** Platform pid when the problem has one (`pdoc.pid`), for reference only. */
   pid?: string;
   /**
-   * Short ASCII identifier used as the default directory/executable name.
+   * Short ASCII identifier used as a fallback for generated file names.
    * YCOJ problems have no dedicated short name, so the builder derives it from
    * `pid` or falls back to `p${docId}`.
    */
@@ -45,9 +45,9 @@ export type PrintProblem = {
   timeLimit: string;
   /** Printable memory limit, e.g. `512 MiB`. */
   memoryLimit: string;
-  /** Working directory name; defaults to `name`. */
+  /** Working directory name; defaults to the file-I/O stem or `name`. */
   directory: string;
-  /** Executable base name; defaults to `name`. */
+  /** Program filename; defaults to `<file-I/O stem or name>.cpp`. */
   executable: string;
   /** Input file name, e.g. `task.in`; empty string means standard input. */
   inputFile: string;

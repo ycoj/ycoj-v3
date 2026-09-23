@@ -92,9 +92,7 @@ export default function PrintProblemEditor({
     .filter(Boolean)
     .join(' · ');
   const problemTypeKey =
-    PROBLEM_TYPE_KEYS[
-      problem.problemType as keyof typeof PROBLEM_TYPE_KEYS
-    ];
+    PROBLEM_TYPE_KEYS[problem.problemType as keyof typeof PROBLEM_TYPE_KEYS];
   const localizedProblemType =
     problem.problemType === 'default'
       ? t('problemTypeDefault')
@@ -111,28 +109,23 @@ export default function PrintProblemEditor({
   };
 
   const patchName = (name: string) => {
-    onPatch(
-      advanced
-        ? { name }
-        : {
-            name,
-            directory: name,
-            executable: name,
-            inputFile: `${name}.in`,
-            outputFile: `${name}.out`,
-          }
-    );
+    const oldName = problem.name;
+    onPatch({
+      name,
+      ...(problem.directory === oldName ? { directory: name } : {}),
+      ...(problem.executable === `${oldName}.cpp`
+        ? { executable: `${name}.cpp` }
+        : {}),
+      ...(problem.inputFile === `${oldName}.in`
+        ? { inputFile: `${name}.in` }
+        : {}),
+      ...(problem.outputFile === `${oldName}.out`
+        ? { outputFile: `${name}.out` }
+        : {}),
+    });
   };
 
   const toggleAdvanced = () => {
-    if (advanced) {
-      onPatch({
-        directory: problem.name,
-        executable: problem.name,
-        inputFile: `${problem.name}.in`,
-        outputFile: `${problem.name}.out`,
-      });
-    }
     setAdvanced((current) => !current);
   };
 

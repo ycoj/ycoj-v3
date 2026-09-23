@@ -357,17 +357,29 @@ describe('createTypstPrintCompiler', () => {
     expect(assetPaths).toHaveLength(2);
   });
 
-  it('records asset-fetch-failed diagnostics when fetchAsset rejects', async () => {
+  it('continues compiling with decodable placeholders when images fail', async () => {
     const harness = makeHarness();
     harness.resolveFile.mockImplementation(() => '/missing.png');
     harness.fetchAsset.mockRejectedValue(new Error('404'));
     const result = await harness.compiler.compilePdf(document);
-    expect(result.status).toBe('diagnostics');
-    if (result.status === 'diagnostics') {
+    expect(result.status).toBe('ok');
+    if (result.status === 'ok') {
       expect(
         result.diagnostics.filter((d) => d.code === 'asset-fetch-failed')
       ).toHaveLength(2);
+      expect(
+        result.diagnostics
+          .filter((d) => d.code === 'asset-fetch-failed')
+          .every((d) => d.severity === 'warning')
+      ).toBe(true);
     }
+    const files = harness.worker().compileMessages()[0]?.files ?? [];
+    expect(
+      files.filter(
+        (file) =>
+          file.path.startsWith('/asset-') && file.bytes instanceof Uint8Array
+      )
+    ).toHaveLength(2);
   });
 
   it('maps Typst diagnostics into PrintDiagnostics', async () => {

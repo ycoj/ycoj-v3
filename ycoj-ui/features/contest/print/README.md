@@ -109,9 +109,10 @@ so every byte arrives inside `files` and the worker performs zero fetches.
   response time) — mid-flight WASM compiles are never torn down.
 - **Retry**: any init failure (download error, worker `failed`/`error`) tears
   down the worker and resets state; the next `init()` starts fresh.
-- **Diagnostics ≠ failures**: document problems (`typst-diagnostic`,
-  `asset-unresolved`, `asset-fetch-failed`) resolve as
-  `{status:'diagnostics'}`; infrastructure problems reject the promise.
+- **Diagnostics ≠ failures**: Typst errors resolve as
+  `{status:'diagnostics'}`; failed image downloads use format-matched
+  placeholders and report `asset-fetch-failed` warnings while the PDF can
+  still succeed. Infrastructure problems reject the promise.
 - `dispose()` rejects in-flight calls, terminates the worker, and latches —
   subsequent calls reject immediately.
 - `createTypstPrintCompiler(options, internals)` accepts `createWorker`,
@@ -209,9 +210,9 @@ function members need `(dict.fn)(args)` call syntax; Typst `include` does not
 share scope, so every generated source imports helpers explicitly.
 Layout: A4, cover page (title/subtitle/date/notice), contest overview +
 language/submission-name tables, per-problem metadata + statement pages,
-extra sections, page numbers, running problem headers. Table labels ship in
-zh/zh_TW/en; `kr`/`jp` papers fall back to the English label set and get
-`lang: "ja"`/`"ko"` text for hyphenation.
+extra sections, page numbers, running problem headers. The template currently
+prints Chinese table labels and sets the document language to `zh` for every
+statement language selection.
 
 ## Diagnostics codes
 
@@ -259,6 +260,8 @@ failure, removed source-export action and unsupported behavior).
 - **Latest-wins over cancellation** — WASM compiles cannot be preempted;
   superseded requests resolve `stale`.
 - **`submitFilenames` per language** keeps upstream's per-language submit-name
-  table semantics; YCOJ derives defaults from `name` + language extension.
+  table semantics; the draft starts with one C++ row (`cc.cc14o2`,
+  `-O2 -std=c++14 -static`) and derives its filename from the task name.
 - **statement `language`** defaults to `zh`, picked via `parseProblemContent`
   (falls back per language availability → `language-fallback` diagnostic).
+- **Pretests** are off by default and can be enabled in paper settings.

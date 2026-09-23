@@ -153,6 +153,7 @@ export default function PrintWorkspace({
         <div className="space-y-4">
           <PrintContestSettings
             document={document}
+            problemOverrides={problemOverrides}
             onPatch={actions.updateContest}
             onProblemPatch={actions.updateProblem}
           />

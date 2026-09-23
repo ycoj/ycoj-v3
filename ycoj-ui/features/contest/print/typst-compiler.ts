@@ -44,6 +44,26 @@ export type TypstPrintCompilerInternals = {
 const describeError = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
+const FALLBACK_IMAGES: Record<string, string> = {
+  png: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC',
+  jpg: '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q==',
+  gif: 'R0lGODdhAQABAIEAAP///wAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw==',
+  webp: 'UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAUAmJaQAA3AA/vz0AAA=',
+};
+
+function fallbackImage(path: string): Uint8Array {
+  const extension = path.split('.').at(-1)?.toLowerCase() ?? 'png';
+  if (extension === 'svg') {
+    return new TextEncoder().encode(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'
+    );
+  }
+  const encoded =
+    FALLBACK_IMAGES[extension === 'jpeg' ? 'jpg' : extension] ??
+    FALLBACK_IMAGES.png;
+  return Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0));
+}
+
 function mapTypstDiagnostic(
   diagnostic: TypstWorkerDiagnostic
 ): PrintDiagnostic {
@@ -357,8 +377,12 @@ export function createTypstPrintCompiler(
       if ('bytes' in result) {
         files.push({ path: `/${result.ref.path}`, bytes: result.bytes });
       } else {
+        files.push({
+          path: `/${result.ref.path}`,
+          bytes: fallbackImage(result.ref.path),
+        });
         diagnostics.push({
-          severity: 'error',
+          severity: 'warning',
           code: 'asset-fetch-failed',
           message: `Failed to fetch asset ${result.ref.url} for ${result.ref.uri}: ${describeError(result.error)}`,
           location: {

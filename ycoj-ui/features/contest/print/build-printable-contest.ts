@@ -1,4 +1,4 @@
-import { judgeLanguageExtension, judgeLanguageInfo } from './judge-languages';
+import { judgeLanguageExtension } from './judge-languages';
 import type {
   BuildPrintableContest,
   BuildPrintableContestResult,
@@ -7,13 +7,15 @@ import type {
   PrintLanguageSpec,
   PrintProblem,
 } from './model';
-import type { ContestManagementResponse } from '@/api/server/method/contests/management';
 import { isFileIoProblem } from '@/features/problem/detail/problem-type';
 import {
   parseProblemContent,
   type SupportedProblemLanguage,
 } from '@/features/problem/parse-problem-content';
-import type { ContestDetailProjectionProblem } from '@/shared/types/problem';
+import type {
+  ContestDetailProjectionProblem,
+  ProblemConfig,
+} from '@/shared/types/problem';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
@@ -27,10 +29,19 @@ dayjs.extend(timezone);
 const PRINT_TIME_ZONE = 'Asia/Shanghai';
 
 const DEFAULT_STATEMENT_LANGUAGE: SupportedProblemLanguage = 'zh';
+const DEFAULT_SUBMISSION_LANGUAGE: PrintLanguageSpec = {
+  id: 'cc.cc14o2',
+  displayName: 'C++',
+  compileOptions: '-O2 -std=c++14 -static',
+};
 
 // Statement lookup order after the requested language: zh, en, then the
 // first language the problem actually has.
 const STATEMENT_FALLBACK_LANGUAGES: SupportedProblemLanguage[] = ['zh', 'en'];
+
+function validConfig(value: unknown): value is ProblemConfig {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 
 /**
  * Printable `name` characters. The problem `pid` is used verbatim except for
@@ -158,71 +169,54 @@ function pickStatement(
   return fallback.content;
 }
 
-/**
- * Submission-table rows: `tdoc.langs` wins when the contest pins a language
- * allowlist, otherwise the union of every problem's `config.langs` in
- * `pids` order (first occurrence wins the dedup).
- */
-function collectLanguages(
-  response: ContestManagementResponse,
-  order: readonly number[]
-): PrintLanguageSpec[] {
-  const { tdoc, pdict } = response;
-  const ids: string[] = [];
-  if (tdoc.langs?.length) {
-    ids.push(...tdoc.langs);
-  } else {
-    const seen = new Set<string>();
-    for (const pid of order) {
-      for (const lang of pdict[pid]?.config.langs ?? []) {
-        if (seen.has(lang)) continue;
-        seen.add(lang);
-        ids.push(lang);
-      }
-    }
-  }
-  return ids.map((id) => ({
-    id,
-    ...judgeLanguageInfo(id),
-  }));
-}
-
 function buildProblem(
   pdoc: ContestDetailProjectionProblem,
   language: SupportedProblemLanguage,
   languages: readonly PrintLanguageSpec[],
   diagnostics: PrintDiagnostic[]
 ): PrintProblem {
-  const config = pdoc.config;
+  const config = validConfig(pdoc.config) ? pdoc.config : null;
+  if (!config) {
+    diagnostics.push({
+      severity: 'warning',
+      code: 'internal-error',
+      message: `Problem ${pdoc.docId} has no valid configuration`,
+      location: { problemId: pdoc.docId },
+    });
+  }
   const name = sanitizeShortName(pdoc.pid ?? '') || `p${pdoc.docId}`;
-  const fileIo = isFileIoProblem(pdoc);
-  // File-I/O submissions are named after the task file stem verbatim —
-  // `a+b.in`/`a+b.out` pair with `a+b.cpp` just as the judge sees them.
-  const submitBase = fileIo && config.subType ? config.subType : name;
+  const fileIo = config !== null && isFileIoProblem(pdoc);
+  // File-I/O names use the task file stem verbatim — `a+b.in`/`a+b.out`
+  // pair with directory `a+b` and program `a+b.cpp`.
+  const submitBase = fileIo && config?.subType ? config.subType : name;
 
   return {
     problemId: pdoc.docId,
     ...(pdoc.pid !== undefined ? { pid: pdoc.pid } : {}),
     name,
     title: pdoc.title,
-    problemType: config.type,
+    problemType: config?.type ?? '',
     statement: pickStatement(pdoc, language, diagnostics),
-    timeLimit: formatRangedLimit(config.timeMin, config.timeMax, formatMsLimit),
+    timeLimit: formatRangedLimit(
+      config?.timeMin,
+      config?.timeMax,
+      formatMsLimit
+    ),
     memoryLimit: formatRangedLimit(
-      config.memoryMin,
-      config.memoryMax,
+      config?.memoryMin,
+      config?.memoryMax,
       formatMbLimit
     ),
-    directory: name,
-    executable: name,
-    inputFile: fileIo ? `${config.subType}.in` : '',
-    outputFile: fileIo ? `${config.subType}.out` : '',
+    directory: submitBase,
+    executable: `${submitBase}.cpp`,
+    inputFile: fileIo ? `${config?.subType}.in` : '',
+    outputFile: fileIo ? `${config?.subType}.out` : '',
     submitFilenames: languages.map(
       (lang) => `${submitBase}.${judgeLanguageExtension(lang.id)}`
     ),
     testcaseCount:
-      Number.isFinite(config.count) && config.count > 0
-        ? String(config.count)
+      Number.isFinite(config?.count) && (config?.count ?? 0) > 0
+        ? String(config?.count)
         : '',
     scoreNote: '',
     // Hydro has no per-problem pretest count, so the row stays hidden until
@@ -251,7 +245,7 @@ export const buildPrintableContest: BuildPrintableContest = (
   const language = overrides.language ?? DEFAULT_STATEMENT_LANGUAGE;
   // `problemOrder` reorders/filters `tdoc.pids`; a repeated id prints once.
   const order = [...new Set(overrides.problemOrder ?? tdoc.pids)];
-  const languages = overrides.languages ?? collectLanguages(response, order);
+  const languages = overrides.languages ?? [{ ...DEFAULT_SUBMISSION_LANGUAGE }];
 
   const problems: PrintProblem[] = [];
   for (const docId of order) {
@@ -302,7 +296,7 @@ export const buildPrintableContest: BuildPrintableContest = (
       problems.some(
         (problem) => problem.inputFile !== '' || problem.outputFile !== ''
       ),
-    usePretest: overrides.usePretest ?? true,
+    usePretest: overrides.usePretest ?? false,
     languages,
     problems,
     extraSections: overrides.extraSections ?? [],

@@ -296,9 +296,10 @@ function resolveUrl(
 }
 
 function assetExtension(uri: string): string {
+  const supported = new Set(['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp']);
   if (SCHEME_RE.exec(uri)?.[1]?.toLowerCase() === 'data') {
     const mime = /^data:[a-z0-9-]+\/([a-z0-9-]+)/i.exec(uri)?.[1];
-    if (mime && /^[a-z0-9]{1,8}$/.test(mime)) return mime.toLowerCase();
+    if (mime && supported.has(mime.toLowerCase())) return mime.toLowerCase();
     return 'png';
   }
   const clean = uri.split(/[?#]/)[0];
@@ -307,18 +308,20 @@ function assetExtension(uri: string): string {
   const ext = dot === -1 ? '' : name.slice(dot + 1).toLowerCase();
   // Typst guesses the image format from the extension; `png` is the
   // fallback since problem attachments are overwhelmingly raster images.
-  return /^[a-z0-9]{1,8}$/.test(ext) && ext !== '' ? ext : 'png';
+  return supported.has(ext) ? ext : 'png';
 }
 
 /**
- * Shadow-FS path for an asset URI: `asset-<fnv1a(uri)>.<ext>`, with a
+ * Shadow-FS path for a scoped asset URI, with a
  * deterministic `-N` suffix on the astronomically unlikely hash collision.
  */
 function shadowPath(uri: string, ctx: CompileContext): string {
   const known = ctx.assetPaths.get(uri);
   if (known) return known;
 
-  const base = `asset-${fnv1a(uri)}`;
+  const scope =
+    ctx.scope.kind === 'problem' ? `problem:${ctx.scope.problemId}` : 'contest';
+  const base = `asset-${fnv1a(`${scope}:${uri}`)}`;
   const ext = assetExtension(uri);
   const taken = new Set(ctx.assetPaths.values());
   let path = `${base}.${ext}`;
@@ -450,6 +453,15 @@ function emitTable(node: Table, ctx: CompileContext) {
 }
 
 function emitCode(node: Code, ctx: CompileContext) {
+  const sample = /^(input|output)(\d+)$/i.exec(node.lang ?? '');
+  if (sample) {
+    const number = Number(sample[2]);
+    if (Number.isSafeInteger(number)) {
+      const title =
+        sample[1].toLowerCase() === 'input' ? '样例输入' : '样例输出';
+      ctx.out.push(`#heading(level: 2, [#"${title} ${number}"])\n`);
+    }
+  }
   const lines = node.value.split('\n');
   const overlong = lines
     .map((line, index) => ({ index, width: displayWidth(line) }))
@@ -708,7 +720,7 @@ function emitNode(node: PrintMdastNode, ctx: CompileContext): void {
       ctx.out.push('#print-rule()\n');
       return;
     case 'break':
-      ctx.out.push('#linebreak');
+      ctx.out.push('#linebreak()');
       return;
     case 'footnoteReference':
       emitFootnoteReference(node, ctx);
