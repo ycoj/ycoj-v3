@@ -5,14 +5,26 @@ import type {
   ContestStatus,
 } from '@/shared/types/contest';
 import type { FileInfo } from '@/shared/types/file';
-import type { ProblemDict } from '@/shared/types/problem';
+import type {
+  ContestDetailProjectionProblem,
+  ContestListProjectionProblem,
+  ProblemConfig,
+} from '@/shared/types/problem';
 import type { BaseUser, BaseUserDict } from '@/shared/types/user';
 
-export type ContestManagementResponse = {
+type ContestManagementBaseResponse = {
   tdoc: Contest;
   tsdoc: ContestStatus | null;
   owner_udoc: BaseUser;
-  pdict: ProblemDict;
+};
+
+type ContestManagementListProblem = ContestListProjectionProblem & {
+  config: ProblemConfig;
+  tag?: string[];
+};
+
+export type ContestManagementResponse = ContestManagementBaseResponse & {
+  pdict: Record<number, ContestDetailProjectionProblem & { tag?: string[] }>;
   files: FileInfo[];
   privateFiles: FileInfo[];
 };
@@ -29,7 +41,8 @@ export const getContestManagement = (
     },
   });
 
-export type ContestClarificationResponse = ContestManagementResponse & {
+export type ContestClarificationResponse = ContestManagementBaseResponse & {
+  pdict: Record<number, ContestManagementListProblem>;
   tcdocs: ContestClarificationDoc[];
   udict: BaseUserDict;
 };
@@ -58,7 +71,8 @@ export type ContestBalloon = {
   sent?: number;
   sentAt?: Date;
 };
-export type ContestBalloonsResponse = ContestManagementResponse & {
+export type ContestBalloonsResponse = ContestManagementBaseResponse & {
+  pdict: Record<number, ContestManagementListProblem>;
   bdocs: ContestBalloon[];
   udict: BaseUserDict;
 };

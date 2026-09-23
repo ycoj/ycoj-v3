@@ -5,6 +5,10 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    // This app has independent dependencies (root AGENTS.md): only
+    // auto-include its own @types, not the backend repo's (its
+    // @types/minimatch stub has no .d.ts and breaks tsc).
+    "typeRoots": ["./node_modules/@types"],
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",

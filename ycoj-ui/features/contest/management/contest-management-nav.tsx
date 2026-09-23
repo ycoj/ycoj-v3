@@ -8,6 +8,7 @@ import {
   FileArchive,
   MessageSquareText,
   Pencil,
+  Printer,
   Send,
   Users,
   type LucideIcon,
@@ -95,6 +96,12 @@ export default function ContestManagementNav({
             href={`/contest/${tid}/bulk-submit`}
             icon={FileArchive}
             label={t('bulkSubmit')}
+            nested
+          />
+          <NavButton
+            href={`/contest/${tid}/print`}
+            icon={Printer}
+            label={t('print')}
             nested
           />
         </div>

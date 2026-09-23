@@ -1,7 +1,10 @@
 import UserImportForm from './user-import-form';
 import messages from '@/messages/en';
 import {
+  act,
+  configure,
   fireEvent,
+  getConfig,
   render,
   screen,
   waitFor,
@@ -366,7 +369,17 @@ describe('user import workflow', () => {
     );
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText('Prefix'), 'team');
-    await user.keyboard('{Enter}');
+    // Keep the keyboard event and Radix dialog teardown in one act scope.
+    // Testing Library's default async wrapper disables that scope mid-event.
+    const asyncWrapper = getConfig().asyncWrapper;
+    configure({ asyncWrapper: async (callback) => callback() });
+    try {
+      await act(async () => {
+        await user.keyboard('{Enter}');
+      });
+    } finally {
+      configure({ asyncWrapper });
+    }
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     );

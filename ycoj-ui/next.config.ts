@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXT_PUBLIC_CLANGD_ASSET_PREFIX: assetPrefix,
+    // Same base as the clangd worker assets: CDN in production, same-origin
+    // in development. Read by features/contest/print/print-assets.ts.
+    NEXT_PUBLIC_PRINT_ASSET_PREFIX: assetPrefix,
     NEXT_PUBLIC_UPLOAD_BASEURL: uploadBaseUrl,
     SITE_NAME: process.env.SITE_NAME ?? '',
   },
@@ -81,6 +84,26 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/clangd/v2/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Generated print assets are large (compiler wasm, CJK fonts) and
+      // content-pinned by scripts/prepare-typst.mjs — cache them hard.
+      {
+        source: '/typst/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/fonts/typst/:path*',
         headers: [
           {
             key: 'Cache-Control',

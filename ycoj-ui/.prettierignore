@@ -3,3 +3,5 @@ node_modules/
 .pnpm-store/
 pnpm-lock.yaml
 public/clangd/v2/
+public/typst/
+public/fonts/typst/
