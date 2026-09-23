@@ -3,11 +3,9 @@
 import type { CreatePrintCompiler, PrintSupport } from './compiler';
 import { createContestAssetProvider } from './contest-asset-provider';
 import { getPrintSupport } from './print-assets';
-import PrintContestSettings from './print-contest-settings';
 import PrintDiagnosticsPanel from './print-diagnostics-panel';
 import { draftProblemOrder } from './print-draft';
-import PrintPreviewPanel from './print-preview-panel';
-import PrintProblemList from './print-problem-list';
+import PrintWorkspace from './print-workspace';
 import { usePrintDraft } from './use-print-draft';
 import type { ContestManagementResponse } from '@/api/server/method/contests/management';
 import {
@@ -63,9 +61,9 @@ export default function PrintPage({ tid, data, createCompiler }: Props) {
         tid,
         contestFiles: data.tdoc.files ?? [],
         problemFiles: Object.fromEntries(
-          Object.entries(data.pdict).map(([docId, pdoc]) => [
+          data.tdoc.pids.map((docId) => [
             docId,
-            pdoc.additional_file ?? [],
+            data.pdict[docId]?.additional_file ?? [],
           ])
         ),
       }),
@@ -103,28 +101,14 @@ export default function PrintPage({ tid, data, createCompiler }: Props) {
         problems={document.problems}
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="min-w-0 lg:col-span-2">
-          <PrintContestSettings
-            document={document}
-            onPatch={actions.updateContest}
-          />
-        </div>
-        <div className="min-w-0 lg:col-span-3">
-          <PrintProblemList
-            data={data}
-            document={document}
-            order={draftProblemOrder(overrides, data)}
-            problemOverrides={overrides.problems ?? {}}
-            isDirty={isDirty}
-            actions={actions}
-          />
-        </div>
-      </div>
-
-      <PrintPreviewPanel
+      <PrintWorkspace
         tid={tid}
+        data={data}
         document={document}
+        order={draftProblemOrder(overrides, data)}
+        problemOverrides={overrides.problems ?? {}}
+        isDirty={isDirty}
+        actions={actions}
         support={support}
         assetProvider={assetProvider}
         createCompiler={createCompiler}

@@ -2,6 +2,7 @@ import type { PrintAssetScope } from './assets';
 import { twoProblemContest } from './fixtures/two-problem-contest';
 import type { PrintableContest } from './model';
 import { buildTypstFiles, sanitizeExtraSectionId } from './print-source';
+import { PREAMBLE_SOURCE } from './template/preamble';
 import { describe, expect, it, vi } from 'vitest';
 
 const document = twoProblemContest.document;
@@ -16,12 +17,18 @@ function contentOf(files: { path: string; text?: string }[]): {
 }
 
 describe('buildTypstFiles', () => {
+  it('uses the reference thematic break without custom note styling', () => {
+    expect(PREAMBLE_SOURCE).toContain('stroke: rgb("#808080") + 0.5pt');
+    expect(PREAMBLE_SOURCE).not.toContain('print-note');
+  });
+
   it('assembles template, generated sources and content.json', () => {
     const built = buildTypstFiles(document, { tid: '7' });
     expect(built.mainPath).toBe('/main.typ');
     expect(built.files.map((file) => file.path)).toEqual([
       '/main.typ',
       '/preamble.typ',
+      '/tuackCodeTheme.tmTheme',
       '/problem-0.typ',
       '/problem-1.typ',
       '/notice.typ',
@@ -108,6 +115,7 @@ describe('buildTypstFiles', () => {
       language: 'en',
       title: 'Empty',
       subtitle: '',
+      dayName: '',
       dateText: '',
       beginAt: '',
       endAt: '',
@@ -123,6 +131,7 @@ describe('buildTypstFiles', () => {
     expect(built.files.map((file) => file.path)).toEqual([
       '/main.typ',
       '/preamble.typ',
+      '/tuackCodeTheme.tmTheme',
       '/content.json',
     ]);
     const content = contentOf(built.files);

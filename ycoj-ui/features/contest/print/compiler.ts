@@ -71,11 +71,6 @@ export interface PrintCompiler {
    * errors; rejects only on infrastructure failure.
    */
   compilePdf(document: PrintableContest): Promise<PrintCompileResult>;
-  /**
-   * Bundle the generated Typst sources and registered assets as a zip for
-   * debugging. Rejects like `compilePdf` on infrastructure failure.
-   */
-  exportTypstSource(document: PrintableContest): Promise<Uint8Array>;
   /** Terminate the worker and release wasm memory. No-op when not started. */
   dispose(): void;
 }

@@ -27,27 +27,26 @@ export const PRINT_PACKAGE_ASSETS: readonly PrintPackageAsset[] = [
   },
 ];
 
-/**
- * Bundled font set — a deliberately reduced offline set: two CJK families
- * (serif for body text, sans for bold/emphasis) plus Libertinus Serif for
- * Latin, New Computer Modern Math for math and DejaVu Sans Mono for code.
- * Mirrors the font entries in `scripts/prepare-typst.mjs`; keep in sync.
- */
+/** Exact font set used by the CNOI statement template. */
 export const PRINT_FONT_FILES: readonly string[] = [
-  'LibertinusSerif-Regular.otf',
-  'LibertinusSerif-Bold.otf',
-  'LibertinusSerif-Italic.otf',
-  'LibertinusSerif-BoldItalic.otf',
-  'NewCMMath-Book.otf',
+  'FiraMono-Bold.ttf',
+  'FiraMono-Medium.ttf',
+  'FiraMono-Regular.ttf',
+  'lmroman10-bold.otf',
+  'lmroman10-bolditalic.otf',
+  'lmroman10-italic.otf',
+  'lmroman10-regular.otf',
+  'lmroman12-bold.otf',
+  'lmroman12-italic.otf',
+  'lmroman12-regular.otf',
+  'lmroman17-regular.otf',
+  'SimSun.ttf',
+  'simhei.ttf',
+  'simkai.ttf',
   'NewCMMath-Regular.otf',
+  'NewCMMath-Book.otf',
   'NewCMMath-Bold.otf',
-  'DejaVuSansMono.ttf',
-  'DejaVuSansMono-Bold.ttf',
-  'DejaVuSansMono-Oblique.ttf',
-  'DejaVuSansMono-BoldOblique.ttf',
-  'NotoSerifCJKsc-Regular.otf',
-  'NotoSansCJKsc-Regular.otf',
-  'NotoSansCJKsc-Bold.otf',
+  'NewCMSansMath-Regular.otf',
 ];
 
 /**

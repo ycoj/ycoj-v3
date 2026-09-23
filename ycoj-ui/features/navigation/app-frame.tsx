@@ -21,9 +21,9 @@ export default async function AppFrame({ children, banner }: Props) {
       <SidebarProvider>
         <OmnibarProvider>
           <AppSidebar />
-          <SidebarInset className="overflow-auto p-4 md:overflow-visible">
+          <SidebarInset className="overflow-auto p-4 has-data-[app-full-width]:px-2 md:overflow-visible">
             <CollapsedTrigger />
-            <div className="container mx-auto">
+            <div className="container mx-auto has-data-[app-full-width]:max-w-none">
               <div className="mb-2 flex px-2 md:hidden">
                 <Link href="/home" aria-label={siteName}>
                   <ThemeLogo

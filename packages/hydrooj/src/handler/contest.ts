@@ -497,7 +497,7 @@ export class ContestManagementHandler extends ContestManagementBaseHandler {
             tdoc: this.tdoc,
             tsdoc: this.tsdoc,
             owner_udoc: await user.getById(domainId, this.tdoc.owner),
-            pdict: await problem.getList(domainId, this.tdoc.pids, true, true, [...problem.PROJECTION_CONTEST_LIST, 'tag']),
+            pdict: await problem.getList(domainId, this.tdoc.pids, true, true, [...problem.PROJECTION_CONTEST_DETAIL, 'tag']),
             files: sortFiles(this.tdoc.files || []),
             privateFiles: sortFiles(this.tdoc.privateFiles || []),
             urlForFile: (filename: string, type: string) => this.url('contest_file_download', { tid, filename, type }),

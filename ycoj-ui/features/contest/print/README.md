@@ -2,9 +2,10 @@
 
 Management-only page `/contest/[tid]/print` that compiles a CNOI-style contest
 paper to PDF entirely in the browser via Typst compiled to WASM
-(`@myriaddreamin/typst.ts`). Behavioral reference: the AGPL-3.0
-`cnoi-statement-generator` project — reference only; all code, templates,
-fonts and assets here are YCOJ-owned originals (repo license: MIT).
+(`@myriaddreamin/typst.ts`). Its editor workflow and generated-paper styling
+track the user-provided `cnoi-statement-generator` reference snapshot. YCOJ
+keeps its own contest data, permission checks, attachment resolution, and
+browser PDF pipeline.
 
 ## Architecture
 
@@ -36,7 +37,7 @@ typst.worker.ts  (module worker)           createTypstCompiler() inside worker
 { status:'ok', pdf: Uint8Array } → Blob → ReactPdfViewer preview + download
 ```
 
-## Preview & download (`print-preview-panel.tsx`)
+## Editor, preview & download
 
 - `print-page.tsx` builds the `PrintAssetProvider` once per payload via
   `createContestAssetProvider({tid, contestFiles: tdoc.files, problemFiles:
@@ -44,11 +45,12 @@ typst.worker.ts  (module worker)           createTypstCompiler() inside worker
   the memoized draft `document`. The panel owns every piece of compile
   state; `createCompiler?: CreatePrintCompiler` is a test seam defaulting to
   `createTypstPrintCompiler`.
-- **Generate** lazily creates the compiler (`fetchAsset`/`resolveFile`/`tid`
-  bound from the provider), awaits `init()` while streaming staged progress
-  (`wasm` → `fonts` → `packages`, label + percent bar), then calls
-  `compilePdf(document)` under a spinner. The button is disabled while a
-  job runs and unless `support === 'supported'`.
+- `print-workspace.tsx` provides the reference workflow: basic-information,
+  notice, extra-content and per-problem Markdown tabs in a 50/50 resizable
+  editor/preview workspace. Narrow viewports stack the editor and preview.
+- The preview lazily creates the compiler (`fetchAsset`/`resolveFile`/`tid`
+  bound from the provider), then automatically compiles the initial draft and
+  debounces later edits. Staged boot progress remains visible.
 - `status:'ok'` wraps `pdf` in a Blob and previews it through
   `ReactPdfViewer` (shared react-pdf viewer, `next/dynamic` + `ssr:false`)
   pointed at the object URL. `status:'diagnostics'` surfaces the merged
@@ -56,19 +58,14 @@ typst.worker.ts  (module worker)           createTypstCompiler() inside worker
   card; `status:'stale'` is ignored (a newer compile owns the UI).
 - **Object-URL lifecycle**: the live URL sits in a ref mirrored to state; a
   new compile revokes the previous URL, and the unmount cleanup revokes the
-  last one. Download reuses the _same_ URL (`a.href` + `a.download` +
-  click) and never revokes it; the one-shot Typst-source zip uses a fresh
-  URL revoked on the next tick (`print-download.ts`).
+  last one. Download reuses the _same_ URL (`a.href` + `a.download` + click)
+  and never revokes it.
 - **Filename rule**: `contest-<tid>-<slug>.pdf` where `<slug>` is the title
   reduced to `[a-z0-9]+(-[a-z0-9]+)*`; an empty slug falls back to
-  `contest-<tid>.pdf`. Source export: `contest-<tid>-typst-source.zip`.
-- **Retry/dirty**: rejected init/compile (infrastructure) shows an error
-  alert with Retry — the adapter's teardown makes the next `init()` boot a
-  fresh worker. After a successful compile the document signature
-  (`JSON.stringify(document)`) is recorded; a changed draft shows an
-  "outdated" badge while the old PDF stays visible and downloadable.
-- "Download Typst source" calls `exportTypstSource` — main-thread zip of the
-  shadow FS, no worker boot needed.
+  `contest-<tid>.pdf`.
+- **Retry/current preview**: rejected init/compile shows an overlaid error
+  with Retry. The previous successful PDF remains visible during recompiles
+  and after failures. Download recompiles the current draft before saving it.
 
 SSR boundary: the route page is a thin async server component. Everything under
 `compiler.ts`/`assets.ts` is client-only — the typst.ts trio is imported lazily
@@ -115,8 +112,6 @@ so every byte arrives inside `files` and the worker performs zero fetches.
 - **Diagnostics ≠ failures**: document problems (`typst-diagnostic`,
   `asset-unresolved`, `asset-fetch-failed`) resolve as
   `{status:'diagnostics'}`; infrastructure problems reject the promise.
-- `exportTypstSource(document)` runs `buildTypstFiles` on the main thread,
-  fetches assets, and zips the exact shadow-FS file set — no worker needed.
 - `dispose()` rejects in-flight calls, terminates the worker, and latches —
   subsequent calls reject immediately.
 - `createTypstPrintCompiler(options, internals)` accepts `createWorker`,
@@ -127,15 +122,16 @@ so every byte arrives inside `files` and the worker performs zero fetches.
 
 Deterministic file names (the contract between main thread and worker FS):
 
-| path                     | content                                                                    |
-| ------------------------ | -------------------------------------------------------------------------- |
-| `/main.typ`              | template entry: `#import preamble`, reads `content.json`, loops problems   |
-| `/preamble.typ`          | fonts, page setup, `print-math`/`print-note`/`print-rule` helpers, headers |
-| `/problem-N.typ`         | converted statement `N` (imports helpers from `preamble.typ`)              |
-| `/extra-<sanitized>.typ` | converted extra sections (`-N` dedupe on id collisions)                    |
-| `/notice.typ`            | contest notice — emitted only when non-blank                               |
-| `/content.json`          | `PrintableContest` minus statement markdown + `file`/`hasNotice` wiring    |
-| `/asset-<fnv1a8>.<ext>`  | fetched image/asset bytes (`PrintAssetRef.path`)                           |
+| path                      | content                                                                  |
+| ------------------------- | ------------------------------------------------------------------------ |
+| `/main.typ`               | template entry: `#import preamble`, reads `content.json`, loops problems |
+| `/preamble.typ`           | fonts, page setup, `print-math`/`print-rule` helpers, headers            |
+| `/tuackCodeTheme.tmTheme` | reference syntax colors used by block code                               |
+| `/problem-N.typ`          | converted statement `N` (imports helpers from `preamble.typ`)            |
+| `/extra-<sanitized>.typ`  | converted extra sections (`-N` dedupe on id collisions)                  |
+| `/notice.typ`             | contest notice — emitted only when non-blank                             |
+| `/content.json`           | `PrintableContest` minus statement markdown + `file`/`hasNotice` wiring  |
+| `/asset-<fnv1a8>.<ext>`   | fetched image/asset bytes (`PrintAssetRef.path`)                         |
 
 Every compile replaces the worker FS (`resetShadow` + `mapShadow` of the full
 file list), so removed problems/extras/assets can never leak into later PDFs.
@@ -163,24 +159,19 @@ re-gzipped via `CompressionStream` before transfer to the worker.
 outputs below. Everything is SHA-256 pinned, skipped when the destination
 already verifies, downloaded with retry, and written atomically.
 
-| output                                          | source                                                           | SHA-256 (first 12) | size       |
-| ----------------------------------------------- | ---------------------------------------------------------------- | ------------------ | ---------- |
-| `public/typst/typst_ts_web_compiler_bg.wasm`    | `node_modules/@myriaddreamin/typst-ts-web-compiler` 0.7.0 `pkg/` | `1fc968438a67`     | 28,325,178 |
-| `public/typst/packages/mitex-0.2.7.tarball`     | `packages.typst.org/preview/mitex-0.2.7.tar.gz`                  | `0159e214845e`     | 111,899    |
-| `public/fonts/typst/LibertinusSerif-*.otf` (4)  | `typst/typst-assets` v0.13.1 `files/fonts/`                      | `fcf06307a773`…    | ~1.2 MB    |
-| `public/fonts/typst/NewCMMath-*.otf` (3)        | same                                                             | `b2e655d5cae5`…    | ~3.5 MB    |
-| `public/fonts/typst/DejaVuSansMono*.ttf` (4)    | same                                                             | `b4a6c3e4faab`…    | ~1.2 MB    |
-| `public/fonts/typst/NotoSerifCJKsc-Regular.otf` | vendored `assets/fonts/` (upstream: `noto-cjk` `Serif2.003` zip) | `2a2eae2628df`     | 24,543,080 |
-| `public/fonts/typst/NotoSansCJKsc-Regular.otf`  | vendored `assets/fonts/`                                         | `2c76254f6fc3`     | 16,437,364 |
-| `public/fonts/typst/NotoSansCJKsc-Bold.otf`     | `notofonts/noto-cjk@Sans2.004` `Sans/OTF/SimplifiedChinese/`     | `b5f0d1a190a7`     | 17,002,248 |
-| `public/fonts/typst/OFL.txt`                    | vendored `assets/fonts/noto-sans-cjk-OFL.txt`                    | `6a73f9541c2d`     | 4,301      |
-| `public/fonts/typst/FONTLICENSES.txt`           | generated provenance note                                        | —                  | —          |
+| output                                       | source                                                           | SHA-256 (first 12) |
+| -------------------------------------------- | ---------------------------------------------------------------- | ------------------ |
+| `public/typst/typst_ts_web_compiler_bg.wasm` | `node_modules/@myriaddreamin/typst-ts-web-compiler` 0.7.0 `pkg/` | `1fc968438a67`     |
+| `public/typst/packages/mitex-0.2.7.tarball`  | `packages.typst.org/preview/mitex-0.2.7.tar.gz`                  | `0159e214845e`     |
+| `public/fonts/typst/FiraMono-*.ttf`          | local CNOI reference font source                                 | pinned per file    |
+| `public/fonts/typst/lmroman*.otf`            | local CNOI reference font source                                 | pinned per file    |
+| `public/fonts/typst/NewCM*.otf`              | local CNOI reference font source                                 | pinned per file    |
+| `public/fonts/typst/SimSun/SimHei/SimKai`    | local CNOI reference font source                                 | pinned per file    |
 
-Font roles: Libertinus Serif = Latin body, Noto Serif CJK SC = CJK body,
-NewCMMath = math, DejaVu Sans Mono = code, Noto Sans CJK SC = headings +
-**bold CJK** (Typst never falls back across families for bold — the preamble
-rebinds `strong`/`heading` to the sans family explicitly). Do NOT copy
-upstream's SimSun/SimHei/SimKai (proprietary).
+The runtime font manifest uses the reference template's exact Latin Modern,
+Fira Mono, SimSun, SimHei, SimKai and New Computer Modern files. The local
+source binaries and checksums are documented in `assets/fonts/README.md` and
+`scripts/prepare-typst.mjs`.
 
 Runtime base URL: `getPrintAssetBase()` reads `NEXT_PUBLIC_PRINT_ASSET_PREFIX`
 (set in `next.config.ts` to the same CDN prefix as the clangd assets); empty →
@@ -209,8 +200,9 @@ range, message})[] }`.
 
 ## Template (`template/`)
 
-`preamble.ts`/`main.ts` hold the original Typst template as TS string
-constants. Key semantics verified in a Node harness: `set page(header:)`
+`preamble.ts`/`main.ts` hold the CNOI Typst template adapted to YCOJ's JSON
+field names, and `code-theme.ts` embeds the matching TextMate theme. Key
+semantics verified in a Node harness: `set page(header:)`
 installed at top level (inside a block it is scoped and dies); a `problem`
 counter + state flag drive running headers on problem pages; dictionary
 function members need `(dict.fn)(args)` call syntax; Typst `include` does not
@@ -248,11 +240,10 @@ rule), `vendored-package-registry.test.ts` (tarball re-gzip), and
 
 Browser tests (vitest browser mode, Chromium):
 `fixtures/mock-print-compiler.ts` exports `createMockPrintCompiler` for
-`print-page.browser.test.tsx` (editor behavior, zh catalog, unsupported
-gate) and `print-preview-panel.browser.test.tsx` (generate → progress →
-preview → download, diagnostics, stale, init-failure retry, outdated badge,
-object-URL revocation + dispose on unmount, empty contest, end-to-end
-statement passthrough).
+`print-page.browser.test.tsx` (tabs, Markdown editing, problem configuration,
+zh catalog, unsupported gate) and `print-preview-panel.browser.test.tsx`
+(automatic preview, progress, current-draft download, retained preview after
+failure, removed source-export action and unsupported behavior).
 
 ## Decision log
 

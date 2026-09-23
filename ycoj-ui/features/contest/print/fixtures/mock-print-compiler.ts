@@ -12,11 +12,6 @@ export type MockPrintCompilerBehavior = {
    */
   compile?:
     PrintCompileResult | ((document: PrintableContest) => PrintCompileResult);
-  /**
-   * `exportTypstSource` payload: fixed bytes or a per-document function.
-   * Defaults to an empty `Uint8Array`.
-   */
-  export?: Uint8Array | ((document: PrintableContest) => Uint8Array);
   /** When set, `init()` rejects with this error. */
   initError?: Error;
   /** Emit one 100% progress event per stage during `init()`. */
@@ -26,7 +21,6 @@ export type MockPrintCompilerBehavior = {
 export type MockPrintCompilerCalls = {
   init: number;
   compilePdf: PrintableContest[];
-  exportTypstSource: PrintableContest[];
   dispose: number;
 };
 
@@ -46,7 +40,6 @@ export function createMockPrintCompiler(
   const calls: MockPrintCompilerCalls = {
     init: 0,
     compilePdf: [],
-    exportTypstSource: [],
     dispose: 0,
   };
   const create: CreatePrintCompiler = (options): PrintCompiler => ({
@@ -66,14 +59,6 @@ export function createMockPrintCompiler(
           ? behavior.compile(document)
           : behavior.compile;
       return result ?? { status: 'ok', pdf: FAKE_PDF, diagnostics: [] };
-    },
-    async exportTypstSource(document) {
-      calls.exportTypstSource.push(document);
-      const out =
-        typeof behavior.export === 'function'
-          ? behavior.export(document)
-          : behavior.export;
-      return out ?? new Uint8Array(0);
     },
     dispose() {
       calls.dispose += 1;

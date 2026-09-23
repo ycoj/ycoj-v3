@@ -164,6 +164,7 @@ const CONTEST_OVERRIDE_KEYS = [
   'language',
   'title',
   'subtitle',
+  'dayName',
   'dateText',
   'beginAt',
   'endAt',

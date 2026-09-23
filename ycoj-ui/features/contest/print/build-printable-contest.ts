@@ -13,7 +13,7 @@ import {
   parseProblemContent,
   type SupportedProblemLanguage,
 } from '@/features/problem/parse-problem-content';
-import type { ProblemDoc } from '@/shared/types/problem';
+import type { ContestDetailProjectionProblem } from '@/shared/types/problem';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
@@ -41,17 +41,28 @@ function sanitizeShortName(raw: string): string {
   return raw.replace(/[^A-Za-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
-/**
- * `dateText` is the contest date line on the info page: the day shared by
- * `beginAt`/`endAt`, or `start ~ end` when the contest spans midnight.
- */
-function formatDateText(beginAt: Date, endAt: Date): string {
+/** Format the exact date/time line consumed by the CNOI title block. */
+export function formatPrintDateText(beginAt: Date, endAt: Date): string {
   const begin = dayjs(beginAt).tz(PRINT_TIME_ZONE);
   const end = dayjs(endAt).tz(PRINT_TIME_ZONE);
   if (!begin.isValid() || !end.isValid()) return '';
-  const beginDay = begin.format('YYYY-MM-DD');
-  const endDay = end.format('YYYY-MM-DD');
-  return beginDay === endDay ? beginDay : `${beginDay} ~ ${endDay}`;
+  const includeSeconds = begin.second() !== 0 || end.second() !== 0;
+  const timeFormat = includeSeconds ? 'HH:mm:ss' : 'HH:mm';
+  const dateFormat = `YYYY年M月D日${timeFormat}`;
+  const endText = begin.isSame(end, 'day')
+    ? end.format(timeFormat)
+    : end.format(dateFormat);
+  return `${begin.format(dateFormat)} ~ ${endText}`;
+}
+
+export function formatPrintDateTimeInput(value: string): string {
+  const date = dayjs(value).tz(PRINT_TIME_ZONE);
+  return date.isValid() ? date.format('YYYY-MM-DDTHH:mm:ss') : '';
+}
+
+export function parsePrintDateTimeInput(value: string): string {
+  const date = dayjs.tz(value, PRINT_TIME_ZONE);
+  return date.isValid() ? date.toISOString() : '';
 }
 
 function toIsoString(value: Date): string {
@@ -102,7 +113,7 @@ function formatRangedLimit(
  * `empty-statement`.
  */
 function pickStatement(
-  pdoc: ProblemDoc,
+  pdoc: ContestDetailProjectionProblem,
   language: SupportedProblemLanguage,
   diagnostics: PrintDiagnostic[]
 ): string {
@@ -177,7 +188,7 @@ function collectLanguages(
 }
 
 function buildProblem(
-  pdoc: ProblemDoc,
+  pdoc: ContestDetailProjectionProblem,
   language: SupportedProblemLanguage,
   languages: readonly PrintLanguageSpec[],
   diagnostics: PrintDiagnostic[]
@@ -279,7 +290,9 @@ export const buildPrintableContest: BuildPrintableContest = (
     language,
     title: overrides.title ?? tdoc.title,
     subtitle: overrides.subtitle ?? '',
-    dateText: overrides.dateText ?? formatDateText(tdoc.beginAt, tdoc.endAt),
+    dayName: overrides.dayName ?? '',
+    dateText:
+      overrides.dateText ?? formatPrintDateText(tdoc.beginAt, tdoc.endAt),
     beginAt: overrides.beginAt ?? toIsoString(tdoc.beginAt),
     endAt: overrides.endAt ?? toIsoString(tdoc.endAt),
     notice: overrides.notice ?? tdoc.content ?? '',

@@ -1,10 +1,8 @@
 import { canEditContest } from '@/features/contest/lib/can-edit-contest';
-import ContestManagementSidebar from '@/features/contest/management/contest-management-sidebar';
 import { getContestManagement } from '@/features/contest/management/get-contest-management';
 import PrintPage from '@/features/contest/print/print-page';
 import { getUser } from '@/features/user/lib/get-user';
 import { Errored } from '@/shared/components/errored';
-import TwoColumnLayout from '@/shared/layout/two-column';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
@@ -25,16 +23,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   if (!canEditContest(user, data.tdoc))
     return <Errored title={t('unavailable')} error={t('unavailable')} />;
   return (
-    <TwoColumnLayout
-      ratio="8-2"
-      left={<PrintPage tid={tid} data={data} />}
-      right={
-        <ContestManagementSidebar
-          tid={tid}
-          contest={data.tdoc}
-          owner={data.owner_udoc}
-        />
-      }
-    />
+    <div data-app-full-width>
+      <PrintPage tid={tid} data={data} />
+    </div>
   );
 }

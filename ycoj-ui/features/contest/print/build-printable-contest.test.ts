@@ -320,15 +320,27 @@ describe('buildPrintableContest', () => {
     ]);
   });
 
-  it('formats dateText as the contest day or a multi-day range', () => {
+  it('formats dateText as the exact contest time range', () => {
     const sameDay = makeResponse({}, {});
-    expect(buildPrintableContest(sameDay).document.dateText).toBe('2026-02-07');
+    expect(buildPrintableContest(sameDay).document.dateText).toBe(
+      '2026年2月7日09:00 ~ 13:00'
+    );
     const multiDay = makeResponse(
       {},
       { endAt: new Date('2026-02-08T05:00:00.000Z') }
     );
     expect(buildPrintableContest(multiDay).document.dateText).toBe(
-      '2026-02-07 ~ 2026-02-08'
+      '2026年2月7日09:00 ~ 2026年2月8日13:00'
+    );
+    const withSeconds = makeResponse(
+      {},
+      {
+        beginAt: new Date('2026-02-07T01:00:01.000Z'),
+        endAt: new Date('2026-02-07T05:00:02.000Z'),
+      }
+    );
+    expect(buildPrintableContest(withSeconds).document.dateText).toBe(
+      '2026年2月7日09:00:01 ~ 13:00:02'
     );
   });
 

@@ -23,7 +23,6 @@ import type {
  * The generated source assumes the template preamble (`preamble.typ`)
  * provides:
  *   - `#print-math(block: bool, "<latex>")`  — mitex-backed math rendering
- *   - `#print-note(kind: "…", title: none | […])[body]` — directive boxes
  *   - `#print-rule()`                      — horizontal rule
  */
 
@@ -69,8 +68,8 @@ export type CompileContext = {
  */
 export const MAX_CODE_LINE_WIDTH = 80;
 
-/** Directive names rendered through the template's `print-note`. */
-const NOTE_DIRECTIVE_KINDS = new Set([
+/** Recognized directives whose contents render without additional styling. */
+const PLAIN_DIRECTIVE_KINDS = new Set([
   'info',
   'note',
   'tip',
@@ -542,19 +541,15 @@ function emitDirective(node: DirectiveNode, ctx: CompileContext) {
     return;
   }
 
-  if (NOTE_DIRECTIVE_KINDS.has(name)) {
-    ctx.out.push(`#print-note(kind: "${name}"`);
-    const title = attributes.title;
-    if (typeof title === 'string') {
-      ctx.out.push(`, title: ["${escapeTypstString(title)}"]`);
-    } else if (label?.length) {
-      ctx.out.push(', title: [');
+  if (PLAIN_DIRECTIVE_KINDS.has(name)) {
+    if (node.type === 'containerDirective' && label) {
+      ctx.out.push('#par[');
       emitChildren(label, ctx);
-      ctx.out.push(']');
+      ctx.out.push(']\n');
+    } else if (label) {
+      emitChildren(label, ctx);
     }
-    ctx.out.push(`)${open}`);
     emitChildren(body, ctx);
-    ctx.out.push(close);
     return;
   }
 

@@ -1,3 +1,4 @@
+import { createMockPrintCompiler } from './fixtures/mock-print-compiler';
 import { twoProblemContest } from './fixtures/two-problem-contest';
 import PrintPage from './print-page';
 import type { ContestManagementResponse } from '@/api/server/method/contests/management';
@@ -17,7 +18,11 @@ function renderPage(
 ) {
   return render(
     <NextIntlClientProvider locale={locale} messages={catalog}>
-      <PrintPage tid="7" data={data} />
+      <PrintPage
+        tid="7"
+        data={data}
+        createCompiler={createMockPrintCompiler()}
+      />
     </NextIntlClientProvider>
   );
 }
@@ -50,7 +55,14 @@ describe('contest print editor', () => {
         name: messages.contestPrint.title,
       })
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Title')).toHaveValue('YCOJ 冬季赛 2026');
+    expect(screen.getByDisplayValue('YCOJ 冬季赛 2026')).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: 'Basic information' })
+    ).toHaveAttribute('data-state', 'active');
+    expect(screen.getByRole('tab', { name: 'Notice' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: 'A+B Problem · T1' })
+    ).toBeInTheDocument();
 
     const headings = problemHeadings();
     expect(headings.map((heading) => heading.textContent)).toEqual([
@@ -75,7 +87,6 @@ describe('contest print editor', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Edit problem A' }));
     const card = cardFor('A+B Problem');
     const titleInput = card.getByLabelText('Title');
     await user.clear(titleInput);
@@ -96,6 +107,48 @@ describe('contest print editor', () => {
     expect(
       screen.getByRole('button', { name: 'Restore defaults' })
     ).toBeDisabled();
+  });
+
+  it('keeps regular problem fields visible and gates mode-specific fields', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    let card = cardFor('A+B Problem');
+    const typeInput = card.getByLabelText('Problem type');
+    expect(typeInput).toHaveValue('default');
+    await user.clear(typeInput);
+    await user.type(typeInput, 'interactive');
+    expect(typeInput).toHaveValue('interactive');
+
+    expect(card.getByLabelText('Testcases')).toBeVisible();
+    expect(card.getByLabelText('Score note')).toBeVisible();
+    expect(card.getByLabelText('Pretests')).toBeVisible();
+    expect(card.getByLabelText('File name for C++17')).toBeVisible();
+    expect(card.getByLabelText('File name for Python 3')).toBeVisible();
+    expect(card.queryByLabelText('Directory')).not.toBeInTheDocument();
+    expect(card.queryByLabelText('Executable')).not.toBeInTheDocument();
+    expect(card.queryByLabelText('Input file')).not.toBeInTheDocument();
+    expect(card.queryByLabelText('Output file')).not.toBeInTheDocument();
+
+    await user.click(card.getByRole('button', { name: 'Advanced' }));
+    card = cardFor('A+B Problem');
+    expect(card.getByLabelText('Directory')).toBeVisible();
+    expect(card.getByLabelText('Executable')).toBeVisible();
+    expect(card.getByLabelText('Input file')).toBeVisible();
+    expect(card.getByLabelText('Output file')).toBeVisible();
+
+    await user.click(screen.getByRole('checkbox', { name: 'NOI-style paper' }));
+    card = cardFor('A+B Problem');
+    expect(card.queryByLabelText('Directory')).not.toBeInTheDocument();
+    expect(card.queryByLabelText('Executable')).not.toBeInTheDocument();
+    expect(card.getByLabelText('Input file')).toBeVisible();
+
+    await user.click(screen.getByRole('checkbox', { name: 'File I/O' }));
+    card = cardFor('A+B Problem');
+    expect(card.queryByLabelText('Input file')).not.toBeInTheDocument();
+    expect(card.queryByLabelText('Output file')).not.toBeInTheDocument();
+    expect(card.getByLabelText('Testcases')).toBeVisible();
+    expect(card.getByLabelText('File name for C++17')).toBeVisible();
   });
 
   it('reorders problems with the move buttons', async () => {
@@ -217,7 +270,7 @@ describe('contest print editor', () => {
       await screen.findByText(messages.contestPrint.unsupportedTitle)
     ).toBeInTheDocument();
     // The draft editor still works — only the compile path is gated.
-    expect(screen.getByLabelText('Title')).toHaveValue('YCOJ 冬季赛 2026');
+    expect(screen.getByDisplayValue('YCOJ 冬季赛 2026')).toBeInTheDocument();
   });
 
   it('renders the zh catalog', () => {
@@ -230,6 +283,28 @@ describe('contest print editor', () => {
     expect(
       screen.getByRole('button', { name: '将题目 B 上移' })
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '生成 PDF' })).toBeEnabled();
+    expect(cardFor('A+B Problem').getByLabelText('题目类型')).toBeVisible();
+    expect(screen.getByRole('button', { name: '刷新预览' })).toBeEnabled();
+  });
+
+  it('edits notice and problem markdown in their tabs', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole('tab', { name: 'Notice' }));
+    const notice = screen.getByRole('textbox', { name: 'Notice' });
+    await user.clear(notice);
+    await user.type(notice, 'Updated notice');
+    expect(notice).toHaveValue('Updated notice');
+
+    await user.click(screen.getByRole('tab', { name: 'A+B Problem · T1' }));
+    const statement = screen.getByRole('textbox', {
+      name: 'Statement for A+B Problem',
+    });
+    expect((statement as HTMLTextAreaElement).value).toContain(
+      'file://range.png'
+    );
+    await user.type(statement, '\nExtra line');
+    expect((statement as HTMLTextAreaElement).value).toContain('Extra line');
   });
 });

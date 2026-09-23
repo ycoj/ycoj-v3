@@ -52,6 +52,7 @@ export const printableContestSchema = z.object({
   language: printStatementLanguageSchema,
   title: z.string(),
   subtitle: z.string(),
+  dayName: z.string(),
   dateText: z.string(),
   beginAt: z.string(),
   endAt: z.string(),

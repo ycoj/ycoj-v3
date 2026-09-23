@@ -18,11 +18,6 @@ export function printPdfFileName(tid: string, title: string): string {
   return slug.length > 0 ? `contest-${tid}-${slug}.pdf` : `contest-${tid}.pdf`;
 }
 
-/** Deterministic name for the Typst source-export zip debug download. */
-export function printSourceFileName(tid: string): string {
-  return `contest-${tid}-typst-source.zip`;
-}
-
 /** Click a temporary download anchor for an already-live URL. */
 export function downloadUrl(name: string, url: string): void {
   const anchor = document.createElement('a');
@@ -31,16 +26,4 @@ export function downloadUrl(name: string, url: string): void {
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
-}
-
-/**
- * One-shot blob download: builds an object URL, clicks a temporary anchor,
- * and revokes the URL on the next tick (the anchor only needs it to exist
- * when the navigation is dispatched). Matches the user-import pattern —
- * do NOT use for URLs that stay alive for preview.
- */
-export function downloadBlob(name: string, blob: Blob): void {
-  const url = URL.createObjectURL(blob);
-  downloadUrl(name, url);
-  setTimeout(() => URL.revokeObjectURL(url), 0);
 }

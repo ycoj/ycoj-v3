@@ -1,11 +1,17 @@
 'use client';
 
+import {
+  formatPrintDateText,
+  formatPrintDateTimeInput,
+  parsePrintDateTimeInput,
+} from './build-printable-contest';
 import type {
   PrintableContest,
   PrintLanguageSpec,
+  PrintProblemOverrides,
   PrintStatementLanguage,
 } from './model';
-import { nextExtraSectionId, type PrintContestPatch } from './print-draft';
+import type { PrintContestPatch } from './print-draft';
 import {
   PROBLEM_CONTENT_LANGUAGES,
   PROBLEM_LANGUAGE_LABELS,
@@ -25,7 +31,6 @@ import {
   FieldLabel,
 } from '@/shared/components/ui/field';
 import { Input } from '@/shared/components/ui/input';
-import { Label } from '@/shared/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -33,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { Textarea } from '@/shared/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useId, useRef } from 'react';
@@ -43,19 +47,23 @@ type Props = {
   document: PrintableContest;
   /** `actions.updateContest` from `usePrintDraft`. */
   onPatch: (patch: PrintContestPatch) => void;
+  onProblemPatch: (problemId: number, patch: PrintProblemOverrides) => void;
 };
 
 /**
  * Contest-level paper settings: cover metadata, statement language, notice,
  * paper options, the submission-language table, and extra markdown sections.
  */
-export default function PrintContestSettings({ document, onPatch }: Props) {
+export default function PrintContestSettings({
+  document,
+  onPatch,
+  onProblemPatch,
+}: Props) {
   const t = useTranslations('contestPrint');
   const id = useId();
   // Removing a row unmounts the focused button; park focus on the matching
   // add control so it never falls back to <body>.
   const addLanguageRef = useRef<HTMLButtonElement>(null);
-  const addSectionRef = useRef<HTMLButtonElement>(null);
 
   const patchLanguage = (index: number, patch: Partial<PrintLanguageSpec>) => {
     onPatch({
@@ -68,6 +76,11 @@ export default function PrintContestSettings({ document, onPatch }: Props) {
     onPatch({
       languages: document.languages.filter((_, i) => i !== index),
     });
+    for (const problem of document.problems) {
+      onProblemPatch(problem.problemId, {
+        submitFilenames: problem.submitFilenames.filter((_, i) => i !== index),
+      });
+    }
     requestAnimationFrame(() => addLanguageRef.current?.focus());
   };
   const addLanguage = () => {
@@ -77,30 +90,11 @@ export default function PrintContestSettings({ document, onPatch }: Props) {
         { id: '', displayName: '', compileOptions: '' },
       ],
     });
-  };
-
-  const patchSection = (sectionId: string, markdown: string) => {
-    onPatch({
-      extraSections: document.extraSections.map((section) =>
-        section.id === sectionId ? { ...section, markdown } : section
-      ),
-    });
-  };
-  const removeSection = (sectionId: string) => {
-    onPatch({
-      extraSections: document.extraSections.filter(
-        (section) => section.id !== sectionId
-      ),
-    });
-    requestAnimationFrame(() => addSectionRef.current?.focus());
-  };
-  const addSection = () => {
-    onPatch({
-      extraSections: [
-        ...document.extraSections,
-        { id: nextExtraSectionId(document.extraSections), markdown: '' },
-      ],
-    });
+    for (const problem of document.problems) {
+      onProblemPatch(problem.problemId, {
+        submitFilenames: [...problem.submitFilenames, ''],
+      });
+    }
   };
 
   const setOption = (
@@ -114,6 +108,16 @@ export default function PrintContestSettings({ document, onPatch }: Props) {
           ? { fileIo: value }
           : { usePretest: value }
     );
+  };
+
+  const patchDateTime = (key: 'beginAt' | 'endAt', value: string) => {
+    const nextValue = parsePrintDateTimeInput(value);
+    const beginAt = key === 'beginAt' ? nextValue : document.beginAt;
+    const endAt = key === 'endAt' ? nextValue : document.endAt;
+    onPatch({
+      [key]: nextValue,
+      dateText: formatPrintDateText(new Date(beginAt), new Date(endAt)),
+    });
   };
 
   const options = [
@@ -171,11 +175,37 @@ export default function PrintContestSettings({ document, onPatch }: Props) {
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor={`${id}-date`}>{t('fieldDateText')}</FieldLabel>
+            <FieldLabel htmlFor={`${id}-start-time`}>
+              {t('fieldStartTime')}
+            </FieldLabel>
             <Input
-              id={`${id}-date`}
-              value={document.dateText}
-              onChange={(event) => onPatch({ dateText: event.target.value })}
+              id={`${id}-start-time`}
+              type="datetime-local"
+              step="1"
+              value={formatPrintDateTimeInput(document.beginAt)}
+              onChange={(event) => patchDateTime('beginAt', event.target.value)}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${id}-end-time`}>
+              {t('fieldEndTime')}
+            </FieldLabel>
+            <Input
+              id={`${id}-end-time`}
+              type="datetime-local"
+              step="1"
+              value={formatPrintDateTimeInput(document.endAt)}
+              onChange={(event) => patchDateTime('endAt', event.target.value)}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${id}-day-name`}>
+              {t('fieldDayName')}
+            </FieldLabel>
+            <Input
+              id={`${id}-day-name`}
+              value={document.dayName}
+              onChange={(event) => onPatch({ dayName: event.target.value })}
             />
           </Field>
           <Field>
@@ -202,18 +232,6 @@ export default function PrintContestSettings({ document, onPatch }: Props) {
             <FieldDescription>{t('fieldLanguageDescription')}</FieldDescription>
           </Field>
         </div>
-
-        <Field>
-          <FieldLabel htmlFor={`${id}-notice`}>{t('fieldNotice')}</FieldLabel>
-          <Textarea
-            id={`${id}-notice`}
-            className="font-mono text-xs"
-            rows={5}
-            value={document.notice}
-            onChange={(event) => onPatch({ notice: event.target.value })}
-          />
-          <FieldDescription>{t('fieldNoticeDescription')}</FieldDescription>
-        </Field>
 
         <div className="space-y-3">
           {options.map((option) => (
@@ -305,55 +323,6 @@ export default function PrintContestSettings({ document, onPatch }: Props) {
           >
             <Plus />
             {t('addLanguage')}
-          </Button>
-        </div>
-
-        <div className="space-y-2">
-          <div className="space-y-1">
-            <h3
-              className="text-sm font-medium"
-              data-llm-text={t('extraSectionsTitle')}
-            >
-              {t('extraSectionsTitle')}
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              {t('extraSectionsDescription')}
-            </p>
-          </div>
-          {document.extraSections.map((section, index) => (
-            <div key={section.id} className="space-y-1">
-              <div className="flex items-center justify-between gap-2">
-                <Label htmlFor={`${id}-section-${section.id}`}>
-                  {t('extraSection', { index: index + 1 })}
-                </Label>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => removeSection(section.id)}
-                  aria-label={t('removeExtraSection', { index: index + 1 })}
-                >
-                  <Trash2 />
-                </Button>
-              </div>
-              <Textarea
-                id={`${id}-section-${section.id}`}
-                className="font-mono text-xs"
-                rows={4}
-                value={section.markdown}
-                onChange={(event) =>
-                  patchSection(section.id, event.target.value)
-                }
-              />
-            </div>
-          ))}
-          <Button
-            ref={addSectionRef}
-            variant="outline"
-            size="sm"
-            onClick={addSection}
-          >
-            <Plus />
-            {t('addExtraSection')}
           </Button>
         </div>
       </CardContent>

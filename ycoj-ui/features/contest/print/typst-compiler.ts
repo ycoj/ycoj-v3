@@ -424,26 +424,11 @@ export function createTypstPrintCompiler(
     return { status: 'diagnostics', diagnostics };
   }
 
-  async function exportTypstSource(
-    document: PrintableContest
-  ): Promise<Uint8Array> {
-    if (disposed) {
-      throw new Error('Print compiler has been disposed');
-    }
-    const prepared = await prepareFiles(document);
-    const { default: JSZip } = await import('jszip');
-    const zip = new JSZip();
-    for (const file of prepared.files) {
-      zip.file(file.path.slice(1), file.bytes ?? file.text ?? '');
-    }
-    return new Uint8Array(await zip.generateAsync({ type: 'arraybuffer' }));
-  }
-
   function dispose(): void {
     if (disposed) return;
     disposed = true;
     teardown(new Error('Print compiler has been disposed'));
   }
 
-  return { init, compilePdf, exportTypstSource, dispose };
+  return { init, compilePdf, dispose };
 }

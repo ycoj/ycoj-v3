@@ -1,3 +1,4 @@
+import type { ContestManagementResponse } from '@/api/server/method/contests/management';
 import type { PrintFixture } from '@/features/contest/print/fixtures/types';
 
 const problem1001Statement = {
@@ -85,6 +86,63 @@ const problem1002Statement = `## 题目描述
 \`\`\`
 `;
 
+const problem1001Doc = {
+  _id: '66ff00000000000000000011',
+  domainId: 'system',
+  docType: 10,
+  docId: 1001,
+  pid: 'P1001',
+  owner: 2,
+  title: 'A+B Problem',
+  nSubmit: 0,
+  nAccept: 0,
+  tag: [],
+  content: JSON.stringify(problem1001Statement),
+  data: [],
+  config: {
+    count: 10,
+    memoryMax: 512,
+    memoryMin: 512,
+    timeMax: 1000,
+    timeMin: 1000,
+    type: 'default',
+    subType: 'aplusb',
+    langs: ['cc.cc17o2', 'py.py3'],
+  },
+  additional_file: [
+    {
+      _id: 'additional_file/range.png',
+      name: 'range.png',
+      size: 20480,
+      etag: 'etag-range',
+      lastModified: new Date('2026-01-21T00:00:00.000Z'),
+    },
+  ],
+};
+
+const problem1002Doc = {
+  _id: '66ff00000000000000000012',
+  domainId: 'system',
+  docType: 10,
+  docId: 1002,
+  owner: 2,
+  title: '排序',
+  nSubmit: 0,
+  nAccept: 0,
+  tag: [],
+  content: problem1002Statement,
+  data: [],
+  config: {
+    count: 20,
+    memoryMax: 256,
+    memoryMin: 256,
+    timeMax: 2000,
+    timeMin: 2000,
+    type: 'default',
+    langs: ['cc.cc17o2', 'py.py3'],
+  },
+};
+
 /**
  * Minimal two-problem contest: one bilingual file-I/O problem with image,
  * math, table, code and a directive; one plain zh markdown problem. The
@@ -125,63 +183,14 @@ export const twoProblemContest: PrintFixture = {
       mail: 'admin@example.com',
       avatar: '',
     },
+    // The backend's problem.getList merges string `pdoc.pid` keys (e.g.
+    // "P1001") into pdict alongside the numeric docId keys; keep the payload
+    // faithful so print UI code cannot regress to enumerating pdict keys.
     pdict: {
-      1001: {
-        _id: '66ff00000000000000000011',
-        domainId: 'system',
-        docType: 10,
-        docId: 1001,
-        pid: 'P1001',
-        owner: 2,
-        title: 'A+B Problem',
-        nSubmit: 0,
-        nAccept: 0,
-        tag: [],
-        content: JSON.stringify(problem1001Statement),
-        data: [],
-        config: {
-          count: 10,
-          memoryMax: 512,
-          memoryMin: 512,
-          timeMax: 1000,
-          timeMin: 1000,
-          type: 'default',
-          subType: 'aplusb',
-          langs: ['cc.cc17o2', 'py.py3'],
-        },
-        additional_file: [
-          {
-            _id: 'additional_file/range.png',
-            name: 'range.png',
-            size: 20480,
-            etag: 'etag-range',
-            lastModified: new Date('2026-01-21T00:00:00.000Z'),
-          },
-        ],
-      },
-      1002: {
-        _id: '66ff00000000000000000012',
-        domainId: 'system',
-        docType: 10,
-        docId: 1002,
-        owner: 2,
-        title: '排序',
-        nSubmit: 0,
-        nAccept: 0,
-        tag: [],
-        content: problem1002Statement,
-        data: [],
-        config: {
-          count: 20,
-          memoryMax: 256,
-          memoryMin: 256,
-          timeMax: 2000,
-          timeMin: 2000,
-          type: 'default',
-          langs: ['cc.cc17o2', 'py.py3'],
-        },
-      },
-    },
+      1001: problem1001Doc,
+      P1001: problem1001Doc,
+      1002: problem1002Doc,
+    } as ContestManagementResponse['pdict'],
     files: [
       {
         _id: 'files/poster.png',
@@ -197,7 +206,8 @@ export const twoProblemContest: PrintFixture = {
     language: 'zh',
     title: 'YCOJ 冬季赛 2026',
     subtitle: '',
-    dateText: '2026-02-07',
+    dayName: '',
+    dateText: '2026年2月7日09:00 ~ 13:00',
     beginAt: '2026-02-07T01:00:00.000Z',
     endAt: '2026-02-07T05:00:00.000Z',
     notice:

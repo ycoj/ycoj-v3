@@ -12,7 +12,6 @@ import type {
   TypstWorkerRequest,
   TypstWorkerResponse,
 } from './typst-protocol';
-import JSZip from 'jszip';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -164,7 +163,7 @@ describe('createTypstPrintCompiler', () => {
     expect(
       urls.filter((url) => url.endsWith('typst_ts_web_compiler_bg.wasm'))
     ).toHaveLength(1);
-    expect(urls.filter((url) => url.includes('/fonts/typst/')).length).toBe(14);
+    expect(urls.filter((url) => url.includes('/fonts/typst/')).length).toBe(18);
     expect(urls.some((url) => url.endsWith('mitex-0.2.7.tarball'))).toBe(true);
     expect(urls.every((url) => url.startsWith('https://cdn.example.com'))).toBe(
       true
@@ -416,6 +415,7 @@ describe('createTypstPrintCompiler', () => {
       language: 'zh',
       title: '空竞赛',
       subtitle: '',
+      dayName: '',
       dateText: '2026-02-07',
       beginAt: '',
       endAt: '',
@@ -433,6 +433,7 @@ describe('createTypstPrintCompiler', () => {
     expect(files.map((file) => file.path)).toEqual([
       '/main.typ',
       '/preamble.typ',
+      '/tuackCodeTheme.tmTheme',
       '/content.json',
     ]);
   });
@@ -451,37 +452,5 @@ describe('createTypstPrintCompiler', () => {
     await expect(harness.compiler.compilePdf(document)).rejects.toThrow(
       'disposed'
     );
-  });
-
-  it('exports the shadow-FS file set as a zip without a worker', async () => {
-    const harness = makeHarness();
-    harness.resolveFile.mockImplementation(() => '/img.png');
-    const zipBytes = await harness.compiler.exportTypstSource(document);
-    const zip = await JSZip.loadAsync(zipBytes);
-    const names = Object.keys(zip.files).sort();
-    expect(names).toEqual(
-      expect.arrayContaining([
-        'content.json',
-        'main.typ',
-        'notice.typ',
-        'preamble.typ',
-        'problem-0.typ',
-        'problem-1.typ',
-      ])
-    );
-    expect(
-      names.filter((name) => /^asset-[0-9a-f]{8}\.png$/.test(name))
-    ).toHaveLength(2);
-    const contentFile = zip.file('content.json');
-    expect(contentFile).not.toBeNull();
-    const content = JSON.parse(
-      (await contentFile?.async('string')) ?? '{}'
-    ) as { problems: Array<Record<string, unknown>> };
-    expect(content.problems).toHaveLength(2);
-    expect(content.problems[0]?.statement).toBeUndefined();
-    expect(content.problems[0]?.file).toBe('problem-0.typ');
-    // Export must not have touched the worker.
-    expect(FakeWorker.instances).toHaveLength(0);
-    expect(harness.fetchAsset).toHaveBeenCalled();
   });
 });

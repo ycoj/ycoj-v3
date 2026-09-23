@@ -91,6 +91,8 @@ export type PrintableContest = {
   title: string;
   /** Secondary title line (session/day name); empty when unused. */
   subtitle: string;
+  /** Session/day label printed beside the problem name in running headers. */
+  dayName: string;
   /**
    * Free-form date/session line printed on the info page; the builder derives
    * it from `beginAt`/`endAt` and editors may override the text.

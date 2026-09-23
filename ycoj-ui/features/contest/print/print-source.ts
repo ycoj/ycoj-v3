@@ -1,6 +1,7 @@
 import type { PrintAssetRef, PrintAssetScope } from './assets';
 import { markdownToTypst } from './markdown-to-typst';
 import type { PrintDiagnostic, PrintableContest } from './model';
+import { CODE_THEME_SOURCE } from './template/code-theme';
 import { MAIN_SOURCE } from './template/main';
 import { PREAMBLE_SOURCE } from './template/preamble';
 
@@ -14,6 +15,7 @@ export const PRINT_MAIN_PATH = '/main.typ';
 export const PRINT_PREAMBLE_PATH = '/preamble.typ';
 export const PRINT_CONTENT_PATH = '/content.json';
 export const PRINT_NOTICE_PATH = '/notice.typ';
+export const PRINT_CODE_THEME_PATH = '/tuackCodeTheme.tmTheme';
 
 export function problemSourcePath(index: number): string {
   return `/problem-${index}.typ`;
@@ -24,7 +26,7 @@ export function extraSourcePath(id: string): string {
 }
 
 /**
- * A file mapped into the compiler shadow FS (or zipped for source export).
+ * A file mapped into the compiler shadow FS.
  * Exactly one of `text`/`bytes` is set: Typst/JSON sources use `text`, binary
  * assets use `bytes`.
  */
@@ -75,6 +77,7 @@ type PrintContentJson = {
   language: PrintableContest['language'];
   title: string;
   subtitle: string;
+  dayName: string;
   dateText: string;
   beginAt: string;
   endAt: string;
@@ -127,6 +130,7 @@ export function buildTypstFiles(
   const files: TypstSourceFile[] = [
     { path: PRINT_MAIN_PATH, text: MAIN_SOURCE },
     { path: PRINT_PREAMBLE_PATH, text: PREAMBLE_SOURCE },
+    { path: PRINT_CODE_THEME_PATH, text: CODE_THEME_SOURCE },
   ];
 
   const contestScope: PrintAssetScope = { kind: 'contest', tid };
@@ -187,6 +191,7 @@ export function buildTypstFiles(
     language: document.language,
     title: document.title,
     subtitle: document.subtitle,
+    dayName: document.dayName,
     dateText: document.dateText,
     beginAt: document.beginAt,
     endAt: document.endAt,

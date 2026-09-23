@@ -255,11 +255,8 @@ describe('markdownToTypst', () => {
   });
 
   it.each([
-    [':::info\nbody\n:::', '#print-note(kind: "info")[\n#par[#"body"]\n]\n\n'],
-    [
-      ':::warning[Title]\nbody\n:::',
-      '#print-note(kind: "warning", title: [#"Title"])[\n#par[#"body"]\n]\n\n',
-    ],
+    [':::info\nbody\n:::', '#par[#"body"]\n\n'],
+    [':::warning[Title]\nbody\n:::', '#par[#"Title"]\n#par[#"body"]\n\n'],
     [':::align{center}\nx\n:::', '#align(center)[\n#par[#"x"]\n]\n\n'],
     [
       ':::figure[Cap]\nx\n:::',

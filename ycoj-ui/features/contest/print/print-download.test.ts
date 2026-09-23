@@ -1,4 +1,4 @@
-import { printPdfFileName, printSourceFileName } from './print-download';
+import { printPdfFileName } from './print-download';
 import { describe, expect, it } from 'vitest';
 
 describe('printPdfFileName', () => {
@@ -21,11 +21,5 @@ describe('printPdfFileName', () => {
 
   it('keeps the tid verbatim', () => {
     expect(printPdfFileName('42', 'ok')).toBe('contest-42-ok.pdf');
-  });
-});
-
-describe('printSourceFileName', () => {
-  it('is deterministic per contest', () => {
-    expect(printSourceFileName('7')).toBe('contest-7-typst-source.zip');
   });
 });

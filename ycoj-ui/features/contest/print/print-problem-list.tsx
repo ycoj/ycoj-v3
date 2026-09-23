@@ -50,10 +50,13 @@ export default function PrintProblemList({
 }: Props) {
   const t = useTranslations('contestPrint');
   const addProblemRef = useRef<HTMLButtonElement>(null);
-  const candidates = Object.keys(data.pdict)
-    .map(Number)
-    .filter((id) => !order.includes(id));
-  const pdictEmpty = Object.keys(data.pdict).length === 0;
+  // Candidates come from `tdoc.pids`, not `pdict` keys: the backend merges
+  // string `pdoc.pid` keys (e.g. "P1001") into `pdict`, which would break a
+  // numeric enumeration.
+  const candidates = [...new Set(data.tdoc.pids)].filter(
+    (id) => data.pdict[id] !== undefined && !order.includes(id)
+  );
+  const noProblems = data.tdoc.pids.length === 0;
 
   /**
    * Removing a card unmounts the focused button, which would drop focus to
@@ -132,19 +135,19 @@ export default function PrintProblemList({
           <EmptyHeader>
             <EmptyTitle
               data-llm-text={
-                pdictEmpty ? t('emptyPdictTitle') : t('emptyProblemsTitle')
+                noProblems ? t('emptyPdictTitle') : t('emptyProblemsTitle')
               }
             >
-              {pdictEmpty ? t('emptyPdictTitle') : t('emptyProblemsTitle')}
+              {noProblems ? t('emptyPdictTitle') : t('emptyProblemsTitle')}
             </EmptyTitle>
             <EmptyDescription
               data-llm-text={
-                pdictEmpty
+                noProblems
                   ? t('emptyPdictDescription')
                   : t('emptyProblemsDescription')
               }
             >
-              {pdictEmpty
+              {noProblems
                 ? t('emptyPdictDescription')
                 : t('emptyProblemsDescription')}
             </EmptyDescription>
@@ -163,6 +166,7 @@ export default function PrintProblemList({
                   letter={problemLetter(index)}
                   isFirst={index === 0}
                   isLast={index === document.problems.length - 1}
+                  showNoiStyle={document.noiStyle}
                   showFileIo={document.fileIo}
                   showPretest={document.usePretest}
                   languages={document.languages}

@@ -20,15 +20,6 @@ const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
-const TYPST_ASSETS =
-  'https://cdn.jsdelivr.net/gh/typst/typst-assets@v0.13.1/files/fonts/';
-const TYPST_ASSETS_FALLBACK =
-  'https://raw.githubusercontent.com/typst/typst-assets/v0.13.1/files/fonts/';
-// Noto Sans CJK Bold is fetched from the tagged Sans2.004 release tree.
-// Integrity is enforced by the pinned SHA-256 below.
-const NOTO_CJK = 'https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@Sans2.004/';
-const NOTO_CJK_FALLBACK =
-  'https://raw.githubusercontent.com/notofonts/noto-cjk/Sans2.004/';
 const MITEX_VERSION = '0.2.7';
 const MITEX_URL = `https://packages.typst.org/preview/mitex-${MITEX_VERSION}.tar.gz`;
 
@@ -50,129 +41,56 @@ const ASSETS = [
     sha256: '0159e214845e49cbdc332d9d572da112dae5ad248072e0a7680d38c8307c2e15',
     urls: [MITEX_URL],
   },
-  // ---- fonts (Libertinus Serif: Latin text) ---------------------------------
-  {
-    dest: 'public/fonts/typst/LibertinusSerif-Regular.otf',
-    sha256: 'fcf06307a77367394fcb0ccb241e59eea70dba3d732be309647611224679c733',
-    urls: [
-      `${TYPST_ASSETS}LibertinusSerif-Regular.otf`,
-      `${TYPST_ASSETS_FALLBACK}LibertinusSerif-Regular.otf`,
-    ],
-  },
-  {
-    dest: 'public/fonts/typst/LibertinusSerif-Bold.otf',
-    sha256: '0264914210ed51b3231ebc92ce529e9f2e166ba9eebf0cd4a579558690a27b64',
-    urls: [
-      `${TYPST_ASSETS}LibertinusSerif-Bold.otf`,
-      `${TYPST_ASSETS_FALLBACK}LibertinusSerif-Bold.otf`,
-    ],
-  },
-  {
-    dest: 'public/fonts/typst/LibertinusSerif-Italic.otf',
-    sha256: '9a393d63d6e05f620d3dc0190dfd35a8ede58c0808cf0fc9de7fcb9c723e4c24',
-    urls: [
-      `${TYPST_ASSETS}LibertinusSerif-Italic.otf`,
-      `${TYPST_ASSETS_FALLBACK}LibertinusSerif-Italic.otf`,
-    ],
-  },
-  {
-    dest: 'public/fonts/typst/LibertinusSerif-BoldItalic.otf',
-    sha256: '47a665259f09f554f5d133d7718cdad43ff462c6a6b2328f38023465e62d57ce',
-    urls: [
-      `${TYPST_ASSETS}LibertinusSerif-BoldItalic.otf`,
-      `${TYPST_ASSETS_FALLBACK}LibertinusSerif-BoldItalic.otf`,
-    ],
-  },
-  // ---- fonts (New Computer Modern Math: math) --------------------------------
-  {
-    dest: 'public/fonts/typst/NewCMMath-Book.otf',
-    sha256: 'b2e655d5cae5ab9569fa6f5d94e929156fe70bd3548d916b4b23d1a1c1a55693',
-    urls: [
-      `${TYPST_ASSETS}NewCMMath-Book.otf`,
-      `${TYPST_ASSETS_FALLBACK}NewCMMath-Book.otf`,
-    ],
-  },
-  {
-    dest: 'public/fonts/typst/NewCMMath-Regular.otf',
-    sha256: 'bfd2f9b22caacd41b8b29cfe3f6d72f976f221a65362e07eda35cbae863721b7',
-    urls: [
-      `${TYPST_ASSETS}NewCMMath-Regular.otf`,
-      `${TYPST_ASSETS_FALLBACK}NewCMMath-Regular.otf`,
-    ],
-  },
-  {
-    dest: 'public/fonts/typst/NewCMMath-Bold.otf',
-    sha256: '8956f7ef6c212ea647fe689abb66a3f3359126abcbb673fb58f3ecf033c7d1a7',
-    urls: [
-      `${TYPST_ASSETS}NewCMMath-Bold.otf`,
-      `${TYPST_ASSETS_FALLBACK}NewCMMath-Bold.otf`,
-    ],
-  },
-  // ---- fonts (DejaVu Sans Mono: code) ----------------------------------------
-  {
-    dest: 'public/fonts/typst/DejaVuSansMono.ttf',
-    sha256: 'b4a6c3e4faab8773f4ff761d56451646409f29abedd68f05d38c2df667d3c582',
-    urls: [
-      `${TYPST_ASSETS}DejaVuSansMono.ttf`,
-      `${TYPST_ASSETS_FALLBACK}DejaVuSansMono.ttf`,
-    ],
-  },
-  {
-    dest: 'public/fonts/typst/DejaVuSansMono-Bold.ttf',
-    sha256: 'bce60f1b4421acd9ea51ba6623d7024ecbe6817a953e3654df62a5e6bdf8f769',
-    urls: [
-      `${TYPST_ASSETS}DejaVuSansMono-Bold.ttf`,
-      `${TYPST_ASSETS_FALLBACK}DejaVuSansMono-Bold.ttf`,
-    ],
-  },
-  {
-    dest: 'public/fonts/typst/DejaVuSansMono-Oblique.ttf',
-    sha256: '742097840c541870e8d6dc5c9b37bb1ceeea6c0dedd1d475faf903ef9df734b0',
-    urls: [
-      `${TYPST_ASSETS}DejaVuSansMono-Oblique.ttf`,
-      `${TYPST_ASSETS_FALLBACK}DejaVuSansMono-Oblique.ttf`,
-    ],
-  },
-  {
-    dest: 'public/fonts/typst/DejaVuSansMono-BoldOblique.ttf',
-    sha256: '91713a71d550bba22c2a6b2bb2a9ad8f9a159e12e4e9f0a5b2677998ba21213e',
-    urls: [
-      `${TYPST_ASSETS}DejaVuSansMono-BoldOblique.ttf`,
-      `${TYPST_ASSETS_FALLBACK}DejaVuSansMono-BoldOblique.ttf`,
-    ],
-  },
-  // ---- fonts (Noto CJK: CJK text) ---------------------------------------------
-  {
-    // Vendored under assets/fonts/ (extracted from the Serif2.003 release
-    // zip — the upstream repo has no small stable URL for this file).
-    dest: 'public/fonts/typst/NotoSerifCJKsc-Regular.otf',
-    sha256: '2a2eae2628df83556c54018c41e20fa532c1b862c5256ae8b3f23feb918d12ca',
-    copyFrom: 'assets/fonts/NotoSerifCJKsc-Regular.otf',
-  },
-  {
-    // Already vendored under assets/fonts/; copied rather than re-downloaded.
-    dest: 'public/fonts/typst/NotoSansCJKsc-Regular.otf',
-    sha256: '2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b',
-    copyFrom: 'assets/fonts/NotoSansCJKsc-Regular.otf',
-  },
-  {
-    dest: 'public/fonts/typst/NotoSansCJKsc-Bold.otf',
-    sha256: 'b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a',
-    urls: [
-      `${NOTO_CJK}Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Bold.otf`,
-      `${NOTO_CJK_FALLBACK}Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Bold.otf`,
-    ],
-  },
-  // ---- font license -----------------------------------------------------------
-  {
-    // OFL-1.1 text covering Libertinus Serif, New Computer Modern and the
-    // Noto CJK faces (DejaVu ships its own permissive Bitstream license —
-    // see the generated FONTLICENSES.txt).
-    dest: 'public/fonts/typst/OFL.txt',
-    sha256: '6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2',
-    copyFrom: 'assets/fonts/noto-sans-cjk-OFL.txt',
-  },
 ];
+
+// Exact fonts used by the CNOI paper template. These are kept as local,
+// checksum-pinned inputs so browser compilation remains fully offline.
+const CNOI_FONT_HASHES = {
+  'FiraMono-Bold.ttf':
+    '2a28efd740e8da1da75d40ac79f0db4f60a0f1aead0b15ca16b4694a11b45fc6',
+  'FiraMono-Medium.ttf':
+    '5f9173ce3d05fadef74c7eed06570d54e4f75bd0cd9860726fb2987a7f848292',
+  'FiraMono-Regular.ttf':
+    '8c86f2963208a353c3435e28ecb38a99ab68f14d7433ba00c1822cef9a9c1b44',
+  'NewCMMath-Bold.otf':
+    'c6c0e060da57d4f44274705afb956013047231dc62be5a4b02a351ab0dc43f2f',
+  'NewCMMath-Book.otf':
+    '2ea09ebc9167b1e1a66f31390dc917f2d4004ecfca72d51b28010e4ad6becd95',
+  'NewCMMath-Regular.otf':
+    'd66ac1cc91c55c24d3636ae2df1238076debdff51841f9893fc5419cc2df3df7',
+  'NewCMSansMath-Regular.otf':
+    '2976236474e4e92ea68d9140c5b05fa1b98818a0a4a30cf8881c4c45ca951fd3',
+  'SimSun.ttf':
+    'ca4da082cd970f0c8abaa79f213ddcbc475f7b5afabcb81b385998f9ebfbb53f',
+  'lmroman10-bold.otf':
+    '102fe06c430a8b681b2bf6876b7cd967ae4d47b4b6b41d915eb7913b726d9fb1',
+  'lmroman10-bolditalic.otf':
+    'c37a28eed7a6e03f792b98b5e5f637b2fcda378bb4855f99284f1a88fe35f124',
+  'lmroman10-italic.otf':
+    'c1fce25075567bb8dbf2151658c3b442690041db17a2d49fc9e55905ea5b7169',
+  'lmroman10-regular.otf':
+    '1aa18cfefa58132c52ce5de70db1fd1154201c19cd2b2cdaffba4906a33e6852',
+  'lmroman12-bold.otf':
+    '28c8782ac2b6486958b5dc7610ada7800c53546ff7f36bc65909a876e1cd338e',
+  'lmroman12-italic.otf':
+    'ada6b3f451238784e5a5ea75d43efa1eb4329cd75ce65bf047ed2f31b7b5e2f3',
+  'lmroman12-regular.otf':
+    'e6be218ae83e61aa8a29990d3cdc401c678c1962188cb9a4a8b6359e4f5e5870',
+  'lmroman17-regular.otf':
+    'ed048c80fb4b67663b80899b89fe5fba17d7442e1286d61fd08fe5689c6b7c3c',
+  'simhei.ttf':
+    'aa4560dd8fe5645745fed3ffa301c3ca4d6c03cbd738145b613303961ba733b8',
+  'simkai.ttf':
+    '9dd76f7ab430edd091db24c3f18e71410325c1414141aad5fe67947873ffba06',
+};
+
+for (const [filename, sha256] of Object.entries(CNOI_FONT_HASHES)) {
+  ASSETS.push({
+    dest: `public/fonts/typst/${filename}`,
+    sha256,
+    copyFrom: `assets/fonts/${filename}`,
+  });
+}
 
 // Keep the pinned wasm byte-identical to the installed package: if the
 // dependency is bumped without re-pinning, this script fails loudly instead
@@ -278,25 +196,13 @@ for (const asset of ASSETS) {
 }
 
 // Provenance note shipped next to the fonts.
-const fontLicenses = `YCOJ print fonts — provenance and licenses
-=====================================================
+const fontLicenses = `YCOJ CNOI print fonts — provenance
+======================================
 Generated by scripts/prepare-typst.mjs; every file is SHA-256 pinned there.
 
-Libertinus Serif (Regular/Bold/Italic/BoldItalic)
-  Source: typst/typst-assets v0.13.1 (fonts/)
-  License: SIL Open Font License 1.1 (OFL.txt)
-
-New Computer Modern Math (Book/Regular/Bold)
-  Source: typst/typst-assets v0.13.1 (fonts/)
-  License: SIL Open Font License 1.1 (OFL.txt) / GUST Font License
-
-DejaVu Sans Mono (Regular/Bold/Oblique/BoldOblique)
-  Source: typst/typst-assets v0.13.1 (fonts/)
-  License: Bitstream Vera Fonts Copyright / public-domain-like permissive terms
-
-Noto Serif CJK SC Regular, Noto Sans CJK SC Regular & Bold
-  Source: notofonts/noto-cjk (Sans|Serif/OTF/SimplifiedChinese)
-  License: SIL Open Font License 1.1 (OFL.txt)
+Latin Modern, Fira Mono, New Computer Modern, SimSun, SimHei and SimKai
+  Source: the user-provided cnoi-statement-generator reference snapshot;
+  copied from assets/fonts/ by this script.
 
 These fonts are served to the browser compile worker verbatim; no font is
 downloaded from a CDN at runtime.
