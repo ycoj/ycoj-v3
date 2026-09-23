@@ -175,8 +175,8 @@ source binaries and checksums are documented in `assets/fonts/README.md` and
 `scripts/prepare-typst.mjs`.
 
 Runtime base URL: `getPrintAssetBase()` reads `NEXT_PUBLIC_PRINT_ASSET_PREFIX`
-(set in `next.config.ts` to the same CDN prefix as the clangd assets); empty →
-same-origin `public/` paths.
+(set in `next.config.ts` to the print CDN in production); empty → same-origin
+`public/` paths. Worker scripts always load from the application origin.
 
 ## typst.ts 0.7.0 API notes
 

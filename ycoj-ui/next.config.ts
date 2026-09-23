@@ -11,7 +11,7 @@ const uploadBaseUrl =
   process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ??
   backendBaseUrl ??
   '';
-const assetPrefix =
+const printAssetPrefix =
   process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '';
 
 const nextConfig: NextConfig = {
@@ -40,14 +40,12 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    NEXT_PUBLIC_CLANGD_ASSET_PREFIX: assetPrefix,
-    // Same base as the clangd worker assets: CDN in production, same-origin
-    // in development. Read by features/contest/print/print-assets.ts.
-    NEXT_PUBLIC_PRINT_ASSET_PREFIX: assetPrefix,
+    // Static print resources can use the CDN; worker scripts must share the
+    // page's origin, so Next chunks and the clangd worker stay same-origin.
+    NEXT_PUBLIC_PRINT_ASSET_PREFIX: printAssetPrefix,
     NEXT_PUBLIC_UPLOAD_BASEURL: uploadBaseUrl,
     SITE_NAME: process.env.SITE_NAME ?? '',
   },
-  assetPrefix,
   async redirects() {
     return [
       {

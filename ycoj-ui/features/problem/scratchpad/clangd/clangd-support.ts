@@ -5,9 +5,7 @@ export const CLANGD_ISOLATION_PARAM = 'clangd';
 export const SCRATCHPAD_OPEN_PARAM = 'scratchpad';
 
 export function getClangdWorkerUrl() {
-  const assetPrefix =
-    process.env.NEXT_PUBLIC_CLANGD_ASSET_PREFIX?.replace(/\/+$/, '') ?? '';
-  return `${assetPrefix}/clangd/worker.mjs`;
+  return '/clangd/worker.mjs';
 }
 
 export function getClangdSupport(): ClangdSupport {

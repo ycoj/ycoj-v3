@@ -3,8 +3,8 @@ import type { PrintSupport } from './compiler';
 /**
  * Public-asset manifest produced by `scripts/prepare-typst.mjs`. Paths are
  * appended to `getPrintAssetBase()` which honors
- * `NEXT_PUBLIC_PRINT_ASSET_PREFIX` (defaults to the deployment `assetPrefix`,
- * i.e. CDN in production and same-origin in development).
+ * `NEXT_PUBLIC_PRINT_ASSET_PREFIX` (CDN in production and same-origin in
+ * development). Next.js chunks and worker scripts remain same-origin.
  */
 
 /** Typst web-compiler wasm binary (from `@myriaddreamin/typst-ts-web-compiler`). */
