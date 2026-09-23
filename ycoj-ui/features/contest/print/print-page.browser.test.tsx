@@ -4,7 +4,7 @@ import PrintPage from './print-page';
 import type { ContestManagementResponse } from '@/api/server/method/contests/management';
 import messages from '@/messages/en';
 import messagesZh from '@/messages/zh';
-import { render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -135,7 +135,12 @@ describe('contest print editor', () => {
       screen.getByRole('heading', { level: 3, name: 'Sum problem' })
     ).toBeInTheDocument();
     expect(cardFor('Sum problem').getByText('Modified')).toBeInTheDocument();
-    await user.click(screen.getByRole('tab', { name: 'Basic information' }));
+    await act(async () => {
+      fireEvent.mouseDown(
+        screen.getByRole('tab', { name: 'Basic information' }),
+        { button: 0 }
+      );
+    });
     const restore = screen.getByRole('button', { name: 'Restore defaults' });
     expect(restore).toBeEnabled();
 
@@ -378,7 +383,12 @@ describe('contest print editor', () => {
     await user.type(notice, 'Updated notice');
     expect(notice).toHaveValue('Updated notice');
 
-    await user.click(screen.getByRole('tab', { name: 'A+B Problem · T1' }));
+    await act(async () => {
+      fireEvent.mouseDown(
+        screen.getByRole('tab', { name: 'A+B Problem · T1' }),
+        { button: 0 }
+      );
+    });
     const statement = screen.getByRole('textbox', {
       name: 'Statement for A+B Problem',
     });
