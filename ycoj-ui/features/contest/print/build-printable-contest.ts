@@ -176,6 +176,7 @@ function buildProblem(
   pdoc: ContestDetailProjectionProblem,
   language: SupportedProblemLanguage,
   languages: readonly PrintLanguageSpec[],
+  problemTypeLabels: Record<string, string> | undefined,
   diagnostics: PrintDiagnostic[]
 ): PrintProblem {
   const config = validConfig(pdoc.config) ? pdoc.config : null;
@@ -189,6 +190,10 @@ function buildProblem(
   }
   const name =
     sanitizeShortName(pdoc.pid ?? '') || sanitizeShortName(`p${pdoc.docId}`);
+  const rawProblemType = config?.type ?? '';
+  // The paper prints display text, not judge ids: resolve the localized
+  // label for known `config.type` values, passthrough otherwise.
+  const problemType = problemTypeLabels?.[rawProblemType] ?? rawProblemType;
   const fileIo = config !== null && isFileIoProblem(pdoc);
   // File-I/O names use the task file stem verbatim — `a+b.in`/`a+b.out`
   // pair with directory `a+b` and program `a+b.cpp`.
@@ -199,7 +204,7 @@ function buildProblem(
     ...(pdoc.pid !== undefined ? { pid: pdoc.pid } : {}),
     name,
     title: pdoc.title,
-    problemType: config?.type ?? '',
+    problemType,
     statement: pickStatement(pdoc, language, diagnostics),
     timeLimit: formatRangedLimit(
       config?.timeMin,
@@ -234,8 +239,12 @@ function buildProblem(
  * apply draft overrides. `problemOrder` reorders/filters `tdoc.pids` and may
  * add docIds absent from `pids` but present in `pdict`; ids with no `pdict`
  * entry emit `missing-problem` and are skipped. Per-problem overrides apply
- * verbatim (changing `name` does not re-derive `directory`/`executable`);
- * override keys that never made the printed list get an info diagnostic.
+ * verbatim (changing `name` does not re-derive `directory`/`executable`),
+ * except `problemType`, which resolves raw judge type ids through
+ * `problemTypeLabels` just like the derived defaults; override keys that
+ * never made the printed list get an info diagnostic.
+ * `problemTypeLabels` (optional) maps `pdoc.config.type` values to the
+ * localized label printed in the overview table's problem-type row.
  * The build is deterministic: identical inputs produce a JSON-equal result.
  */
 export const buildPrintableContest: BuildPrintableContest = (
@@ -245,6 +254,7 @@ export const buildPrintableContest: BuildPrintableContest = (
   const diagnostics: PrintDiagnostic[] = [];
   const { tdoc, pdict } = response;
   const overrides = options?.overrides ?? {};
+  const problemTypeLabels = options?.problemTypeLabels;
 
   const language = overrides.language ?? DEFAULT_STATEMENT_LANGUAGE;
   // `problemOrder` reorders/filters `tdoc.pids`; a repeated id prints once.
@@ -263,7 +273,9 @@ export const buildPrintableContest: BuildPrintableContest = (
       });
       continue;
     }
-    problems.push(buildProblem(pdoc, language, languages, diagnostics));
+    problems.push(
+      buildProblem(pdoc, language, languages, problemTypeLabels, diagnostics)
+    );
   }
 
   const problemOverrides = overrides.problems ?? {};
@@ -281,7 +293,20 @@ export const buildPrintableContest: BuildPrintableContest = (
       });
       continue;
     }
-    problems[index] = { ...problems[index], ...problemOverrides[problemId] };
+    const override = problemOverrides[problemId];
+    // `problemType` is printable display text: a raw `config.type` id typed
+    // in the editor resolves to its localized label, free text passes
+    // through verbatim.
+    problems[index] = {
+      ...problems[index],
+      ...override,
+      ...(override.problemType !== undefined
+        ? {
+            problemType:
+              problemTypeLabels?.[override.problemType] ?? override.problemType,
+          }
+        : {}),
+    };
   }
 
   const document: PrintableContest = {

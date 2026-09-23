@@ -38,7 +38,13 @@ export type PrintProblem = {
   name: string;
   /** Title shown in the problem heading and the overview table. */
   title: string;
-  /** Judge type passthrough (`pdoc.config.type`, e.g. `default`). */
+  /**
+   * Display text for the overview table's problem-type row. The builder
+   * writes the localized label matching `pdoc.config.type` from
+   * `BuildPrintableContestOptions.problemTypeLabels` when provided; unknown
+   * types (or absent labels) fall back to the raw `config.type` passthrough.
+   * Editable in the editor either way — it is printable display text.
+   */
   problemType: string;
   /** Statement markdown in the selected `PrintStatementLanguage`. */
   statement: string;
@@ -137,6 +143,13 @@ export type PrintContestOverrides = Partial<
 
 export type BuildPrintableContestOptions = {
   overrides?: PrintContestOverrides;
+  /**
+   * Localized problem-type labels keyed by `pdoc.config.type` (`default`,
+   * `objective`, `remote_judge`, …). When provided, `PrintProblem.problemType`
+   * carries the label so the printed paper shows localized text instead of
+   * raw judge type ids.
+   */
+  problemTypeLabels?: Record<string, string>;
 };
 
 /**

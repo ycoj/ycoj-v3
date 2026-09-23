@@ -185,7 +185,7 @@ describe('contest print editor', () => {
 
     let card = await openProblem(user, 'A+B Problem');
     const typeInput = card.getByLabelText('Problem type');
-    expect(typeInput).toHaveValue('Default');
+    expect(typeInput).toHaveValue('Traditional');
     await user.clear(typeInput);
     await user.type(typeInput, 'interactive');
     expect(typeInput).toHaveValue('Interactive');

@@ -141,6 +141,52 @@ describe('buildPrintableContest', () => {
     expect(document).toMatchObject(overrides);
   });
 
+  it('localizes problemType through problemTypeLabels and passes unknown types through', () => {
+    const response = makeResponse({
+      1: makeProblem(1, { type: 'default' }),
+      2: makeProblem(2, { type: 'remote_judge' }),
+      3: makeProblem(3, { type: 'objective' }),
+      4: makeProblem(4, { type: 'custom_type' }),
+    });
+    const problemTypeLabels = {
+      default: '传统题',
+      remote_judge: '远端评测题',
+      objective: '选择题',
+    };
+    const { document } = buildPrintableContest(response, { problemTypeLabels });
+    expect(document.problems.map((p) => p.problemType)).toEqual([
+      '传统题',
+      '远端评测题',
+      '选择题',
+      'custom_type',
+    ]);
+
+    // Without labels the raw `config.type` passes through (test seam default).
+    expect(
+      buildPrintableContest(response).document.problems.map(
+        (p) => p.problemType
+      )
+    ).toEqual(['default', 'remote_judge', 'objective', 'custom_type']);
+
+    // A raw type id typed in the editor resolves through the labels too,
+    // while free text passes through verbatim.
+    const { document: overridden } = buildPrintableContest(response, {
+      problemTypeLabels,
+      overrides: {
+        problems: {
+          1: { problemType: 'interactive' },
+          2: { problemType: '书面作答' },
+        },
+      },
+    });
+    expect(overridden.problems.map((p) => p.problemType)).toEqual([
+      'interactive',
+      '书面作答',
+      '选择题',
+      'custom_type',
+    ]);
+  });
+
   it('reorders and filters problems via problemOrder', () => {
     const { document } = buildPrintableContest(twoProblemContest.response, {
       overrides: { problemOrder: [1002] },

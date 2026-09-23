@@ -20,6 +20,7 @@ import {
   type PrintMoveDirection,
 } from './print-draft';
 import type { ContestManagementResponse } from '@/api/server/method/contests/management';
+import { useTranslations } from 'next-intl';
 import { useCallback, useMemo, useState } from 'react';
 
 export type PrintDraftActions = {
@@ -60,10 +61,29 @@ export function usePrintDraft(
   response: ContestManagementResponse
 ): PrintDraftState {
   const [overrides, setOverrides] = useState<PrintDraft>({});
+  const tProblemType = useTranslations('problemType');
+
+  /**
+   * `pdoc.config.type` → localized label, so the printed paper shows
+   * e.g. `传统题` instead of the raw judge id `default`/`remote_judge`.
+   */
+  const problemTypeLabels = useMemo<Record<string, string>>(
+    () => ({
+      default: tProblemType('default'),
+      traditional: tProblemType('default'),
+      objective: tProblemType('objective'),
+      submit_answer: tProblemType('submitAnswer'),
+      fileio: tProblemType('fileIo'),
+      interactive: tProblemType('interactive'),
+      communication: tProblemType('communication'),
+      remote_judge: tProblemType('remoteJudge'),
+    }),
+    [tProblemType]
+  );
 
   const { document, diagnostics } = useMemo(
-    () => buildPrintableContest(response, { overrides }),
-    [response, overrides]
+    () => buildPrintableContest(response, { overrides, problemTypeLabels }),
+    [response, overrides, problemTypeLabels]
   );
 
   const isDirty = useMemo(
