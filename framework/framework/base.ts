@@ -55,7 +55,7 @@ export default (logger, xff, xhost) => async (ctx: KoaContext, next: Next) => {
         await next();
         if (request.websocket) return;
         const handler = ctx.handler;
-        if (!handler) {
+        if (!handler && !response.redirect) {
             logger.error('No handler found on request', request);
             ctx.response.status = 500;
             return;

@@ -21,6 +21,7 @@ import system from '../model/system';
 import db from './db';
 import baseLayer from './layers/base';
 import domainLayer from './layers/domain';
+import hostRedirectLayer from './layers/hostRedirect';
 import userLayer from './layers/user';
 
 const argv = cac().parse();
@@ -130,6 +131,7 @@ export async function apply(ctx: Context) {
         server.addWSLayer('domain', domainLayer);
         server.addLayer('base', baseLayer);
         server.addLayer('user', userLayer);
+        server.addHandlerLayer('hostRedirect', hostRedirectLayer);
 
         const cachedTranslate = ctx.i18n.translate;
 

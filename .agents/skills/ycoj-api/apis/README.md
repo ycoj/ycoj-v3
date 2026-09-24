@@ -4,6 +4,8 @@ This is the routing index for the backend contracts present in the repository sn
 
 The default base URL is `https://ycoj.cc/`. Every documented route is relative to that base. Prefix a path with `/d/{domainId}` when selecting a domain by URL rather than host; for example, `/p` in domain `school` becomes `https://ycoj.cc/d/school/p`.
 
+For browser requests on `ycoj.cc`, visitors who are not logged in and signed-in users whose privilege is not `PRIV_ALL` are redirected to the same path and query on `https://next.ycoj.cc`. The redirect sets a host-scoped 24-hour cooldown cookie; requests during that period are served normally. Requests negotiated as JSON (`Accept: application/json`) are never redirected. Super administrators (`priv === -1`) remain on `ycoj.cc`.
+
 | URL or operation | Documents | Includes |
 | --- | --- | --- |
 | `/p`, `/p/*`, `/problem/*`; problem `/api` ops | [Problem](problem/README.md) | Search, detail, create/edit, submit/hack, user feedback and admin feedback moderation, async HTML-to-Markdown jobs and polling, files, solutions/review/author blocks, statistics, compatibility/import routes, problem queries/mutation |

@@ -493,7 +493,8 @@ ${c.response.status} ${endTime - startTime}ms ${c.response.length}`);
             ...this.handlerLayers,
             {
                 name: '404',
-                func: (t) => this.handleHttp(t, NotFoundHandler, () => true, this.customDefaultContext || this.ctx),
+                func: (t) => t.HydroContext.response.redirect
+                    || this.handleHttp(t, NotFoundHandler, () => true, this.customDefaultContext || this.ctx),
             },
         ]));
         this.addLayer('base', base(logger, this.config.xff, this.config.xhost));
