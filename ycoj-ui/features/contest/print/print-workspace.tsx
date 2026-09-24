@@ -269,10 +269,10 @@ export default function PrintWorkspace({
   }
 
   return (
-    <div className="min-h-[42rem] flex-1 overflow-hidden rounded-md border">
-      <Group orientation="horizontal" className="h-full">
+    <div className="h-full min-h-[42rem] flex-1 overflow-hidden rounded-md border">
+      <Group orientation="horizontal" className="h-full min-h-0">
         <Panel id="contest-print-editor" defaultSize="50" minSize={250}>
-          <div className="h-full min-w-0">{editor}</div>
+          <div className="h-full min-h-0 min-w-0">{editor}</div>
         </Panel>
         <ResizeSeparator />
         <Panel
@@ -281,7 +281,7 @@ export default function PrintWorkspace({
           minSize={250}
           collapsible
         >
-          <div className="h-full min-w-0">{preview}</div>
+          <div className="h-full min-h-0 min-w-0">{preview}</div>
         </Panel>
       </Group>
     </div>

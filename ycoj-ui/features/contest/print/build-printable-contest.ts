@@ -188,7 +188,7 @@ function buildProblem(
       location: { problemId: pdoc.docId },
     });
   }
-  const name =
+  const pidName =
     sanitizeShortName(pdoc.pid ?? '') || sanitizeShortName(`p${pdoc.docId}`);
   const rawProblemType = config?.type ?? '';
   // The paper prints display text, not judge ids: resolve the localized
@@ -197,7 +197,8 @@ function buildProblem(
   const fileIo = config !== null && isFileIoProblem(pdoc);
   // File-I/O names use the task file stem verbatim — `a+b.in`/`a+b.out`
   // pair with directory `a+b` and program `a+b.cpp`.
-  const submitBase = fileIo && config?.subType ? config.subType : name;
+  const name = fileIo && config?.subType ? config.subType : pidName;
+  const submitBase = name;
 
   return {
     problemId: pdoc.docId,

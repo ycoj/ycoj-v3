@@ -30,10 +30,10 @@ export type PrintProblem = {
   /** Platform pid when the problem has one (`pdoc.pid`), for reference only. */
   pid?: string;
   /**
-   * Short ASCII identifier used as a fallback for generated file names.
-   * YCOJ problems have no dedicated short name, so the builder derives it from
-   * the first seven characters of a sanitized lowercase `pid` or falls back
-   * to `p${docId}`.
+   * Problem file stem shown in headings and used as the default for generated
+   * file names. File-I/O problems use `config.subType`; standard-I/O problems
+   * fall back to the first seven characters of a sanitized lowercase `pid` or
+   * `p${docId}`.
    */
   name: string;
   /** Title shown in the problem heading and the overview table. */

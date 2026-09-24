@@ -226,7 +226,7 @@ export const twoProblemContest: PrintFixture = {
       {
         problemId: 1001,
         pid: 'P1001',
-        name: 'p1001',
+        name: 'aplusb',
         title: 'A+B Problem',
         problemType: 'default',
         statement: problem1001Statement.zh.trim(),

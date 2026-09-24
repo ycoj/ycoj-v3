@@ -342,6 +342,12 @@ describe('buildPrintableContest', () => {
       'p3',
       'a+b',
     ]);
+    expect(document.problems.map((p) => p.name)).toEqual([
+      'dec',
+      'p2',
+      'p3',
+      'a+b',
+    ]);
     expect(document.problems.map((p) => p.executable)).toEqual([
       'dec.cpp',
       'p2.cpp',
@@ -354,7 +360,7 @@ describe('buildPrintableContest', () => {
     expect(document.problems[3].submitFilenames).toEqual(['a+b.cpp']);
   });
 
-  it('derives lowercase names from pid with sanitizing and seven-character limit, else p<docId>', () => {
+  it('derives fallback names from pid with sanitizing and seven-character limit, else p<docId>', () => {
     const response = makeResponse({
       1: makeProblem(1, {}, { pid: 'P1001' }),
       2: makeProblem(2, {}, { pid: 'a b/c' }),

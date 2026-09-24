@@ -260,7 +260,7 @@ export default function PrintPreviewPanel({
             </EmptyHeader>
           </Empty>
         ) : (
-          <div className="size-full overflow-hidden">
+          <div className="size-full min-h-0 overflow-auto">
             <ReactPdfViewer key={pdfUrl} src={pdfUrl} />
           </div>
         )}
