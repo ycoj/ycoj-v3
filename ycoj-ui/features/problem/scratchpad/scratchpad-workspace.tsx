@@ -47,7 +47,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
-import { STATUS_TEXT_KEYS } from '@/shared/configs/status';
+import { STATUS, STATUS_TEXT_KEYS } from '@/shared/configs/status';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { useRecordSocket } from '@/shared/hooks/use-record-socket';
 import { getSyntaxLanguage } from '@/shared/lib/code-language';
@@ -384,6 +384,13 @@ export default function ScratchpadWorkspace({
     },
     [t, tJudge]
   );
+  const getPretestStatusText = useCallback(
+    (status: number) =>
+      status === STATUS.STATUS_ACCEPTED
+        ? t('pretestExited')
+        : getStatusText(status),
+    [getStatusText, t]
+  );
 
   const handleRecord = useCallback(
     (record: ScratchpadRecord) => {
@@ -391,14 +398,17 @@ export default function ScratchpadWorkspace({
         pretestRecords.current.set(record._id, record);
         if (record._id === activePretestRid.current) {
           setPretestOutput(
-            formatScratchpadPretestOutput(record, getStatusText(record.status))
+            formatScratchpadPretestOutput(
+              record,
+              getPretestStatusText(record.status)
+            )
           );
         }
         return;
       }
       setRecords((current) => mergeScratchpadRecords(current, [record]));
     },
-    [getStatusText]
+    [getPretestStatusText]
   );
 
   const ensureCode = useCallback(() => {
@@ -427,7 +437,7 @@ export default function ScratchpadWorkspace({
         setPretestOutput(
           formatScratchpadPretestOutput(
             latestRecord,
-            getStatusText(latestRecord.status)
+            getPretestStatusText(latestRecord.status)
           )
         );
       }
@@ -447,7 +457,7 @@ export default function ScratchpadWorkspace({
     config.pid,
     config.tid,
     ensureCode,
-    getStatusText,
+    getPretestStatusText,
     isMobile,
     language,
     posting,

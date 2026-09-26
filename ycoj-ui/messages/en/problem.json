@@ -314,6 +314,7 @@
     "draftUnavailable": "Draft storage is unavailable. Keep this page open to avoid losing changes.",
     "codeRequired": "Enter code before running or submitting.",
     "pretestQueued": "Pretest submitted. Waiting for the judge...",
+    "pretestExited": "Exited",
     "pretestFailed": "Pretest failed. Please try again.",
     "submitFailed": "Submission failed. Please try again.",
     "fillSample": "Fill into pretest",

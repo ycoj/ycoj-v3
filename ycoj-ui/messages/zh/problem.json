@@ -314,6 +314,7 @@
     "draftUnavailable": "无法保存草稿，请保持页面打开以免丢失更改。",
     "codeRequired": "请先输入代码。",
     "pretestQueued": "测试已提交，正在等待评测...",
+    "pretestExited": "运行成功",
     "pretestFailed": "测试运行失败，请稍后重试。",
     "submitFailed": "提交失败，请稍后重试。",
     "fillSample": "填充到自测",

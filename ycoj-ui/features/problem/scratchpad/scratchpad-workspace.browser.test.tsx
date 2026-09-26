@@ -177,7 +177,7 @@ describe('ScratchpadWorkspace', () => {
         },
       });
     });
-    expect(await screen.findByText(/Accepted 5ms 1024KiB/)).toBeInTheDocument();
+    expect(await screen.findByText(/Exited 5ms 1024KiB/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Submit/ }));
     expect(mocks.submitProblem).toHaveBeenLastCalledWith(
