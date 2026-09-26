@@ -19,8 +19,16 @@ type AlignValue = 'center' | 'left' | 'right';
 type AlertVariant = 'error' | 'info' | 'success' | 'warning';
 type ContainerState = 'closed' | 'opened';
 
+// {open}/{close} are accepted spellings of {opened}/{closed}.
+const CONTAINER_STATES = {
+  close: 'closed',
+  closed: 'closed',
+  open: 'opened',
+  opened: 'opened',
+} as const;
+
 const DIRECTIVE_RE =
-  /^:::\s*(?:align\s*\{\s*(center|right|left)\s*\}|(info|warning|success|error))\s*(?:\[(.*)\])?\s*(?:\{(opened|closed)\})?\s*$/i;
+  /^:::\s*(?:align\s*\{\s*(center|right|left)\s*\}|(info|warning|success|error))\s*(?:\[(.*)\])?\s*(?:\{(opened|closed|open|close)\})?\s*$/i;
 const CLOSING_RE = /^\s*:::\s*$/;
 const BLOCKQUOTE_MARKER_RE = /^[ \t]*(?:>[ \t]?)+/;
 const LEADING_WHITESPACE_RE = /^[ \t]*/;
@@ -111,7 +119,11 @@ function parseDirective(line: string): ContainerDirective | null {
   const title = match[3]?.trim();
   return {
     kind: 'alert',
-    state: match[4] ? (match[4].toLowerCase() as ContainerState) : null,
+    state: match[4]
+      ? CONTAINER_STATES[
+          match[4].toLowerCase() as keyof typeof CONTAINER_STATES
+        ]
+      : null,
     title: title ? title : null,
     variant: match[2]!.toLowerCase() as AlertVariant,
   };

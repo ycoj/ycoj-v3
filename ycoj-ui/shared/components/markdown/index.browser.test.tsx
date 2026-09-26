@@ -1,3 +1,7 @@
+// The alignment fix depends on Tailwind's preflight (images are block-level
+// there); the app loads it through the root stylesheet, so tests that assert
+// image layout must load it too.
+import '../../../app/globals.css';
 import Markdown from '.';
 import messages from '@/messages/en';
 import { resolveFileUrls } from '@/shared/lib/resolve-file-urls';
@@ -147,6 +151,27 @@ describe('Markdown math rendering', () => {
       expect(math).not.toBeNull();
       expect(math?.textContent).toMatch(/^a\s+b\s+c$/);
       expect(container.querySelector('del')).not.toBeInTheDocument();
+    });
+  });
+
+  it('renders math inside an info container', async () => {
+    const { container } = await renderMarkdownWithKatex(':::info\n$x^2$\n:::');
+
+    await waitFor(() => {
+      expect(container.querySelector('.katex-html')).toHaveTextContent('x2');
+    });
+  });
+
+  it('renders math inside a titled info container after it is opened', async () => {
+    const user = userEvent.setup();
+    const { container } = await renderMarkdownWithKatex(
+      ':::info[Heads up]\n$x^2$\n:::'
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Heads up' }));
+
+    await waitFor(() => {
+      expect(container.querySelector('.katex-html')).toHaveTextContent('x2');
     });
   });
 });
@@ -368,28 +393,27 @@ describe('Markdown containers', () => {
     expect(screen.getByText('attention').tagName).toBe('STRONG');
   });
 
-  it('renders a titled container with an opened marker expanded', async () => {
-    await renderMarkdown(':::info[Heads up]{opened}\nPay attention.\n:::');
+  it.each([
+    ['{opened}', 'true'],
+    ['{closed}', 'false'],
+    ['{open}', 'true'],
+    ['{close}', 'false'],
+  ] as const)(
+    'renders a titled container with a %s marker with aria-expanded %s',
+    async (marker, expanded) => {
+      await renderMarkdown(`:::info[Heads up]${marker}\nPay attention.\n:::`);
 
-    expect(screen.getByRole('button', { name: 'Heads up' })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    );
-    expect(screen.getByText('Pay attention.')).toBeInTheDocument();
-  });
-
-  it('renders a titled container with a closed marker collapsed', async () => {
-    const user = userEvent.setup();
-    await renderMarkdown(':::info[Heads up]{closed}\nPay attention.\n:::');
-
-    const toggle = screen.getByRole('button', { name: 'Heads up' });
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText('Pay attention.')).not.toBeInTheDocument();
-
-    await user.click(toggle);
-
-    expect(screen.getByText('Pay attention.')).toBeInTheDocument();
-  });
+      expect(screen.getByRole('button', { name: 'Heads up' })).toHaveAttribute(
+        'aria-expanded',
+        expanded
+      );
+      if (expanded === 'true') {
+        expect(screen.getByText('Pay attention.')).toBeInTheDocument();
+      } else {
+        expect(screen.queryByText('Pay attention.')).not.toBeInTheDocument();
+      }
+    }
+  );
 
   it.each([
     ['info', 'border-blue-200'],
@@ -437,6 +461,37 @@ describe('Markdown containers', () => {
     const { container } = await renderMarkdown(':::align{right}\nhello\n:::');
 
     expect(container.querySelector('.text-right')).toHaveTextContent('hello');
+  });
+
+  it('centers an image inside a center align container', async () => {
+    const { container } = await renderMarkdown(
+      ':::align{center}\n![pic](https://example.com/pic.png)\n:::'
+    );
+
+    const align = container.querySelector('.text-center')!;
+    const img = container.querySelector('img')!;
+    const alignBox = align.getBoundingClientRect();
+    const imgBox = img.getBoundingClientRect();
+
+    // Tailwind's preflight makes images block-level, so text-align alone
+    // leaves them at the left edge; auto margins must equalize both gaps.
+    expect(imgBox.left - alignBox.left).toBeCloseTo(
+      alignBox.right - imgBox.right,
+      0
+    );
+  });
+
+  it('aligns an image to the right in a right align container', async () => {
+    const { container } = await renderMarkdown(
+      ':::align{right}\n![pic](https://example.com/pic.png)\n:::'
+    );
+
+    const align = container.querySelector('.text-right')!;
+    const img = container.querySelector('img')!;
+    const alignBox = align.getBoundingClientRect();
+    const imgBox = img.getBoundingClientRect();
+
+    expect(alignBox.right - imgBox.right).toBeLessThan(1);
   });
 
   it('renders nested containers', async () => {

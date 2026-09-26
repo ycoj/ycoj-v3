@@ -172,6 +172,36 @@ describe('remarkContainers', () => {
     });
   });
 
+  it('handles open/close markers as opened/closed', () => {
+    const opened = applyPlugin({
+      type: 'root',
+      children: [
+        paragraph(':::info[Heads up]{open}'),
+        paragraph('x'),
+        paragraph(':::'),
+      ],
+    });
+    const closed = applyPlugin({
+      type: 'root',
+      children: [
+        paragraph(':::info[Heads up]{close}'),
+        paragraph('x'),
+        paragraph(':::'),
+      ],
+    });
+
+    expect(opened.children![0]!.data?.hProperties).toEqual({
+      'data-variant': 'info',
+      'data-title': 'Heads up',
+      'data-state': 'opened',
+    });
+    expect(closed.children![0]!.data?.hProperties).toEqual({
+      'data-variant': 'info',
+      'data-title': 'Heads up',
+      'data-state': 'closed',
+    });
+  });
+
   it('does not accept a collapse marker on align containers', () => {
     const tree = applyPlugin({
       type: 'root',

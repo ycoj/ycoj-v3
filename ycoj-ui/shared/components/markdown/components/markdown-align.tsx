@@ -1,10 +1,12 @@
 import { cn } from '@/shared/lib/utils';
 import type { ReactNode } from 'react';
 
+// Tailwind's preflight makes images block-level, so text-align cannot move
+// them; auto margins are what actually aligns images inside the container.
 const ALIGN_CLASSNAMES = {
-  center: 'text-center',
+  center: 'text-center [&_img]:mx-auto',
   left: 'text-left',
-  right: 'text-right',
+  right: 'text-right [&_img]:ml-auto',
 } as const;
 type AlignValue = keyof typeof ALIGN_CLASSNAMES;
 

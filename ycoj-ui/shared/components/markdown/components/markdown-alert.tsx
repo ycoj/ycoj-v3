@@ -78,7 +78,7 @@ export default function MarkdownAlert({
   const title =
     typeof titleRaw === 'string' && titleRaw.trim() ? titleRaw.trim() : null;
   // Titled containers collapse to their title by default; an explicit
-  // {opened}/{closed} marker in the directive overrides the default.
+  // {opened}/{closed} (or {open}/{close}) marker overrides the default.
   const stateRaw = getPropValue(propsMap, 'data-state', 'dataState');
   const [open, setOpen] = useState(stateRaw === 'opened');
   const style = VARIANT_STYLES[variant];
