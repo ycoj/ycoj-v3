@@ -1,4 +1,21 @@
-const MATH_DELIMITERS = ['$$', '$'];
+type MathDelimiter = {
+  left: string;
+  right: string;
+};
+
+// Matched in order, so `$$` must win over `$`.
+const MATH_DELIMITERS: MathDelimiter[] = [
+  { left: '$$', right: '$$' },
+  { left: '\\(', right: '\\)' },
+  { left: '$', right: '$' },
+];
+
+// Markdown consumes one level of backslash escapes, so a delimiter written
+// with a backslash is emitted doubled: the parsed text then holds exactly the
+// delimiter KaTeX searches for.
+function escapeDelimiter(delimiter: string) {
+  return delimiter.replace(/\\/g, '\\\\');
+}
 
 type Fence = {
   marker: '`' | '~';
@@ -151,30 +168,23 @@ export function preserveLatexLineBreaks(source: string) {
       }
     }
 
-    const hasDisplayDelimiter = source.startsWith(MATH_DELIMITERS[0], index);
-    const displayDelimiterIsEscaped =
-      hasDisplayDelimiter && isEscaped(source, index);
-    const delimiter =
-      hasDisplayDelimiter && !displayDelimiterIsEscaped
-        ? MATH_DELIMITERS[0]
-        : source[index] === '$' && !isEscaped(source, index)
-          ? MATH_DELIMITERS[1]
-          : null;
+    const matched = MATH_DELIMITERS.find((candidate) =>
+      source.startsWith(candidate.left, index)
+    );
+    const delimiter = matched && !isEscaped(source, index) ? matched : null;
 
     if (!delimiter) {
-      const literalLength = displayDelimiterIsEscaped
-        ? MATH_DELIMITERS[0].length
-        : 1;
+      const literalLength = matched?.left.length ?? 1;
       result += source.slice(index, index + literalLength);
       index += literalLength;
       continue;
     }
 
-    const contentStart = index + delimiter.length;
+    const contentStart = index + delimiter.left.length;
     let contentEnd = contentStart;
     while (contentEnd < source.length) {
       if (
-        source.startsWith(delimiter, contentEnd) &&
+        source.startsWith(delimiter.right, contentEnd) &&
         !isEscaped(source, contentEnd)
       ) {
         break;
@@ -188,10 +198,10 @@ export function preserveLatexLineBreaks(source: string) {
       continue;
     }
 
-    result += delimiter;
+    result += escapeDelimiter(delimiter.left);
     result += escapeLatexForMarkdown(source.slice(contentStart, contentEnd));
-    result += delimiter;
-    index = contentEnd + delimiter.length;
+    result += escapeDelimiter(delimiter.right);
+    index = contentEnd + delimiter.right.length;
   }
 
   return result;

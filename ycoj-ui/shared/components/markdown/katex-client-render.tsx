@@ -29,6 +29,7 @@ export default function KatexClientRender({ source }: Props) {
       renderMathInElement(container, {
         delimiters: [
           { left: '$$', right: '$$', display: true },
+          { left: '\\(', right: '\\)', display: false },
           { left: '$', right: '$', display: false },
         ],
         throwOnError: false,

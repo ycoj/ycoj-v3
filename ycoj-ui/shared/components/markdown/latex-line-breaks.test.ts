@@ -23,6 +23,21 @@ describe('preserveLatexLineBreaks', () => {
     expect(preserveLatexLineBreaks(source)).toBe(String.raw`\`$a \\\\ b$\``);
   });
 
+  it('doubles the backslash of parenthesized math delimiters', () => {
+    expect(preserveLatexLineBreaks(String.raw`\(a \\ b\)`)).toBe(
+      String.raw`\\(a \\\\ b\\)`
+    );
+    expect(preserveLatexLineBreaks(String.raw`\(x_i\)`)).toBe(
+      String.raw`\\(x\_i\\)`
+    );
+  });
+
+  it('keeps an unmatched parenthesis delimiter as literal text', () => {
+    const source = String.raw`\(x and f(x)`;
+
+    expect(preserveLatexLineBreaks(source)).toBe(source);
+  });
+
   it('does not change prose, fenced code, or code spans', () => {
     const source = [
       String.raw`text \\ text`,

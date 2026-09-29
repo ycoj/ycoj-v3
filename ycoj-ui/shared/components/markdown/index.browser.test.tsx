@@ -154,6 +154,19 @@ describe('Markdown math rendering', () => {
     });
   });
 
+  it('renders inline math written with LaTeX paren delimiters', async () => {
+    const { container } = await renderMarkdownWithKatex(
+      String.raw`The term \(x_1^2\) grows quickly`
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector('.katex-html')).toHaveTextContent('x12');
+    });
+    const paragraph = container.querySelector('p');
+    expect(paragraph?.textContent).toContain('The term');
+    expect(paragraph?.textContent).toContain('grows quickly');
+  });
+
   it('renders math inside an info container', async () => {
     const { container } = await renderMarkdownWithKatex(':::info\n$x^2$\n:::');
 
