@@ -19,6 +19,10 @@
   "submitting": "保存中...",
   "submit": "保存修改",
   "cancel": "返回题目",
+  "delete": "删除题目",
+  "deleting": "删除中...",
+  "deleteConfirm": "确认删除该题目？其测试数据和做题记录将一并删除。",
+  "deleteFailed": "删除失败，请稍后重试。",
   "htmlToMarkdown": {
     "title": "HTML 转 Markdown",
     "description": "检测到 HTML 内容，可转换为 Markdown。",

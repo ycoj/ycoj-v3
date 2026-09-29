@@ -74,6 +74,7 @@ type Props = {
   cancelHref: string;
   onSubmit: (values: ProblemFormValues) => Promise<string>;
   renderAsideExtra?: (api: AsideExtraApi) => ReactNode;
+  extraActions?: (isSubmitting: boolean) => ReactNode;
 };
 
 export default function ProblemForm({
@@ -83,6 +84,7 @@ export default function ProblemForm({
   cancelHref,
   onSubmit,
   renderAsideExtra,
+  extraActions,
 }: Props) {
   const t = useTranslations(
     mode === 'create' ? 'problemCreate' : 'problemEdit'
@@ -299,6 +301,7 @@ export default function ProblemForm({
                 {t('cancel')}
               </Link>
             </Button>
+            {extraActions?.(isSubmitting)}
           </div>
         </div>
       </section>

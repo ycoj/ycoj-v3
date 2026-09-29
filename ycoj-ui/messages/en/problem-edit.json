@@ -19,6 +19,10 @@
   "submitting": "Saving...",
   "submit": "Save changes",
   "cancel": "Back to problem",
+  "delete": "Delete problem",
+  "deleting": "Deleting...",
+  "deleteConfirm": "Confirm deleting this problem? Its test data and status will be deleted as well.",
+  "deleteFailed": "Deletion failed. Please try again later.",
   "htmlToMarkdown": {
     "title": "HTML to Markdown",
     "description": "HTML content detected. Convert to Markdown with AI.",
