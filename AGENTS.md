@@ -6,6 +6,8 @@ This Git repository contains the Hydro-based backend at the root and the Next.js
 
 Before changing frontend code, read `ycoj-ui/AGENTS.md` and its required code-style skill. For frontend API contracts, inspect the backend implementation when the response shape is unclear.
 
+When a user asks you to modify the frontend in the current code, default to the new `ycoj-ui/`. There is no need to modify Hydro's legacy UI.
+
 ## Keep backend API documentation synchronized
 
 Any backend change that adds, removes, renames, or changes an HTTP route, connection endpoint, `/api/:op` operation, request parameter or validation rule, permission requirement, response schema, status behavior, content type, redirect, or side effect must update `.agents/skills/ycoj-api/` in the same change.
