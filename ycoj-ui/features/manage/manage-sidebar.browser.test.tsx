@@ -1,5 +1,6 @@
 import {
   canImportUsers,
+  canEditSystem,
   canManageExpiration,
   manageLanding,
 } from '@/features/manage/manage-access';
@@ -42,6 +43,9 @@ describe('management access', () => {
       canManageExpiration({ priv })
     );
     expect(screen.queryByRole('link', { name: 'Problem feedback' })).toBeNull();
+    expect(!!screen.queryByRole('link', { name: 'AI providers' })).toBe(
+      canEditSystem({ priv })
+    );
     if (canManageExpiration({ priv }))
       expect(
         screen.getByRole('link', { name: 'Account expiration' })

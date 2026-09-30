@@ -4,5 +4,6 @@
   "expiration": "Account expiration",
   "userImport": "Import users",
   "problemFeedback": "Problem feedback",
-  "award": "Award certification"
+  "award": "Award certification",
+  "aiProvider": "AI providers"
 }

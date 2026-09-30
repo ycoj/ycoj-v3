@@ -1,5 +1,6 @@
 import accountExpiration from './account-expiration.json';
 import accountSettings from './account-settings.json';
+import aiProvider from './ai-provider.json';
 import auth from './auth.json';
 import autoComplete from './auto-complete.json';
 import award from './award.json';
@@ -79,6 +80,7 @@ const catalog = {
   problemImport,
   user,
   accountSettings,
+  aiProvider,
   messages,
   homepage,
   checkin,

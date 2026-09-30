@@ -1,5 +1,6 @@
 import Account from '@/api/client/method/account';
 import AccountExpiration from '@/api/client/method/account-expiration';
+import AiProvider from '@/api/client/method/ai-provider';
 import Auth from '@/api/client/method/auth';
 import Award from '@/api/client/method/award';
 import * as Checkin from '@/api/client/method/checkin';
@@ -20,6 +21,7 @@ import User from '@/api/client/method/user';
 const ClientApis = {
   Account,
   AccountExpiration,
+  AiProvider,
   Award,
   Auth,
   Checkin,

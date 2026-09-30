@@ -4,5 +4,6 @@
   "expiration": "账号有效期",
   "userImport": "导入用户",
   "problemFeedback": "题目反馈",
-  "award": "奖项认证"
+  "award": "奖项认证",
+  "aiProvider": "AI 提供商"
 }

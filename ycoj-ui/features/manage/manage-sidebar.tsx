@@ -7,7 +7,13 @@ import {
 } from '@/features/manage/manage-access';
 import { PRIV } from '@/features/user/lib/priv';
 import { cn } from '@/shared/lib/utils';
-import { Award, CalendarClock, UserCheck, UserPlus } from 'lucide-react';
+import {
+  Award,
+  CalendarClock,
+  Sparkles,
+  UserCheck,
+  UserPlus,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -29,7 +35,14 @@ export default function ManageSidebar({ priv }: { priv: number }) {
       ? [{ href: '/manage/realname', label: t('realname'), icon: UserCheck }]
       : []),
     ...(canEditSystem({ priv })
-      ? [{ href: '/manage/award', label: t('award'), icon: Award }]
+      ? [
+          { href: '/manage/award', label: t('award'), icon: Award },
+          {
+            href: '/manage/ai-provider',
+            label: t('aiProvider'),
+            icon: Sparkles,
+          },
+        ]
       : []),
     ...(canManageExpiration({ priv })
       ? [
