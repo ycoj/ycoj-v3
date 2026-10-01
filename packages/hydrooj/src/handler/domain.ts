@@ -27,8 +27,10 @@ class DomainRankHandler extends Handler {
     @query('page', Types.PositiveInt, true)
     async get(domainId: string, page = 1) {
         const hiddenUids = await user.getRankHiddenUids();
+        const rankingQuery = { ...leaderboardUidClause(hiddenUids), rp: { $gt: 0 }, join: true };
+        const pageSize = this.ctx.setting.get('pagination.ranking') || 20;
         const [dudocs, upcount, ucount] = await this.paginate(
-            domain.getMultiUserInDomain(domainId, { ...leaderboardUidClause(hiddenUids), rp: { $gt: 0 }, join: true }).sort({ rp: -1 }),
+            domain.getMultiUserInDomain(domainId, rankingQuery).sort({ rp: -1, uid: 1 }),
             page,
             'ranking',
         );
@@ -38,19 +40,22 @@ class DomainRankHandler extends Handler {
             udoc.nAccept ??= 0;
             return udoc;
         });
-        const pageSize = this.ctx.setting.get('pagination.ranking') || 20;
-        // The self row must show the position inside the filtered listing, which
-        // renumbers contiguously without opted-out users; the stored rank keeps
-        // counting them.
-        const selfIndex = dudocs.findIndex((dudoc) => dudoc.uid === this.user._id);
         let selfRank: number | null = null;
-        if (selfIndex >= 0) selfRank = (page - 1) * pageSize + selfIndex + 1;
-        else if (this.user.rank && !this.user.hideRank) {
-            selfRank = 1 + await domain.countUserInDomain(domainId, {
-                ...leaderboardUidClause(hiddenUids),
-                rp: { $gt: this.user.rp },
-                join: true,
-            });
+        if (this.user.hasPriv(PRIV.PRIV_USER_PROFILE) && !hiddenUids.includes(this.user._id)) {
+            const index = dudocs.findIndex((dudoc) => dudoc.uid === this.user._id);
+            if (index !== -1) selfRank = (page - 1) * pageSize + index + 1;
+            else {
+                const current = await domain.getMultiUserInDomain(domainId, {
+                    ...rankingQuery, $and: [{ uid: this.user._id }],
+                }).next();
+                if (current) {
+                    // Match the list's RP order and UID tie-breaker, without changing stored rank.
+                    selfRank = 1 + await domain.countUserInDomain(domainId, {
+                        ...rankingQuery,
+                        $or: [{ rp: { $gt: current.rp } }, { rp: current.rp, uid: { $lt: current.uid } }],
+                    });
+                }
+            }
         }
         this.response.template = 'ranking.html';
         this.response.body = {
