@@ -78,6 +78,18 @@ describe('SidebarUserMenu theme toggle', () => {
       screen.queryByRole('menuitem', { name: 'Share Snippets' })
     ).not.toBeInTheDocument();
   });
+
+  it.each([
+    ['en', 'Whiteboard'],
+    ['zh', '白板'],
+  ] as const)('links to the whiteboard in %s', async (locale, label) => {
+    renderMenu(locale);
+    await openMenu();
+    expect(screen.getByRole('menuitem', { name: label })).toHaveAttribute(
+      'href',
+      '/draw'
+    );
+  });
   it('links to the new account settings page', async () => {
     renderMenu();
     await openMenu();

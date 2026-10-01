@@ -13,6 +13,7 @@ import contestSolution from './contest-solution.json';
 import contest from './contest.json';
 import difficulty from './difficulty.json';
 import discussion from './discussion.json';
+import draw from './draw.json';
 import error from './error.json';
 import graphEditor from './graph-editor.json';
 import homepage from './homepage.json';
@@ -99,6 +100,7 @@ const catalog = {
   problemType,
   contestSolution,
   graphEditor,
+  draw,
   userImport,
 };
 
