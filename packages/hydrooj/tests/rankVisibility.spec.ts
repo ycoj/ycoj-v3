@@ -51,6 +51,7 @@ before(async () => {
     userModel = require('../src/model/user').default;
     mock('../src/model/user', {
         ...require('../src/model/user'),
+        __esModule: true,
         default: {
             getRankHiddenUids: () => userModel.getRankHiddenUids(),
             getList: async (domainId: string, uids: number[]) => {
