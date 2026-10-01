@@ -257,6 +257,10 @@ class DomainModel {
         return collUser.find({ domainId, ...query });
     }
 
+    static async countUserInDomain(domainId: string, query: any = {}) {
+        return await collUser.countDocuments({ domainId, ...query });
+    }
+
     static async setUserInDomain(domainId: string, uid: number, params: any) {
         const udoc = await UserModel.getById(domainId, uid);
         deleteUserCache(udoc);

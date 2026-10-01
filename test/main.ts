@@ -198,6 +198,7 @@ describe('App', () => {
 
             assert.equal(hidden.body.udocs.find((udoc: { _id: number }) => udoc._id === 2), undefined);
             assert.equal(hidden.body.ucount, baseline.body.ucount - 1);
+            assert.equal(hidden.body.selfRank, null);
             assert.equal((await homepageRanking()).includes(2), false);
 
             // Opting out filters the listing only; RP is still calculated and stored.
@@ -214,13 +215,69 @@ describe('App', () => {
             assert.ok(rankedUser);
             assert.equal(rankedUser.rp, 456);
             assert.equal(restored.body.ucount, baseline.body.ucount);
+            assert.equal(
+                restored.body.selfRank,
+                restored.body.udocs.findIndex((udoc: { _id: number }) => udoc._id === 2) + 1,
+            );
             assert.ok((await homepageRanking()).includes(2));
+
+            // The legacy template renders the self row from the filtered rank.
+            await agent.get('/ranking')
+                .expect(200);
         } finally {
             // setById invalidates the user cache, unlike a raw collection write.
             await userModel.setById(2, { hideRank: original?.hideRank || false });
             // Restore the domain record so the fabricated RP does not leak forward.
             await domainModel.updateUserInDomain('system', 2, {
                 $set: { join: originalDudoc.join, rp: originalDudoc.rp, rpInfo: originalDudoc.rpInfo },
+            });
+        }
+    });
+
+    it('Ranking self rank counts only the visible leaderboard', async () => {
+        const userModel = global.Hydro.model.user;
+        const domainModel = global.Hydro.model.domain;
+        const original = await userModel.coll.findOne({ _id: 2 }, { projection: { hideRank: 1 } });
+        const originalDudoc = await domainModel.getDomainUser('system', { _id: 2, priv: 0 } as any);
+        const originalPagination = global.Hydro.model.system.get('pagination.ranking');
+        const peerUid = await userModel.create('selfrank-peer@example.com', 'selfrankpeer', '123456');
+        await domainModel.updateUserInDomain('system', 2, {
+            // Stored rank 3 pretends a mid-table user opted out earlier, so the
+            // stored rank diverges from the filtered listing on purpose.
+            $set: { join: true, rp: 300, rpInfo: { problem: 300 }, rank: 3 },
+        });
+        await domainModel.updateUserInDomain('system', peerUid, {
+            $set: { join: true, rp: 400, rpInfo: { problem: 400 }, rank: 1 },
+        });
+        try {
+            await global.Hydro.model.system.set('pagination.ranking', 1);
+            // With one user per page the viewer is not on page 1, exercising the
+            // calculated position instead of the displayed list position.
+            const offpage = await agent.get('/ranking')
+                .set('Accept', 'application/json')
+                .expect(200);
+            assert.equal(offpage.body.udocs[0]._id, peerUid);
+            assert.equal(offpage.body.selfRank, 2);
+
+            await userModel.setById(peerUid, { hideRank: true });
+            const filtered = await agent.get('/ranking')
+                .set('Accept', 'application/json')
+                .expect(200);
+
+            assert.deepEqual(filtered.body.udocs.map((udoc: { _id: number }) => udoc._id), [2]);
+            assert.equal(filtered.body.selfRank, 1);
+            const dudoc = await domainModel.getDomainUser('system', { _id: 2, priv: 0 } as any);
+            assert.equal(dudoc.rank, 3);
+        } finally {
+            await userModel.setById(peerUid, { hideRank: false });
+            await domainModel.updateUserInDomain('system', peerUid, { $set: { rp: 0, rank: 0 } });
+            await global.Hydro.model.system.set('pagination.ranking', originalPagination);
+            await userModel.setById(2, { hideRank: original?.hideRank || false });
+            await domainModel.updateUserInDomain('system', 2, {
+                $set: {
+                    join: originalDudoc.join, rp: originalDudoc.rp,
+                    rpInfo: originalDudoc.rpInfo, rank: originalDudoc.rank ?? null,
+                },
             });
         }
     });

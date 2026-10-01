@@ -39,9 +39,22 @@ class DomainRankHandler extends Handler {
             return udoc;
         });
         const pageSize = this.ctx.setting.get('pagination.ranking') || 20;
+        // The self row must show the position inside the filtered listing, which
+        // renumbers contiguously without opted-out users; the stored rank keeps
+        // counting them.
+        const selfIndex = dudocs.findIndex((dudoc) => dudoc.uid === this.user._id);
+        let selfRank: number | null = null;
+        if (selfIndex >= 0) selfRank = (page - 1) * pageSize + selfIndex + 1;
+        else if (this.user.rank && !this.user.hideRank) {
+            selfRank = 1 + await domain.countUserInDomain(domainId, {
+                ...leaderboardUidClause(hiddenUids),
+                rp: { $gt: this.user.rp },
+                join: true,
+            });
+        }
         this.response.template = 'ranking.html';
         this.response.body = {
-            udocs, upcount, ucount, page, pageSize,
+            udocs, upcount, ucount, page, pageSize, selfRank,
         };
     }
 }
