@@ -21,12 +21,14 @@
     "school": "学校",
     "studentId": "学号",
     "phone": "手机号",
+    "hideRank": "在排行榜中隐身",
     "backgroundImage": "资料页背景图片"
   },
   "help": {
     "qq": "填写你的 QQ 号。",
     "bio": "介绍一下自己，支持 Markdown。",
     "phone": "此处暂不支持修改手机号。",
+    "hideRank": "开启后你的名字不会出现在排行榜上，但 RP 仍会正常计算。",
     "backgroundImage": "填写用于个人资料页背景的图片地址。"
   },
   "gender": {

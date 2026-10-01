@@ -29,6 +29,8 @@ Description: account security view and UI-selected security mutation. GET `type 
 ## `GET|POST /home/settings/:category`
 Description: show/save a user settings category. GET `type Path={category:string}`, example `GET /home/settings/profile`, response `HTML`. POST `type Input={category:string}&Record<string,unknown>`, example `{"category":"profile","bio":"Hello"}`, response `Redirect`, example `{"url":"/home/settings/profile"}`. Content and short-text values are validated for their size limits and normalized with trimming before persistence; YAML/JSON subtypes are still parsed and rejected when invalid. Requires profile privilege.
 
+`category=account` accepts and returns the registered `setting_info` fields, including the boolean leaderboard opt-out: POST `{"category":"account","hideRank":"on"}` stores `hideRank: true` and `{"category":"account","hideRank":false}` clears it (boolean settings are only stored as `true` when the submitted value is exactly `on`, matching the HTML checkbox contract). GET returns them in `settings[]` as `type AccountSetting={family:string;key:string;range:unknown;value:unknown;type:"boolean";subType:string;name:string;desc:string;flag:number}`, example `{"family":"setting_info","key":"hideRank","range":null,"value":false,"type":"boolean","subType":"","name":"Hide from leaderboard","desc":"","flag":0}`, and echoes the caller's stored value in `current.hideRank`. Built-in field labels and help text are served from the frontend translation catalogs rather than `name`/`desc`.
+
 ## `POST /home/avatar`
 Description: validate/save avatar data. Request `type Input={input:string}`, example `{"input":"data:image/png;base64,iVBOR…"}`. Response `type Result={url:string}`, example `{"url":"/avatar/12"}`. Requires profile privilege.
 

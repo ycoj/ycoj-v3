@@ -157,6 +157,74 @@ describe('App', () => {
         assert.equal(rankedUser.nAccept, 7);
     });
 
+    it('Account settings expose the hideRank leaderboard opt-out', async () => {
+        const settings = await agent.get('/home/settings/account')
+            .set('Accept', 'application/json')
+            .expect(200);
+        const hideRank = (settings.body.settings || []).find((setting: { key: string }) => setting.key === 'hideRank');
+
+        assert.ok(hideRank, 'hideRank must be registered as an account setting');
+        assert.equal(hideRank.type, 'boolean');
+    });
+
+    it('Ranking JSON hides a user who opted out while keeping their RP', async () => {
+        const userModel = global.Hydro.model.user;
+        const domainModel = global.Hydro.model.domain;
+        const original = await userModel.coll.findOne({ _id: 2 }, { projection: { hideRank: 1 } });
+        const originalDudoc = await domainModel.getDomainUser('system', { _id: 2, priv: 0 } as any);
+        await domainModel.updateUserInDomain('system', 2, {
+            $set: { join: true, rp: 456, rpInfo: { problem: 456 } },
+        });
+        // The homepage "ranking" widget is dispatched reflectively as get<Name>.
+        const homepageRanking = async () => {
+            const home = await agent.get('/')
+                .set('Accept', 'application/json')
+                .expect(200);
+            return home.body.contents
+                .flatMap((column: { sections: any[][] }) => column.sections)
+                .find((section: any[]) => section[0] === 'ranking')[1];
+        };
+        try {
+            const baseline = await agent.get('/ranking')
+                .set('Accept', 'application/json')
+                .expect(200);
+            assert.ok(baseline.body.udocs.find((udoc: { _id: number }) => udoc._id === 2));
+            assert.ok((await homepageRanking()).includes(2));
+
+            await userModel.setById(2, { hideRank: true });
+            const hidden = await agent.get('/ranking')
+                .set('Accept', 'application/json')
+                .expect(200);
+
+            assert.equal(hidden.body.udocs.find((udoc: { _id: number }) => udoc._id === 2), undefined);
+            assert.equal(hidden.body.ucount, baseline.body.ucount - 1);
+            assert.equal((await homepageRanking()).includes(2), false);
+
+            // Opting out filters the listing only; RP is still calculated and stored.
+            const dudoc = await domainModel.getDomainUser('system', { _id: 2, priv: 0 } as any);
+            assert.equal(dudoc.rp, 456);
+            assert.deepEqual(dudoc.rpInfo, { problem: 456 });
+
+            await userModel.setById(2, { hideRank: false });
+            const restored = await agent.get('/ranking')
+                .set('Accept', 'application/json')
+                .expect(200);
+
+            const rankedUser = restored.body.udocs.find((udoc: { _id: number }) => udoc._id === 2);
+            assert.ok(rankedUser);
+            assert.equal(rankedUser.rp, 456);
+            assert.equal(restored.body.ucount, baseline.body.ucount);
+            assert.ok((await homepageRanking()).includes(2));
+        } finally {
+            // setById invalidates the user cache, unlike a raw collection write.
+            await userModel.setById(2, { hideRank: original?.hideRank || false });
+            // Restore the domain record so the fabricated RP does not leak forward.
+            await domainModel.updateUserInDomain('system', 2, {
+                $set: { join: originalDudoc.join, rp: originalDudoc.rp, rpInfo: originalDudoc.rpInfo },
+            });
+        }
+    });
+
     it('Authenticated check-in API state', async () => {
         const home = await agent.get('/')
             .set('Accept', 'application/json')
