@@ -15,6 +15,7 @@ import { DomainDoc, Setting } from '../interface';
 import avatar, { validate } from '../lib/avatar';
 import { CHECKIN_TIMEZONE, toCheckinRecord, utc8Date } from '../lib/checkin';
 import * as mail from '../lib/mail';
+import { leaderboardUidClause } from '../lib/rankVisibility';
 import { verifyTFA } from '../lib/verifyTFA';
 import BlackListModel from '../model/blacklist';
 import { PERM, PRIV } from '../model/builtin';
@@ -113,7 +114,8 @@ export class HomeHandler extends Handler {
 
     async getRanking(domainId: string, limit = 50) {
         if (!this.user.hasPerm(PERM.PERM_VIEW_RANKING)) return [];
-        const dudocs = await domain.getMultiUserInDomain(domainId, { uid: { $gt: 1 }, rp: { $gt: 0 } })
+        const hiddenUids = await user.getRankHiddenUids();
+        const dudocs = await domain.getMultiUserInDomain(domainId, { ...leaderboardUidClause(hiddenUids), rp: { $gt: 0 } })
             .sort({ rp: -1 }).project({ uid: 1 }).limit(limit).toArray();
         const uids = dudocs.map((dudoc) => dudoc.uid);
         this.collectUser(uids);

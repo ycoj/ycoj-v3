@@ -264,6 +264,12 @@ class UserModel {
     }
 
     @ArgMethod
+    static async getRankHiddenUids(): Promise<number[]> {
+        const udocs = await coll.find({ hideRank: true }).project<{ _id: number }>({ _id: 1 }).toArray();
+        return udocs.map(({ _id }) => _id);
+    }
+
+    @ArgMethod
     static async getRealByUname(domainId: string, uname: string): Promise<User | null> {
         const unameLower = uname.trim().toLowerCase();
         const udoc = await coll.findOne({ unameLower });
@@ -607,6 +613,7 @@ export async function apply() {
             coll,
             { key: { unameLower: 1 }, name: 'uname', unique: true },
             { key: { mailLower: 1 }, name: 'mail', unique: true },
+            { key: { hideRank: 1 }, name: 'hideRank', partialFilterExpression: { hideRank: true } },
         ),
         db.ensureIndexes(
             collV,

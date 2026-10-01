@@ -46,6 +46,8 @@ export type User = BaseUser & {
   timeZone?: string;
   backgroundImage?: string;
   bio?: string;
+  /** Opted out of the leaderboard listing; RP is still calculated normally */
+  hideRank?: boolean;
   codeLang?: string;
   codeTemplate?: string;
   realnameStatus?: 'none' | 'pending' | 'approved' | 'rejected';

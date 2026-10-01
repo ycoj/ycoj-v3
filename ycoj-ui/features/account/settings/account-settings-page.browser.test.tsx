@@ -78,6 +78,7 @@ const data: AccountSettingsData = {
     bio: '# Hello',
     school: 'My school',
     phone: '123',
+    hideRank: false,
     notes: 'Some notes',
     count: 0,
     enabled: false,
@@ -94,6 +95,7 @@ const data: AccountSettingsData = {
     setting('bio', { type: 'markdown' }),
     setting('school'),
     setting('phone', { flag: SETTING_FLAG.DISABLED }),
+    setting('hideRank', { type: 'boolean', value: false }),
     setting('secret', { flag: SETTING_FLAG.SECRET }),
     setting('hidden', { flag: SETTING_FLAG.HIDDEN }),
     setting('storage', { family: 'setting_storage' }),
@@ -339,6 +341,47 @@ describe('account settings fields', () => {
     ).toBeInTheDocument();
     expect(screen.getByLabelText('学校')).toHaveValue('My school');
     expect(screen.getByLabelText('Plugin notes')).toHaveValue('Some notes');
+  });
+
+  it('lets a user opt out of the leaderboard and explains that RP is unaffected', async () => {
+    render(page());
+    const optOut = screen.getByRole('checkbox', {
+      name: 'Hide from leaderboard',
+    });
+    expect(optOut).not.toBeChecked();
+    expect(
+      screen.getByText(
+        'Your name will not appear on the leaderboard, but your RP is still calculated normally.'
+      )
+    ).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(optOut);
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(mocks.save).toHaveBeenCalled());
+    expect(mocks.save).toHaveBeenCalledWith(
+      expect.objectContaining({ hideRank: true })
+    );
+  });
+
+  it('reflects an existing leaderboard opt-out and can be turned back off', async () => {
+    render(
+      page({
+        ...data,
+        current: { ...data.current, hideRank: true },
+      })
+    );
+    const optOut = screen.getByRole('checkbox', {
+      name: 'Hide from leaderboard',
+    });
+    expect(optOut).toBeChecked();
+
+    await userEvent.setup().click(optOut);
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(mocks.save).toHaveBeenCalled());
+    expect(mocks.save).toHaveBeenCalledWith(
+      expect.objectContaining({ hideRank: false })
+    );
   });
 });
 

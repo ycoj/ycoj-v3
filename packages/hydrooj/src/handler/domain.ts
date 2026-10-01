@@ -9,6 +9,7 @@ import {
 } from '../error';
 import type { DomainDoc } from '../interface';
 import avatar from '../lib/avatar';
+import { leaderboardUidClause } from '../lib/rankVisibility';
 import { PERM, PERMS_BY_FAMILY, PRIV } from '../model/builtin';
 import * as discussion from '../model/discussion';
 import domain from '../model/domain';
@@ -25,8 +26,11 @@ import { log2 } from '../utils';
 class DomainRankHandler extends Handler {
     @query('page', Types.PositiveInt, true)
     async get(domainId: string, page = 1) {
+        const hiddenUids = await user.getRankHiddenUids();
+        const rankingQuery = { ...leaderboardUidClause(hiddenUids), rp: { $gt: 0 }, join: true };
+        const pageSize = this.ctx.setting.get('pagination.ranking') || 20;
         const [dudocs, upcount, ucount] = await this.paginate(
-            domain.getMultiUserInDomain(domainId, { uid: { $gt: 1 }, rp: { $gt: 0 }, join: true }).sort({ rp: -1 }),
+            domain.getMultiUserInDomain(domainId, rankingQuery).sort({ rp: -1, uid: 1 }),
             page,
             'ranking',
         );
@@ -36,10 +40,26 @@ class DomainRankHandler extends Handler {
             udoc.nAccept ??= 0;
             return udoc;
         });
-        const pageSize = this.ctx.setting.get('pagination.ranking') || 20;
+        let selfRank: number | null = null;
+        if (this.user.hasPriv(PRIV.PRIV_USER_PROFILE) && !hiddenUids.includes(this.user._id)) {
+            const index = dudocs.findIndex((dudoc) => dudoc.uid === this.user._id);
+            if (index !== -1) selfRank = (page - 1) * pageSize + index + 1;
+            else {
+                const current = await domain.getMultiUserInDomain(domainId, {
+                    ...rankingQuery, $and: [{ uid: this.user._id }],
+                }).next();
+                if (current) {
+                    // Match the list's RP order and UID tie-breaker, without changing stored rank.
+                    selfRank = 1 + await domain.countUserInDomain(domainId, {
+                        ...rankingQuery,
+                        $or: [{ rp: { $gt: current.rp } }, { rp: current.rp, uid: { $lt: current.uid } }],
+                    });
+                }
+            }
+        }
         this.response.template = 'ranking.html';
         this.response.body = {
-            udocs, upcount, ucount, page, pageSize,
+            udocs, upcount, ucount, page, pageSize, selfRank,
         };
     }
 }

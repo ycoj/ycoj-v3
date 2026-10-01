@@ -42,6 +42,7 @@ const builtinFields = new Set([
   'school',
   'studentId',
   'phone',
+  'hideRank',
   'backgroundImage',
 ]);
 

@@ -21,12 +21,14 @@
     "school": "School",
     "studentId": "Student ID",
     "phone": "Phone",
+    "hideRank": "Hide from leaderboard",
     "backgroundImage": "Profile background image"
   },
   "help": {
     "qq": "Your QQ number.",
     "bio": "Introduce yourself. Markdown is supported.",
     "phone": "This field cannot be edited here.",
+    "hideRank": "Your name will not appear on the leaderboard, but your RP is still calculated normally.",
     "backgroundImage": "Enter the image URL for your profile background."
   },
   "gender": {
