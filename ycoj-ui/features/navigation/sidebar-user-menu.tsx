@@ -22,6 +22,7 @@ import {
   LogOut,
   MessagesSquare,
   Moon,
+  PenTool,
   Settings,
   Sun,
   UserRound,
@@ -158,6 +159,12 @@ export default function SidebarUserMenu({
               </Link>
             </DropdownMenuPrimitive.Item>
           )}
+          <DropdownMenuPrimitive.Item asChild className={menuItemClassName}>
+            <Link href="/draw">
+              <PenTool aria-hidden="true" />
+              <span data-llm-text={t('draw')}>{t('draw')}</span>
+            </Link>
+          </DropdownMenuPrimitive.Item>
           <DropdownMenuPrimitive.Separator className="bg-foreground/10 -mx-1 my-1 h-px" />
           <DropdownMenuPrimitive.Item asChild className={menuItemClassName}>
             <Link href="/home/realname">

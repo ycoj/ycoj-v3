@@ -20,8 +20,8 @@ export type DraftStorageOptions<T> = {
 const DRAFT_DATABASE_VERSION = 1;
 
 // Every IndexedDB database/store owned by this module. The three databases
-// predate this registry and keep their names so drafts written by older
-// clients stay readable; do not rename them without a data migration.
+// below `draw` predate this registry and keep their names so drafts written by
+// older clients stay readable; do not rename them without a data migration.
 export const DRAFT_DATABASES = {
   preliminary: {
     dbName: 'ycoj-ui-preliminary',
@@ -29,6 +29,7 @@ export const DRAFT_DATABASES = {
   },
   objective: { dbName: 'ycoj-ui', storeName: 'objective-drafts' },
   scratchpad: { dbName: 'ycoj-scratchpad', storeName: 'drafts' },
+  draw: { dbName: 'ycoj-ui-draw', storeName: 'draw-scenes' },
 } as const;
 
 const openRequests = new Map<string, Promise<IDBDatabase>>();
