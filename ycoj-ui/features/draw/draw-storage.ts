@@ -11,8 +11,8 @@ const { getDraft, saveDraft } = makeDraftStorage<PersistedDrawScene>(
   DRAFT_DATABASES.draw.storeName
 );
 
-export function loadDrawScene(): Promise<PersistedDrawScene | null> {
-  return getDraft(DRAFT_ID);
+export async function loadDrawScene(): Promise<PersistedDrawScene | null> {
+  return sanitizeDrawScene(await getDraft(DRAFT_ID));
 }
 
 export function saveDrawScene(scene: PersistedDrawScene): Promise<void> {
