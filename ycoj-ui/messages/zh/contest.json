@@ -44,5 +44,7 @@
   "attendees": "参赛者",
   "clarifications": "赛事答疑",
   "balloons": "气球状态",
-  "bulkSubmit": "批量提交"
+  "bulkSubmit": "批量提交",
+  "materials": "比赛材料",
+  "downloadMaterial": "下载 {name}"
 }

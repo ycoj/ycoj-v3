@@ -1,6 +1,7 @@
 import ContestTimer from '@/features/contest/contest-timer';
 import ContestTitle from '@/features/contest/contest-title';
 import ContestContent from '@/features/contest/detail/contest-content';
+import ContestMaterials from '@/features/contest/detail/contest-materials';
 import ContestSidebar from '@/features/contest/detail/contest-sidebar';
 import { canShowContestScoreboard } from '@/features/contest/detail/contest-utils';
 import { getContestDetail } from '@/features/contest/detail/get-contest-detail';
@@ -72,6 +73,7 @@ export default async function ContestDetailPage({
               udict={data.udict}
               canManage={data.canManage}
             />
+            <ContestMaterials tid={tid} files={data.files ?? []} />
           </div>
         }
         right={

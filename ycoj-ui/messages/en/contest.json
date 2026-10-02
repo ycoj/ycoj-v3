@@ -44,5 +44,7 @@
   "attendees": "Attendees",
   "clarifications": "Contest Q&A",
   "balloons": "Balloon status",
-  "bulkSubmit": "Bulk submit"
+  "bulkSubmit": "Bulk submit",
+  "materials": "Contest materials",
+  "downloadMaterial": "Download {name}"
 }
