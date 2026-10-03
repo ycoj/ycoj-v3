@@ -154,11 +154,18 @@ export default function ContestForm({
             autoHide: resolveContestAutoHide(canAutoHide, values.autoHide),
           })
       : undefined,
-    toCloneValues: ({ title, beginAtDate, beginAtTime, duration }) => ({
+    toCloneValues: ({
       title,
       beginAtDate,
       beginAtTime,
       duration,
+      autoHide,
+    }) => ({
+      title,
+      beginAtDate,
+      beginAtTime,
+      duration,
+      autoHide,
     }),
   });
   const supportsLock = contestRuleSupportsLock(rule);
@@ -530,6 +537,7 @@ export default function ContestForm({
       {cloneFlow.cloneValues && (
         <ContestCloneDialog
           defaultValues={cloneFlow.cloneValues}
+          canAutoHide={canAutoHide}
           onClose={cloneFlow.closeCloneDialog}
           onConfirm={cloneFlow.confirmClone}
         />

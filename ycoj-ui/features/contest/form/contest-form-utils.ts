@@ -47,7 +47,7 @@ export type ContestFormValues = {
 
 export type ContestCloneValues = Pick<
   ContestFormValues,
-  'title' | 'beginAtDate' | 'beginAtTime' | 'duration'
+  'title' | 'beginAtDate' | 'beginAtTime' | 'duration' | 'autoHide'
 >;
 
 export const contestRuleSupportsLock = (rule: ContestCreateRule) =>

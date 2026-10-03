@@ -11,17 +11,20 @@ const prefilled: ContestCloneValues = {
   beginAtDate: '2026-09-01',
   beginAtTime: '10:00',
   duration: '3',
+  autoHide: true,
 };
 
 function renderDialog(
   defaultValues: ContestCloneValues = prefilled,
-  onConfirm = vi.fn().mockResolvedValue(undefined)
+  onConfirm = vi.fn().mockResolvedValue(undefined),
+  canAutoHide = true
 ) {
   const onClose = vi.fn();
   render(
     <NextIntlClientProvider locale="en" messages={messages}>
       <ContestCloneDialog
         defaultValues={defaultValues}
+        canAutoHide={canAutoHide}
         onClose={onClose}
         onConfirm={onConfirm}
       />
@@ -45,6 +48,9 @@ describe('contest clone dialog', () => {
     expect(screen.getByLabelText('Start time')).toHaveValue('10:00');
     expect(screen.getByLabelText('Duration (hours)')).toHaveValue(3);
     expect(screen.getByLabelText('End time')).toHaveValue('2026-09-01 13:00');
+    expect(
+      screen.getByRole('checkbox', { name: /Auto-hide problems/ })
+    ).toBeChecked();
   });
 
   it('updates the end time preview while editing', async () => {
@@ -79,6 +85,60 @@ describe('contest clone dialog', () => {
       beginAtDate: '2026-09-01',
       beginAtTime: '20:30',
       duration: '3',
+      autoHide: true,
+    });
+  });
+
+  it('clones with auto-hide turned off when it is unchecked', async () => {
+    const onConfirm = vi.fn().mockResolvedValue(undefined);
+    renderDialog(undefined, onConfirm);
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: /Auto-hide problems/ })
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Clone' }));
+    expect(onConfirm).toHaveBeenCalledExactlyOnceWith({
+      title: 'Weekly contest',
+      beginAtDate: '2026-09-01',
+      beginAtTime: '10:00',
+      duration: '3',
+      autoHide: false,
+    });
+  });
+
+  it('clones with auto-hide turned on when it is unchecked in the source', async () => {
+    const onConfirm = vi.fn().mockResolvedValue(undefined);
+    renderDialog({ ...prefilled, autoHide: false }, onConfirm);
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: /Auto-hide problems/ })
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Clone' }));
+    expect(onConfirm).toHaveBeenCalledExactlyOnceWith({
+      title: 'Weekly contest',
+      beginAtDate: '2026-09-01',
+      beginAtTime: '10:00',
+      duration: '3',
+      autoHide: true,
+    });
+  });
+
+  it('locks auto-hide off when the user lacks the permission', async () => {
+    const onConfirm = vi.fn().mockResolvedValue(undefined);
+    renderDialog(undefined, onConfirm, false);
+    const autoHide = screen.getByRole('checkbox', {
+      name: /Auto-hide problems/,
+    });
+    expect(autoHide).toBeDisabled();
+    expect(autoHide).not.toBeChecked();
+    expect(
+      screen.getByText(messages.contestEdit.autoHideUnavailable)
+    ).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Clone' }));
+    expect(onConfirm).toHaveBeenCalledExactlyOnceWith({
+      title: 'Weekly contest',
+      beginAtDate: '2026-09-01',
+      beginAtTime: '10:00',
+      duration: '3',
+      autoHide: false,
     });
   });
 
@@ -90,6 +150,7 @@ describe('contest clone dialog', () => {
         <form onSubmit={onOuterSubmit}>
           <ContestCloneDialog
             defaultValues={prefilled}
+            canAutoHide
             onClose={vi.fn()}
             onConfirm={onConfirm}
           />

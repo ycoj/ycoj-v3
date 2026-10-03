@@ -5,6 +5,7 @@ import {
   type ContestCloneValues,
 } from '@/features/contest/form/contest-form-utils';
 import CloneDialog from '@/shared/components/clone-dialog';
+import { Checkbox } from '@/shared/components/ui/checkbox';
 import {
   Field,
   FieldContent,
@@ -12,20 +13,23 @@ import {
   FieldLabel,
 } from '@/shared/components/ui/field';
 import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
 import { datePattern, timePattern } from '@/shared/lib/date-patterns';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useWatch, type Control } from 'react-hook-form';
+import { Controller, useWatch, type Control } from 'react-hook-form';
 import { z } from 'zod';
 
 export type ContestCloneDialogProps = {
   defaultValues: ContestCloneValues;
+  canAutoHide: boolean;
   onClose: () => void;
   onConfirm: (values: ContestCloneValues) => Promise<void>;
 };
 
 export default function ContestCloneDialog({
   defaultValues,
+  canAutoHide,
   onClose,
   onConfirm,
 }: ContestCloneDialogProps) {
@@ -37,6 +41,7 @@ export default function ContestCloneDialog({
     duration: z
       .string()
       .refine((value) => Number(value) > 0, t('durationInvalid')),
+    autoHide: z.boolean(),
   });
 
   return (
@@ -49,7 +54,9 @@ export default function ContestCloneDialog({
       resolver={zodResolver(schema)}
       defaultValues={defaultValues}
       onClose={onClose}
-      onConfirm={onConfirm}
+      onConfirm={(values) =>
+        onConfirm({ ...values, autoHide: canAutoHide && values.autoHide })
+      }
     >
       {({ control, register, errors, isSubmitting }) => (
         <>
@@ -117,6 +124,36 @@ export default function ContestCloneDialog({
               <ContestCloneEndAt control={control} />
             </Field>
           </div>
+          <Field>
+            <Controller
+              control={control}
+              name="autoHide"
+              render={({ field }) => (
+                <div className="flex min-w-0 items-start gap-2">
+                  <Checkbox
+                    id="clone-autoHide"
+                    checked={canAutoHide ? field.value : false}
+                    onCheckedChange={(value) => field.onChange(value === true)}
+                    disabled={isSubmitting || !canAutoHide}
+                    className="mt-0.5"
+                  />
+                  <Label
+                    htmlFor="clone-autoHide"
+                    className="flex min-w-0 flex-col items-start gap-0.5"
+                  >
+                    <span>{t('autoHide')}</span>
+                    <span className="text-muted-foreground text-xs font-normal">
+                      {t(
+                        canAutoHide
+                          ? 'autoHideCloneHelp'
+                          : 'autoHideUnavailable'
+                      )}
+                    </span>
+                  </Label>
+                </div>
+              )}
+            />
+          </Field>
         </>
       )}
     </CloneDialog>
