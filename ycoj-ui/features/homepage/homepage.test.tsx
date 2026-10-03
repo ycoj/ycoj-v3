@@ -22,6 +22,7 @@ vi.mock('./components/contests', () => ({ default: () => null }));
 vi.mock('./components/countdown', () => ({ default: () => null }));
 vi.mock('./components/daily-checkin', () => ({ default: () => null }));
 vi.mock('./components/discussions', () => ({ default: () => null }));
+vi.mock('./components/recent-problems', () => ({ default: () => null }));
 vi.mock('./components/suggestions', () => ({ default: () => null }));
 
 beforeEach(() => {

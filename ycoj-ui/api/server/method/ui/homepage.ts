@@ -7,6 +7,10 @@ import type {
   Node,
 } from '@/shared/types/discussion';
 import type { DomainDoc } from '@/shared/types/domain';
+import type {
+  ListProjectionProblem,
+  ProblemStatusDict,
+} from '@/shared/types/problem';
 import type { BaseUserDict } from '@/shared/types/user';
 
 export type BannerConfig = {
@@ -25,6 +29,10 @@ export type Contest = ['contest', [ContestDoc[], unknown]];
 export type Hitokoto = ['hitokoto', boolean];
 export type Discussion = ['discussion', [DiscussionDoc[], Node[]]];
 export type StarredProblems = ['starred_problems', number];
+export type RecentProblems = [
+  'recent_problems',
+  [ListProjectionProblem[], ProblemStatusDict],
+];
 export type RecentBlogs = ['recent_blogs', Blog[]];
 export type DiscussionNodes = ['discussion_nodes', boolean];
 
@@ -57,6 +65,7 @@ export type SectionType =
   | Hitokoto
   | Discussion
   | StarredProblems
+  | RecentProblems
   | RecentBlogs
   | DiscussionNodes
   | Suggestions

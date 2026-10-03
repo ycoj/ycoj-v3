@@ -5,6 +5,7 @@ import Contests from './components/contests';
 import Countdown from './components/countdown';
 import DailyCheckin from './components/daily-checkin';
 import Discussions from './components/discussions';
+import RecentProblems from './components/recent-problems';
 import Suggestions from './components/suggestions';
 import ServerApis from '@/api/server/method';
 import type { SectionType } from '@/api/server/method/ui/homepage';
@@ -57,6 +58,12 @@ async function RightColumn({
     <div className="space-y-6">
       <DailyCheckin checkin={checkin} username={username} />
       {contents.countdown && <Countdown config={contents.countdown} />}
+      {contents.recent_problems && (
+        <RecentProblems
+          problems={contents.recent_problems[0]}
+          psdict={contents.recent_problems[1]}
+        />
+      )}
       {contents.suggestions && <Suggestions sections={contents.suggestions} />}
       {contents.recent_blogs && (
         <RecentBlogs blogs={contents.recent_blogs} udict={udict} />
