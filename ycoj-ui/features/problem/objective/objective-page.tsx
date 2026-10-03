@@ -1,4 +1,5 @@
 import ContestTimer from '@/features/contest/contest-timer';
+import ContestEndedNotice from '@/features/problem/detail/contest-ended-notice';
 import type { ProblemDetailData } from '@/features/problem/detail/get-problem-detail';
 import ProblemContent from '@/features/problem/detail/problem-content';
 import ProblemTitle from '@/features/problem/detail/problem-title';
@@ -45,6 +46,7 @@ export function ObjectiveProblemPage({ data, tid, canConfigure, user }: Props) {
           ratio="8-2"
           left={
             <div className="space-y-4">
+              <ContestEndedNotice mode={data.mode} />
               <ProblemContent problem={data.pdoc} tid={tid} objective />
               <ObjectiveStatementFooter
                 pid={pid}
@@ -65,6 +67,7 @@ export function ObjectiveProblemPage({ data, tid, canConfigure, user }: Props) {
               tid={tid}
               contest={data.tdoc}
               contestStatus={data.tsdoc}
+              mode={data.mode}
               allowConfigure={canConfigure}
               allowFeedback={Boolean(user?._id)}
               objectiveSlot={<ObjectiveNavigation />}

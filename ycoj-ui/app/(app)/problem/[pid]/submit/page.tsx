@@ -39,7 +39,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${data.pdoc.title} - ${t('submit')}`,
+    title: `${data.pdoc?.title ?? ''} - ${t('submit')}`,
   };
 }
 
@@ -57,6 +57,10 @@ export default async function ProblemSubmitPage({
 
   if ('error' in data) {
     return <Errored title={t('unavailable')} error={data.error} />;
+  }
+  // A response without a problem is not renderable; see the detail page.
+  if (!data.pdoc) {
+    return <Errored title={t('unavailable')} error={t('unavailable')} />;
   }
 
   if (isObjectiveProblem(data.pdoc)) {
@@ -85,6 +89,7 @@ function ProblemSubmitContent({
               problem={data.pdoc}
               tid={searchParams.tid}
               contest={data.tdoc}
+              mode={data.mode}
             />
           </div>
         }

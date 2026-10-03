@@ -31,24 +31,18 @@ export default function ObjectiveSubmitButton({
   eventRule,
 }: Props) {
   const t = useTranslations('problem.objectiveForm');
-  const tSubmit = useTranslations('problem.submitForm');
+  const tProblem = useTranslations('problem');
   const router = useRouter();
   const { answers, questions, isReady } = useObjective();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   if (isReadOnly) {
+    // The ended-contest notice already sits above the statement on the page.
     return (
-      <div className="space-y-3">
-        <Alert className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
-          <AlertDescription>
-            {tSubmit('contestEndedDescription')}
-          </AlertDescription>
-        </Alert>
-        <Button asChild className="gap-2">
-          <Link href={`/problem/${pid}`}>{t('openInProblemSet')}</Link>
-        </Button>
-      </div>
+      <Button asChild className="gap-2">
+        <Link href={`/problem/${pid}`}>{tProblem('openInProblemSet')}</Link>
+      </Button>
     );
   }
 

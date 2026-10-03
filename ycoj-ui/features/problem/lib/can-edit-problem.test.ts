@@ -32,6 +32,12 @@ describe('canEditProblem', () => {
     expect(canEditProblem(user, { owner: 0 })).toBe(false);
   });
 
+  it('returns false when there is no user record at all', () => {
+    // Metadata and layout guards can call this before the login redirect.
+    expect(canEditProblem(undefined, { owner: 1 })).toBe(false);
+    expect(canEditProblem(null, { owner: 1 })).toBe(false);
+  });
+
   it('returns false for reference problem', () => {
     const user = makeUser({ perm: perm(PERM.PERM_EDIT_PROBLEM) });
     expect(

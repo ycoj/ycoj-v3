@@ -4,6 +4,10 @@
   "notSubmitted": "未提交",
   "submitted": "已提交",
   "submit": "提交",
+  "openInProblemSet": "在题库中打开",
+  "contestEndedTitle": "比赛已结束",
+  "contestEndedView": "该比赛已结束，您无法在比赛模式下递交该题目。您可以点击“在题库中打开”以普通模式查看和递交本题。",
+  "contestEndedCorrection": "比赛已经结束。新提交将被视为补题提交，不计入比赛成绩。",
   "backToProblem": "返回题目",
   "solutions": "题解",
   "files": "文件",
@@ -272,16 +276,13 @@
     "enterCode": "请输入代码",
     "submitFailed": "提交失败",
     "submitRetry": "提交失败，请稍后重试",
-    "contestEnded": "比赛已结束",
-    "contestEndedDescription": "比赛已结束，你可以选择在题库中打开本题。",
     "language": "语言",
     "version": "版本",
     "code": "代码",
     "codePlaceholder": "在此粘贴代码...",
     "useCodeEditor": "使用代码编辑器",
     "submitting": "提交中...",
-    "submit": "提交",
-    "openInProblemSet": "在题库中打开"
+    "submit": "提交"
   },
   "scratchpad": {
     "open": "进入在线编程模式",
@@ -354,12 +355,9 @@
     "noPermission": "没有提交权限",
     "submitting": "提交中...",
     "submit": "提交",
-    "openInProblemSet": "在题库中打开",
     "answered": "已作答",
     "unanswered": "未作答",
     "submitFailed": "提交失败",
-    "submitRetry": "提交失败，请稍后重试",
-    "contestEnded": "比赛已结束",
-    "contestEndedDescription": "比赛已结束，你可以选择在题库中打开本题。"
+    "submitRetry": "提交失败，请稍后重试"
   }
 }

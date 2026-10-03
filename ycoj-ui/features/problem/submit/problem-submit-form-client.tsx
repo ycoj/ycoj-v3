@@ -1,14 +1,12 @@
 'use client';
 
 import ClientApis from '@/api/client/method';
+import type { ProblemDetailMode } from '@/api/server/method/problems/detail';
 import type { LanguageFamily } from '@/api/server/method/ui/languages';
+import { getContestEndedVariant } from '@/features/problem/detail/contest-ended-mode';
+import ContestEndedNotice from '@/features/problem/detail/contest-ended-notice';
 import CodeEditor from '@/shared/components/code/code-editor';
 import parseErrorMessage from '@/shared/components/errored/parse-message';
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from '@/shared/components/ui/alert';
 import { Button } from '@/shared/components/ui/button';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 import {
@@ -30,7 +28,7 @@ import { Textarea } from '@/shared/components/ui/textarea';
 import { useCodeEditorPreference } from '@/shared/hooks/use-code-editor-preference';
 import { getSyntaxLanguage } from '@/shared/lib/code-language';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Navigation, Link2, Info } from 'lucide-react';
+import { Navigation, Link2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -42,7 +40,7 @@ type Props = {
   pid: string;
   tid?: string;
   languages: Record<string, LanguageFamily>;
-  isContestEnded?: boolean;
+  contestEndedMode?: ProblemDetailMode;
 };
 
 type FormValues = { familyKey: string; lang: string; code: string };
@@ -51,9 +49,11 @@ export default function ProblemSubmitFormClient({
   pid,
   tid,
   languages,
-  isContestEnded,
+  contestEndedMode,
 }: Props) {
   const t = useTranslations('problem.submitForm');
+  const tProblem = useTranslations('problem');
+  const isContestEnded = Boolean(getContestEndedVariant(contestEndedMode));
   const router = useRouter();
   const [codeEditorEnabled, setCodeEditorEnabled] = useCodeEditorPreference();
 
@@ -199,20 +199,7 @@ export default function ProblemSubmitFormClient({
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
-      {isContestEnded && (
-        <Alert
-          className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50"
-          data-llm-visible="true"
-        >
-          <Info className="size-4" strokeWidth={2} />
-          <AlertTitle data-llm-text={t('contestEnded')}>
-            {t('contestEnded')}
-          </AlertTitle>
-          <AlertDescription data-llm-text={t('contestEndedDescription')}>
-            {t('contestEndedDescription')}
-          </AlertDescription>
-        </Alert>
-      )}
+      {isContestEnded && <ContestEndedNotice mode={contestEndedMode} />}
       <FieldGroup>
         <div className="flex flex-wrap gap-6">
           <Controller
@@ -345,7 +332,7 @@ export default function ProblemSubmitFormClient({
         <Button size="lg" asChild className="w-auto gap-3">
           <Link href={`/problem/${pid}`}>
             <Link2 strokeWidth={2} data-icon="inline-start" />
-            {t('openInProblemSet')}
+            {tProblem('openInProblemSet')}
           </Link>
         </Button>
       )}

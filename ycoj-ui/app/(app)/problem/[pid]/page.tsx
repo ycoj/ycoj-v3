@@ -2,6 +2,7 @@ import ServerApis from '@/api/server/method';
 import type { LanguageFamily } from '@/api/server/method/ui/languages';
 import ContestTimer from '@/features/contest/contest-timer';
 import { getContestStatus } from '@/features/contest/detail/contest-utils';
+import ContestEndedNotice from '@/features/problem/detail/contest-ended-notice';
 import {
   getProblemDetail,
   type ProblemDetailData,
@@ -51,7 +52,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: data.pdoc.title || t('problemDetail'),
+    title: data.pdoc?.title || t('problemDetail'),
   };
 }
 
@@ -72,6 +73,11 @@ export default async function ProblemDetailPage({
 
   if ('error' in data) {
     return <Errored title={t('unavailable')} error={data.error} />;
+  }
+  // A response without a problem (an anonymous request that the backend
+  // answered with a login redirect, for instance) is not renderable.
+  if (!data.pdoc) {
+    return <Errored title={t('unavailable')} error={t('unavailable')} />;
   }
 
   const canConfigure = canEditProblem(user, data.pdoc, {
@@ -136,7 +142,12 @@ function ProblemDetailContent({
       <ProblemTitle problem={data.pdoc} contest={data.tdoc} />
       <TwoColumnLayout
         ratio="8-2"
-        left={<ProblemContent problem={data.pdoc} tid={searchParams.tid} />}
+        left={
+          <div className="space-y-4">
+            <ContestEndedNotice mode={data.mode} />
+            <ProblemContent problem={data.pdoc} tid={searchParams.tid} />
+          </div>
+        }
         right={
           <ProblemSidebar
             allowSubmit={true}
@@ -146,6 +157,7 @@ function ProblemDetailContent({
             tid={searchParams.tid}
             contest={data.tdoc}
             contestStatus={data.tsdoc}
+            mode={data.mode}
             allowConfigure={canConfigure}
             allowFeedback={Boolean(user?._id)}
             scratchpadSlot={

@@ -1,3 +1,4 @@
+import type { ProblemDetailMode } from '@/api/server/method/problems/detail';
 import ContestInfo from '@/features/contest/contest-info';
 import ContestStatusBadge from '@/features/contest/contest-status';
 import {
@@ -5,6 +6,7 @@ import {
   getContestProblemLabel,
   getContestStatus,
 } from '@/features/contest/detail/contest-utils';
+import { getContestEndedVariant } from '@/features/problem/detail/contest-ended-mode';
 import ProblemFeedbackDialog from '@/features/problem/feedback/problem-feedback-dialog';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -38,6 +40,7 @@ type Props = {
   tid?: string;
   contest?: Contest | Homework;
   contestStatus?: ContestStatus;
+  mode?: ProblemDetailMode;
   allowConfigure?: boolean;
   objectiveSlot?: React.ReactNode;
   scratchpadSlot?: React.ReactNode;
@@ -86,6 +89,7 @@ export default function ProblemSidebar({
   problem,
   tid,
   contest,
+  mode,
   allowConfigure,
   objectiveSlot,
   scratchpadSlot,
@@ -96,6 +100,7 @@ export default function ProblemSidebar({
   const contestT = useTranslations('contest');
   const format = useFormatter();
   const isContestMode = Boolean(tid);
+  const contestEnded = getContestEndedVariant(mode);
   const problemCount = contest?.pids?.length ?? 0;
   const beginAt = contest ? dayjs(contest.beginAt) : null;
   const endAt = contest ? dayjs(contest.endAt) : null;
@@ -128,23 +133,40 @@ export default function ProblemSidebar({
       {objectiveSlot && <div className="space-y-4">{objectiveSlot}</div>}
       <div className="space-y-1">
         {scratchpadSlot}
-        {allowSubmit && (
-          <Button
-            asChild
-            variant="ghost"
-            className="h-10 w-full justify-start gap-3 px-4"
-          >
-            <Link
-              href={withTid(
-                `/problem/${problem.pid ?? problem.docId}/submit`,
-                tid
-              )}
+        {allowSubmit &&
+          (contestEnded ? (
+            <Button
+              asChild
+              variant="ghost"
+              className="h-10 w-full justify-start gap-3 px-4"
             >
-              <Navigation strokeWidth={2} />
-              <span data-llm-text={t('submit')}>{t('submit')}</span>
-            </Link>
-          </Button>
-        )}
+              <Link
+                href={`/problem/${problem.pid ?? problem.docId}`}
+                prefetch={false}
+              >
+                <Navigation strokeWidth={2} />
+                <span data-llm-text={t('openInProblemSet')}>
+                  {t('openInProblemSet')}
+                </span>
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              asChild
+              variant="ghost"
+              className="h-10 w-full justify-start gap-3 px-4"
+            >
+              <Link
+                href={withTid(
+                  `/problem/${problem.pid ?? problem.docId}/submit`,
+                  tid
+                )}
+              >
+                <Navigation strokeWidth={2} />
+                <span data-llm-text={t('submit')}>{t('submit')}</span>
+              </Link>
+            </Button>
+          ))}
         {showBackToProblem && (
           <Button asChild className="h-10 w-full justify-start gap-3 px-4">
             <Link

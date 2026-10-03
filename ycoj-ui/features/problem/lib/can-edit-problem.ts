@@ -16,11 +16,13 @@ type Options = {
  * and (owner + PERM_EDIT_PROBLEM_SELF) || PERM_EDIT_PROBLEM.
  */
 export function canEditProblem(
-  user: User,
+  user: User | null | undefined,
   pdoc: ProblemForEditCheck,
   options?: Options
 ): boolean {
-  if (!user._id) return false;
+  // A visitor who is not signed in has no user record; metadata and layout
+  // guards may still run this before the login redirect takes effect.
+  if (!user?._id) return false;
   if (pdoc.reference) return false;
   if (options?.tid) return false;
 

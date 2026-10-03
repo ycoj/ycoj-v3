@@ -4,6 +4,10 @@
   "notSubmitted": "Not submitted",
   "submitted": "Submitted",
   "submit": "Submit",
+  "openInProblemSet": "Open in Problem Set",
+  "contestEndedTitle": "Contest ended",
+  "contestEndedView": "You cannot submit for this problem because the contest is ended. You can click \"Open in Problem Set\" to view this problem in normal mode.",
+  "contestEndedCorrection": "The contest is ended. New submissions will be treated as correction submissions and will not be counted in the contest.",
   "backToProblem": "Back to problem",
   "solutions": "Solutions",
   "files": "Files",
@@ -272,16 +276,13 @@
     "enterCode": "Enter code",
     "submitFailed": "Submission failed",
     "submitRetry": "Submission failed. Please try again later.",
-    "contestEnded": "Contest ended",
-    "contestEndedDescription": "This contest has ended. You can open this problem in the problem set.",
     "language": "Language",
     "version": "Version",
     "code": "Code",
     "codePlaceholder": "Paste code here...",
     "useCodeEditor": "Use code editor",
     "submitting": "Submitting...",
-    "submit": "Submit",
-    "openInProblemSet": "Open in problem set"
+    "submit": "Submit"
   },
   "scratchpad": {
     "open": "Open scratchpad",
@@ -354,12 +355,9 @@
     "noPermission": "No Permission to Submit",
     "submitting": "Submitting...",
     "submit": "Submit",
-    "openInProblemSet": "Open in problem set",
     "answered": "Answered",
     "unanswered": "Unanswered",
     "submitFailed": "Submission failed",
-    "submitRetry": "Submission failed. Please try again later.",
-    "contestEnded": "Contest ended",
-    "contestEndedDescription": "This contest has ended. You can open this problem in the problem set."
+    "submitRetry": "Submission failed. Please try again later."
   }
 }
