@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | `/` GET | no arguments | Homepage HTML assembled from the configured widgets; widget data respects each `PERM_VIEW_*`. |
 | `/home/security` GET/POST | POST operations update password, TFA, WebAuthn, connected identities, etc., using UI fields. | Security page/redirect; `PRIV_USER_PROFILE`, and sensitive mutations require sudo where decorated. |
-| `/home/settings/:category` GET/POST | `/home/settings/profile`; `POST {category:"profile", ...settings}`. | Category HTML/redirect; profile privilege. `category=account` also carries the `hideRank` boolean leaderboard opt-out, which is only stored as `true` when the submitted value is exactly `"on"`. |
+| `/home/settings/:category` GET/POST | `/home/settings/account`; `POST {category:"account", ...settings}`. | Category HTML/redirect; profile privilege. `category=account` exposes `hideRank` only to callers with `PERM_EDIT_DOMAIN` in the current domain. All POST categories require that permission when `hideRank` or `booleanKeys.hideRank` is submitted (403 `PermissionError` before persistence otherwise). It is stored as `true` only for `"on"`; omitted values are preserved. Core migration `99 → 100` clears all existing opt-outs. |
 | `/home/avatar` POST | `{input:"data:image/png;base64,…"}` | `{url:string}` after avatar validation/storage; profile privilege. |
 | `/home/changeMail/:code` GET | token path parameter | Consumes/validates email-change token then redirects; profile privilege. |
 | `/home/domain` GET | `?all=true` | HTML containing accessible domains; profile privilege. |

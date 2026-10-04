@@ -18,7 +18,7 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 | `/home/award`, `/manage/award` | [Award](award/README.md) | Real-name-approved users bind imported CCF/NOI contestant records; system administrators unbind; `importOier` script loads an OIerDb `data/` directory |
 | `/login`, `/logout`, `/register*`, `/lostpass*`, `/user/*`, `/oauth/*`, `/contestmode` | [Identity](identity/README.md) | Authentication, account recovery, profiles, OAuth, sudo/TFA/WebAuthn |
 | `/domain/*`, `/ranking`, `/manage/*` | [Domain and management](domain/README.md) | Domain users/roles/groups/joining plus system administration, including problem-feedback moderation |
-| `/`, `/home/*`, `/discuss*`, `/blog/*`, `/paste*` | [Community and home](community/README.md) | Home/account pages, settings/messages, discussions, blogs and pastebin |
+| `/`, `/home/*`, `/discuss*`, `/blog/*`, `/paste*` | [Community and home](community/README.md) | Home/account pages, settings/messages (leaderboard opt-out requires domain edit permission), discussions, blogs and pastebin |
 | `/file*`, `/storage`, `/judge/*`, `/metrics`, `/center/report`, `/onlyoffice-jwt`, `/heap-snapshot`; runtime connections | [Runtime](runtime/README.md) | File/storage APIs, judge integration, monitoring/add-ons, WebSocket/SSE contracts |
 | `/ui/*`, `/media`, `/markdown`, `/wiki/*`, `/language/*`, `/account/*`, `/lazy/*`, `/resource/*`, `/plugins/*`, `/legacy`, `/set_theme/*` | [UI and utility](ui/README.md) | Navigation (including first real-name submission time)/media rendering, UI assets, compatibility/session utilities |
 | `/api/:op`, `/api/:op/conn` | [Operation transport](api/README.md) | Query/Mutation request protocol, projection, connections, registered non-problem operations |

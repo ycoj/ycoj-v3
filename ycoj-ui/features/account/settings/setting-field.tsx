@@ -74,7 +74,7 @@ export default function SettingField({
   return (
     <Field
       className={cn(
-        'min-w-0 gap-2',
+        'min-w-0 gap-2 [&>[role=checkbox]]:w-4',
         fullWidth
           ? 'sm:col-span-6'
           : schoolField

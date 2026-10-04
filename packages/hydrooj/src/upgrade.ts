@@ -652,4 +652,8 @@ export const coreScripts: MigrationScript[] = [
         await coll.updateMany({ docType: document.TYPE_PROBLEM, difficulty: 5 }, { $set: { difficulty: 6 } });
         return true;
     },
+    async function _99_100() {
+        await db.collection('user').updateMany({ hideRank: true }, { $set: { hideRank: false } });
+        return true;
+    },
 ];

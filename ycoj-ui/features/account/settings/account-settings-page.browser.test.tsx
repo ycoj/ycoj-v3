@@ -1,3 +1,4 @@
+import '@/app/globals.css';
 import AccountSettingsPage from './account-settings-page';
 import { AVATAR_MAX_BYTES } from './avatar-form-utils';
 import en from '@/messages/en';
@@ -18,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ComponentProps } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { page as browserPage } from 'vitest/browser';
 
 const mocks = vi.hoisted(() => ({
   save: vi.fn(),
@@ -343,7 +345,7 @@ describe('account settings fields', () => {
     expect(screen.getByLabelText('Plugin notes')).toHaveValue('Some notes');
   });
 
-  it('lets a user opt out of the leaderboard and explains that RP is unaffected', async () => {
+  it('lets an administrator opt out of the leaderboard and explains that RP is unaffected', async () => {
     render(page());
     const optOut = screen.getByRole('checkbox', {
       name: 'Hide from leaderboard',
@@ -362,6 +364,44 @@ describe('account settings fields', () => {
     expect(mocks.save).toHaveBeenCalledWith(
       expect.objectContaining({ hideRank: true })
     );
+  });
+
+  it.each([390, 1280])(
+    'keeps boolean controls square before and after checking them at %spx',
+    async (width) => {
+      await browserPage.viewport(width, 1600);
+      render(page());
+      const checkbox = screen.getByRole('checkbox', {
+        name: 'Hide from leaderboard',
+      });
+      for (const checked of [false, true]) {
+        if (checked) await userEvent.click(checkbox);
+        const bounds = checkbox.getBoundingClientRect();
+        expect(bounds.width).toBeGreaterThan(0);
+        expect(bounds.width).toBeCloseTo(bounds.height);
+        expect(bounds.width).toBeLessThanOrEqual(24);
+      }
+      await browserPage.screenshot({
+        element: screen.getByRole('region', { name: 'Personal information' }),
+        path: `../../../test-results/account-settings-${width}.png`,
+      });
+      await browserPage.viewport(1280, 900);
+    }
+  );
+
+  it('omits leaderboard visibility from the form and save when the server excludes it', async () => {
+    render(
+      page({
+        ...data,
+        settings: data.settings.filter((setting) => setting.key !== 'hideRank'),
+      })
+    );
+    expect(
+      screen.queryByRole('checkbox', { name: 'Hide from leaderboard' })
+    ).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(mocks.save).toHaveBeenCalled());
+    expect(mocks.save.mock.calls[0][0]).not.toHaveProperty('hideRank');
   });
 
   it('reflects an existing leaderboard opt-out and can be turned back off', async () => {

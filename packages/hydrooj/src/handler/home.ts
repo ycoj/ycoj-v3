@@ -445,7 +445,9 @@ class HomeSettingsHandler extends Handler {
         if (category === 'preference') {
             this.response.body.settings = setting.PREFERENCE_SETTINGS;
         } else if (category === 'account') {
-            this.response.body.settings = setting.ACCOUNT_SETTINGS;
+            this.response.body.settings = setting.ACCOUNT_SETTINGS.filter(
+                (s) => s.key !== 'hideRank' || this.user.hasPerm(PERM.PERM_EDIT_DOMAIN),
+            );
         } else if (category === 'domain') {
             this.response.body.settings = setting.DOMAIN_USER_SETTINGS;
         } else throw new NotFoundError(category);
@@ -454,6 +456,9 @@ class HomeSettingsHandler extends Handler {
     async post(args: any) {
         const $set = {};
         const booleanKeys = args.booleanKeys || {};
+        if (Object.hasOwn(args, 'hideRank') || Object.hasOwn(booleanKeys, 'hideRank')) {
+            this.checkPerm(PERM.PERM_EDIT_DOMAIN);
+        }
         delete args.booleanKeys;
         const setter = args.category === 'domain'
             ? (s) => domain.setUserInDomain(args.domainId, this.user._id, s)
