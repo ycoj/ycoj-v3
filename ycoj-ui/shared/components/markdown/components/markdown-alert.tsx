@@ -77,6 +77,7 @@ export default function MarkdownAlert({
   const titleRaw = getPropValue(propsMap, 'data-title', 'dataTitle');
   const title =
     typeof titleRaw === 'string' && titleRaw.trim() ? titleRaw.trim() : null;
+  const titleHtml = getPropValue(propsMap, 'data-title-html', 'dataTitleHtml');
   // Titled containers collapse to their title by default; an explicit
   // {opened}/{closed} (or {open}/{close}) marker overrides the default.
   const stateRaw = getPropValue(propsMap, 'data-state', 'dataState');
@@ -98,7 +99,14 @@ export default function MarkdownAlert({
             className="flex w-full cursor-pointer items-center gap-1"
             onClick={() => setOpen((value) => !value)}
           >
-            <span className="flex-1 text-left">{title}</span>
+            {typeof titleHtml === 'string' ? (
+              <span
+                className="flex-1 text-left"
+                dangerouslySetInnerHTML={{ __html: titleHtml }}
+              />
+            ) : (
+              <span className="flex-1 text-left">{title}</span>
+            )}
             <ChevronRight
               strokeWidth={2}
               className={cn(

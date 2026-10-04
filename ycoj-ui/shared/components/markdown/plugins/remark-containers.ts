@@ -1,5 +1,3 @@
-import remarkPdf from '@/shared/components/markdown/plugins/remark-pdf';
-import remarkProblemSamples from '@/shared/components/markdown/plugins/remark-problem-samples';
 import type { Processor } from 'unified';
 
 type MdastNode = {
@@ -42,8 +40,8 @@ type ContainerDirective =
       variant: AlertVariant;
     };
 
-// Built containers are identified by their hName so the final recursion pass
-// can tell them apart from plain content that still needs to be scanned.
+// A locally parsed body has already resolved its containers against its own
+// source. Never interpret its offsets against an enclosing document.
 function isBuiltContainer(node: MdastNode): boolean {
   return node.data?.hName === 'md-alert' || node.data?.hName === 'md-align';
 }
@@ -56,6 +54,30 @@ function getParagraphText(node: MdastNode): null | string {
     value += child.value;
   }
   return value;
+}
+
+// Continuation lines of formulas and code spans belong to their literal node,
+// even when their source looks like a container opening or closing marker.
+function literalLines(node: MdastNode, source: string): Set<number> {
+  const lines = new Set<number>();
+  const start = node.position?.start?.offset;
+  if (start === undefined) return lines;
+  const collect = (child: MdastNode) => {
+    if (child.type !== 'latex' && child.type !== 'inlineCode') {
+      child.children?.forEach(collect);
+      return;
+    }
+    const from = child.position?.start?.offset;
+    const to = child.position?.end?.offset;
+    if (from === undefined || to === undefined) return;
+    const firstLine = source.slice(start, from).split(/\r\n?|\n/).length - 1;
+    const lastLine = source.slice(start, to).split(/\r\n?|\n/).length - 1;
+    for (let line = firstLine + 1; line <= lastLine; line += 1) {
+      lines.add(line);
+    }
+  };
+  node.children?.forEach(collect);
+  return lines;
 }
 
 // Paragraph source slices keep the blockquote markers and list indentation of
@@ -160,9 +182,14 @@ function makeContainerNode(
 // Finds the closing line matching the opening directive on lines[from],
 // skipping over nested container directives, or -1 when the rest of the
 // paragraph holds no match.
-function findClosingLine(lines: string[], from: number): number {
+function findClosingLine(
+  lines: string[],
+  from: number,
+  literals: ReadonlySet<number>
+): number {
   let depth = 1;
   for (let index = from + 1; index < lines.length; index += 1) {
+    if (literals.has(index)) continue;
     const line = lines[index]!;
     if (parseDirective(line)) {
       depth += 1;
@@ -174,32 +201,15 @@ function findClosingLine(lines: string[], from: number): number {
   return -1;
 }
 
-function processChildren(
-  children: MdastNode[],
-  source: string,
-  parseSource: ParseSource
-): MdastNode[] {
-  const wrapper: MdastNode = { type: 'root', children };
-  transformNode(wrapper, source, parseSource);
-  return wrapper.children ?? [];
-}
-
-// Re-parses a compact container body and applies the same remark transforms
-// the outer tree already went through, so all authoring forms behave alike.
+// Resolve containers before the other remark transforms. Every body then
+// reaches the PDF and sample transforms once, as part of the completed tree.
 function parseInnerChildren(
   body: string,
   parseSource: ParseSource
 ): MdastNode[] {
   const innerTree = parseSource(body);
-  const innerChildren = processChildren(
-    innerTree.children ?? [],
-    body,
-    parseSource
-  );
-  const wrapper: MdastNode = { type: 'root', children: innerChildren };
-  remarkPdf()(wrapper);
-  remarkProblemSamples()(wrapper);
-  return wrapper.children ?? [];
+  transformNode(innerTree, body, parseSource);
+  return innerTree.children ?? [];
 }
 
 type Frame = {
@@ -238,19 +248,13 @@ function transformNode(
     else result.push(item);
   };
 
-  // Collected siblings come from the outer tree and keep outer offsets, while
-  // tail nodes were parsed from the opening paragraph slice. Only the
-  // collected ones may be scanned again with the outer source.
+  // Both the tail and collected siblings are already resolved. Closing a
+  // frame only groups them; it never parses or traverses their bodies again.
   const closeFrame = (frame: Frame) => {
-    const collectedRoot: MdastNode = {
-      type: 'root',
-      children: frame.collected,
-    };
-    transformNode(collectedRoot, source, parseSource);
     pushContent(
       makeContainerNode(frame.directive, [
         ...(frame.tail ?? []),
-        ...(collectedRoot.children ?? []),
+        ...frame.collected,
       ])
     );
   };
@@ -261,14 +265,21 @@ function transformNode(
       child.type === 'paragraph' ? getNodeSource(child, source) : null;
 
     if (text === null) {
+      if (!isBuiltContainer(child)) transformNode(child, source, parseSource);
       pushContent(child);
       continue;
     }
 
     const lines = text.split('\n');
-    const opensFrame = lines.some((line) => parseDirective(line) !== null);
+    const literals = literalLines(child, source);
+    const opensFrame = lines.some(
+      (line, index) => !literals.has(index) && parseDirective(line) !== null
+    );
     const closesFrame =
-      frames.length > 0 && lines.some((line) => CLOSING_RE.test(line));
+      frames.length > 0 &&
+      lines.some(
+        (line, index) => !literals.has(index) && CLOSING_RE.test(line)
+      );
     if (!opensFrame && !closesFrame) {
       pushContent(child);
       continue;
@@ -284,21 +295,21 @@ function transformNode(
       const body = lines.slice(plainStart, end).join('\n');
       plainStart = end;
       for (const item of parseInnerChildren(body, parseSource)) {
-        // The item was parsed against the body slice, so its offsets are not
-        // valid in the outer document and must not be re-sliced by later
-        // scans.
-        delete item.position;
         pushContent(item);
       }
     };
 
     while (cursor < lines.length) {
       const line = lines[cursor]!;
+      if (literals.has(cursor)) {
+        cursor += 1;
+        continue;
+      }
       const directive = parseDirective(line);
 
       if (directive) {
         flushPlain(cursor);
-        const closingLine = findClosingLine(lines, cursor);
+        const closingLine = findClosingLine(lines, cursor, literals);
         if (closingLine !== -1) {
           pushContent(
             makeContainerNode(
@@ -341,31 +352,17 @@ function transformNode(
     flushPlain(lines.length);
   }
 
-  // Completed containers and plain content are final: scan them for nested
-  // containers in deeper levels. Unterminated frames fall back to their
-  // original opening paragraph, but their collected content is still scanned
-  // so completed inner containers render.
-  for (const item of result) {
-    if (isBuiltContainer(item)) continue;
-    transformNode(item, source, parseSource);
-  }
-
+  // An unterminated frame restores its opening paragraph. Siblings and
+  // complete inner containers have already been resolved and remain visible.
   for (const frame of frames) {
-    // Content collected by an unterminated frame was never scanned for nested
-    // containers, so complete it before falling back to the literal opening.
-    const collectedRoot: MdastNode = {
-      type: 'root',
-      children: frame.collected,
-    };
-    transformNode(collectedRoot, source, parseSource);
     if (frame.startLine === 0) {
-      result.push(frame.opening, ...(collectedRoot.children ?? []));
+      result.push(frame.opening, ...frame.collected);
     } else {
       // Content in front of the directive was already emitted, so restoring
       // the whole paragraph would duplicate it.
       result.push(
         ...parseInnerChildren(frame.literalText, parseSource),
-        ...(collectedRoot.children ?? [])
+        ...frame.collected
       );
     }
   }

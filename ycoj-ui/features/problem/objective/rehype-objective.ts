@@ -54,6 +54,16 @@ function elem(
   };
 }
 
+// Preserve parser metadata so later transforms do not reinterpret escaped
+// formula examples when a directive splits an already-parsed text node.
+function textFragment(node: Text, value: string): Text {
+  return {
+    type: 'text',
+    value,
+    ...(node.data && { data: node.data }),
+  };
+}
+
 function stripFirstOccurrence(node: Text | Element, token: string): boolean {
   if (isText(node)) {
     const idx = node.value.indexOf(token);
@@ -70,8 +80,8 @@ function stripFirstOccurrence(node: Text | Element, token: string): boolean {
         const before = child.value.slice(0, idx);
         const after = child.value.slice(idx + token.length);
         const replacement: Text[] = [];
-        if (before) replacement.push({ type: 'text', value: before });
-        if (after) replacement.push({ type: 'text', value: after });
+        if (before) replacement.push(textFragment(child, before));
+        if (after) replacement.push(textFragment(child, after));
         node.children.splice(i, 1, ...replacement);
         return true;
       }
@@ -94,7 +104,7 @@ function splitInline(node: Text): Array<Text | Element> {
   const text = node.value;
   for (const m of matches) {
     const idx = m.index!;
-    if (idx > cur) out.push({ type: 'text', value: text.slice(cur, idx) });
+    if (idx > cur) out.push(textFragment(node, text.slice(cur, idx)));
     const kind = m[1] as string;
     const id = m[2] as string;
     const raw = m[3] as string | undefined;
@@ -113,7 +123,7 @@ function splitInline(node: Text): Array<Text | Element> {
           { 'data-id': id, 'data-options': JSON.stringify(opts) },
           opts.map((o) =>
             elem('objective-option', { 'data-value': o }, [
-              { type: 'text', value: o },
+              textFragment(node, o),
             ])
           )
         )
@@ -121,7 +131,7 @@ function splitInline(node: Text): Array<Text | Element> {
     }
     cur = idx + m[0].length;
   }
-  if (cur < text.length) out.push({ type: 'text', value: text.slice(cur) });
+  if (cur < text.length) out.push(textFragment(node, text.slice(cur)));
   return out;
 }
 
