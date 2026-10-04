@@ -201,6 +201,9 @@ export class ProblemMainHandler extends Handler {
                 ])).map((i) => ({ html: i })),
             };
         } else {
+            const pendingSolutionCount = !quick && this.user.hasPerm(PERM.PERM_DELETE_PROBLEM_SOLUTION)
+                ? await solution.count(domainId, { reviewStatus: SolutionReviewStatus.Pending })
+                : undefined;
             this.response.body = {
                 page,
                 pcount,
@@ -210,6 +213,7 @@ export class ProblemMainHandler extends Handler {
                 psdict,
                 qs: q,
                 sort: sortStrategy,
+                pendingSolutionCount,
             };
         }
     }

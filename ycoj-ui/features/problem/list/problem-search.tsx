@@ -12,12 +12,14 @@ import { type FormEvent, useState } from 'react';
 type Props = {
   canCreate: boolean;
   canReview?: boolean;
+  pendingSolutionCount?: number;
   canManageFeedback?: boolean;
 };
 
 export default function ProblemSearch({
   canCreate,
   canReview = false,
+  pendingSolutionCount = 0,
   canManageFeedback = false,
 }: Props) {
   const t = useTranslations('problem');
@@ -25,6 +27,10 @@ export default function ProblemSearch({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
+  const reviewLabel =
+    pendingSolutionCount > 0
+      ? reviewT('pendingCount', { count: pendingSolutionCount })
+      : reviewT('title');
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -59,11 +65,20 @@ export default function ProblemSearch({
           asChild
           variant="outline"
           size="icon"
-          aria-label={reviewT('title')}
-          title={reviewT('title')}
+          className="relative"
+          aria-label={reviewLabel}
+          title={reviewLabel}
         >
           <Link href="/problem/solution-review" prefetch={false}>
             <ListChecks />
+            {pendingSolutionCount > 0 && (
+              <span
+                aria-hidden="true"
+                className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none font-semibold text-white tabular-nums"
+              >
+                {pendingSolutionCount}
+              </span>
+            )}
           </Link>
         </Button>
       )}

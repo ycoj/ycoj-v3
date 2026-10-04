@@ -36,13 +36,17 @@ mockModule('../src/model/discussion', { });
 mockModule('../src/model/domain', { });
 mockModule('../src/model/oplog', { });
 const recordMock = { STAT_QUERY: {}, add: async () => ({}) };
-mockModule('../src/model/problem', {});
+mockModule('../src/model/problem', {
+    getMulti: () => ({ sort() { return this; }, hint() { return this; } }),
+});
 mockModule('../src/model/record', recordMock);
 mockModule('../src/model/setting', {
     langs: { 'cc.cc14': {} },
     SETTINGS_BY_KEY: { codeLang: { range: {} } },
 });
 const solutionMock = {
+    countCalls: [] as unknown[][],
+    async count(...args: unknown[]) { this.countCalls.push(args); return 12; },
     async get() { return { parentId: 2, docId: 'id', owner: 42 }; },
     ensureParent(doc, pid) { if (doc.parentId !== pid) throw new TestError('wrong problem'); },
     async edit() { throw new Error('mutation must not run'); },
@@ -63,10 +67,38 @@ mockModule('../src/lib/ai/testdata/request', { });
 mockModule('../src/lib/ai/testdata/runtime', { });
 mockModule('../src/lib/ai/testdata/trace', { });
 mockModule('../src/lib/ai/testdata/validation', { });
-mockModule('@hydrooj/utils/lib/search', {});
+mockModule('@hydrooj/utils/lib/search', { parse: () => ({ category: ['basic'] }) });
 
-Object.assign(global, { Hydro: { model: {}, ui: {} } });
-const { ProblemSolutionReviewHandler, ProblemSolutionHandler, ProblemSolutionRawHandler } = require('../src/handler/problem');
+Object.assign(global, { Hydro: { model: {}, ui: {}, module: { problemSearch: {} } } });
+const {
+    ProblemMainHandler, ProblemSolutionReviewHandler, ProblemSolutionHandler, ProblemSolutionRawHandler,
+} = require('../src/handler/problem');
+
+describe('problem list pending solution notification', () => {
+    for (const [name, canReview, quick, pjax, expected] of [
+        ['reviewer', true, false, false, 12],
+        ['ordinary user', false, false, false, undefined],
+        ['quick search', true, true, false, undefined],
+        ['PJAX list', true, false, true, undefined],
+    ] as const) {
+        it(`returns a read-only domain count only for an ordinary reviewer list: ${name}`, async () => {
+            solutionMock.countCalls.length = 0;
+            const handler = new ProblemMainHandler();
+            handler.user = { _id: 42, hasPriv: () => false, hasPerm: (perm) => canReview && perm === 1 };
+            handler.domain = {};
+            handler.UiContext = {};
+            handler.response = {};
+            handler.ctx = { setting: { get: () => 50 }, parallel: async () => undefined };
+            handler.paginate = async () => [[], 0, 0];
+            handler.renderHTML = async () => '';
+            handler.renderTitle = (title) => title;
+            handler.translate = (title) => title;
+            await handler.get('school', 2, 'category:basic', 50, pjax, quick);
+            assert.equal(handler.response.body.pendingSolutionCount, expected);
+            assert.deepEqual(solutionMock.countCalls, expected === undefined ? [] : [['school', { reviewStatus: 1 }]]);
+        });
+    }
+});
 
 describe('solution review authorization and problem binding', () => {
     it('requires the non-self solution deletion permission', async () => {

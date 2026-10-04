@@ -24,6 +24,7 @@
     "totalSolutions": "题解总数",
     "newToday": "今日新增题解",
     "pendingReview": "待审核",
+    "pendingCount": "题解审核：{count} 篇待审核",
     "content": "题解内容",
     "view": "查看题解",
     "problem": "题目",

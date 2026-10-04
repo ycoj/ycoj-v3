@@ -24,6 +24,7 @@
     "totalSolutions": "Total solutions",
     "newToday": "New solutions today",
     "pendingReview": "Pending review",
+    "pendingCount": "Solution review: {count} pending",
     "content": "Solution content",
     "view": "View solution",
     "problem": "Problem",

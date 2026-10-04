@@ -36,6 +36,7 @@ export default async function ProblemListPage({
       <ProblemSearch
         canCreate={hasPerm(user, PERM.PERM_CREATE_PROBLEM)}
         canReview={hasPerm(user, PERM.PERM_DELETE_PROBLEM_SOLUTION)}
+        pendingSolutionCount={data.pendingSolutionCount}
         canManageFeedback={canEditSystem(user)}
       />
       <ProblemList

@@ -13,6 +13,8 @@ export type ProblemListResponse = {
   pdocs: ListProjectionProblem[];
   psdict: ProblemStatusDict;
   qs: string;
+  /** Domain-wide unreviewed solution count, available to reviewers. */
+  pendingSolutionCount?: number;
 };
 
 export const getProblemsList = (query?: string, page?: number) =>

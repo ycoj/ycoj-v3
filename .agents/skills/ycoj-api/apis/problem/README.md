@@ -2,7 +2,7 @@
 
 All paths are domain-relative: on a non-system domain prefix them with `/d/{domainId}`. Route handlers are session-authenticated; use `Cookie: sid=…` and request JSON with `Accept: application/json`. With that JSON accept header, framework redirects are represented as HTTP 200 JSON `{ "url": "/target" }`; without it they are HTTP redirects. A handler may still deliberately return HTML/template payload, Markdown, or a signed URL as noted in each document. POST action routes select the decorated method with `operation` (for example `operation=upload_file`).
 
-- [Problem set and random selection](problem-set.md)
+- [Problem set and random selection](problem-set.md): ordinary lists include a read-only domain-wide `pendingSolutionCount` for solution reviewers; quick/PJAX lists omit it
 - [Legacy category compatibility redirect](problem-category-compat.md)
 - [Problem detail, actions, submission, hacking, and statistics](problem-detail-submit.md): includes asynchronous HTML-to-Markdown submission via POST `/p/:pid/html-to-markdown` (HTTP 202) backed by a persistent, cluster-shared job store with atomic per-owner (10) and global (100) capacity, and GET `/p/:pid/html-to-markdown/:jobId` polling that any worker can serve; the submit and poll contest context validates a decorated `tid` (query or body) into a real ObjectId and loads the contest inside the route
 - HTML-to-Markdown submit and poll ownership includes maintainers with self-edit permission; job payloads exclude API keys, and completed Markdown may be empty. See the conversion contracts and polling workflow in the detail document above.

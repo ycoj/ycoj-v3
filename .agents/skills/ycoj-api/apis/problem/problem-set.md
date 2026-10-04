@@ -4,6 +4,8 @@
 
 Lists visible problems in the current domain, optionally searches/filters them, or performs a bulk copy, deletion, hide, or unhide action. GET requires `PERM_VIEW_PROBLEM`; POST action permissions are checked per problem (owner with `PERM_EDIT_PROBLEM_SELF`, otherwise `PERM_EDIT_PROBLEM`). Copy additionally requires share access and `PERM_CREATE_PROBLEM` in the target domain.
 
+For non-PJAX lists with `quick` unset or false, reviewers with `PERM_DELETE_PROBLEM_SOLUTION` also receive `pendingSolutionCount`: the current domain's total number of unreviewed solutions (`reviewStatus=1`), independent of the problem search and page. This read-only count does not claim solutions or change review leases. It is omitted for other users and quick/PJAX responses.
+
 ## Request format
 
 ```ts
@@ -27,15 +29,17 @@ Cookie: sid=…
 ## Response format
 
 ```ts
-type ListResponse = { page: number; pcount: number; ppcount: number; pcountRelation: string; pdocs: ProblemDoc[]; psdict: Record<string, ProblemStatusDoc>; qs: string; sort: 'default'|'recent' };
+type ListResponse = { page: number; pcount: number; ppcount: number; pcountRelation: string; pdocs: ProblemDoc[]; psdict: Record<string, ProblemStatusDoc>; qs: string; sort: 'default'|'recent'; pendingSolutionCount?: number };
 type PjaxResponse = { title: string; fragments: { html: string }[] };
 type CopyResponse = number[]; // unless redirect=true
 type BackResponse = unknown; // framework “back” response/redirect
 ```
 
 ```json
-{"page":1,"pcount":1,"ppcount":1,"pcountRelation":"eq","pdocs":[{"docId":1000,"pid":"P1000","title":"A + B"}],"psdict":{},"qs":"category:basic","sort":"default"}
+{"page":1,"pcount":1,"ppcount":1,"pcountRelation":"eq","pdocs":[{"docId":1000,"pid":"P1000","title":"A + B"}],"psdict":{},"qs":"category:basic","sort":"default","pendingSolutionCount":3}
 ```
+
+The example is a reviewer's `GET /p?q=category:basic`; the same request without review permission omits `pendingSolutionCount`. A reviewer with no pending solutions receives `pendingSolutionCount: 0`.
 
 With `redirect:true`, copy returns `{ "url": "/p/{first-id}" }` under JSON accept (or redirects without it). Delete/hide/unhide use `back()` rather than a stable documented body.
 

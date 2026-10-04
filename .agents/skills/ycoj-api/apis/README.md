@@ -6,7 +6,7 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 
 | URL or operation | Documents | Includes |
 | --- | --- | --- |
-| `/p`, `/p/*`, `/problem/*`; problem `/api` ops | [Problem](problem/README.md) | Search, detail, create/edit, submit/hack, user feedback and admin feedback moderation, async HTML-to-Markdown jobs and polling, files, solutions/review/author blocks, statistics, compatibility/import routes, problem queries/mutation |
+| `/p`, `/p/*`, `/problem/*`; problem `/api` ops | [Problem](problem/README.md) | Search with reviewer-only pending solution counts, detail, create/edit, submit/hack, user feedback and admin feedback moderation, async HTML-to-Markdown jobs and polling, files, solutions/review/author blocks, statistics, compatibility/import routes, problem queries/mutation |
 | `/contest`, `/contest/*` | [Contest](contest/README.md) | Lists, details, creation/editing, problem list, management with full problem documents, bulk submit, files, users, print, balloons, scoreboard, onsite-toolkit routes |
 | `/homework`, `/homework/*` | [Homework](homework/README.md) | Creation/editing, attendance, files, code, scoreboard |
 | `/training`, `/training/*` | [Training](training/README.md) | Lists, plans, editing, files and downloads |
