@@ -20,7 +20,7 @@ Use multipart upload. `type UploadFields={operation:"uploadFile";filename:string
 
 ### GET — signed download redirect
 
-`type FilePath={uid:number;filename:string}; type FileQuery={noDisposition?:boolean}`; example `GET /file/12/notes.txt?noDisposition=false`. Response is `302` to signed object storage with `Cache-Control: public`, or logical `Redirect` example `{"url":"https://storage.example/…"}`. Requires an authenticated user who owns `uid` and has `filename` in their file list, and who has real-name access (approved, exempt, or inside the seven-day grace period); filename is validated and missing/invalid storage paths are not found.
+`type FilePath={uid:number;filename:string}; type FileQuery={noDisposition?:boolean}`; examples `GET /file/12/notes.txt?noDisposition=false` and `GET /file/7/.avatar.jpeg`. Response is `302` to signed object storage with `Cache-Control: public`, or logical `Redirect` example `{"url":"https://storage.example/…"}`. The reserved uploaded-avatar filenames `.avatar.jpg`, `.avatar.jpeg`, and `.avatar.png` are public, require neither authentication nor real-name access, and are signed without an attachment disposition. Other files require an authenticated user who owns `uid`, has `filename` in their file list, and has real-name access (approved, exempt, or inside the seven-day grace period); otherwise access is denied. Filename validation, download operation logging, and missing/invalid storage-path handling also apply to avatars.
 
 ## `/storage`
 

@@ -87,14 +87,18 @@ export class FilesHandler extends Handler {
     }
 }
 
+const avatarFilenames = ['.avatar.jpg', '.avatar.jpeg', '.avatar.png'];
+
 export class FSDownloadHandler extends Handler {
     noCheckPermView = true;
+    skipRealnameCheck = avatarFilenames.includes(this.args.filename);
 
     @param('uid', Types.Int)
     @param('filename', Types.Filename)
     @param('noDisposition', Types.Boolean)
     async get(domainId: string, uid: number, filename: string, noDisposition = false) {
-        if (uid !== this.user._id || !this.user._files?.some((file) => file.name === filename)) {
+        const isAvatar = avatarFilenames.includes(filename);
+        if (!isAvatar && (uid !== this.user._id || !this.user._files?.some((file) => file.name === filename))) {
             throw new AccessDeniedError();
         }
         const target = `user/${uid}/${filename}`;
@@ -105,7 +109,7 @@ export class FSDownloadHandler extends Handler {
         });
         try {
             this.response.redirect = await storage.signDownloadLink(
-                target, noDisposition ? undefined : filename, false, 'user',
+                target, noDisposition || isAvatar ? undefined : filename, false, 'user',
             );
             this.response.addHeader('Cache-Control', 'public');
         } catch (e) {
