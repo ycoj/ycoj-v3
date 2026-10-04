@@ -75,3 +75,10 @@ packages/*/public/assets
 .kiro/
 .trae/
 node_modules.*
+
+# Impeccable: share skills and hook policy, keep machine state local.
+/.agents/skills/impeccable/scripts/bin/
+/.cursor/skills/impeccable/scripts/bin/
+/.impeccable/config.local.json
+/.impeccable/hook.cache.json
+/.impeccable/hook.pending.json

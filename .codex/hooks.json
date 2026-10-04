@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ ! -f '/home/xiaoq/.agents/skills/impeccable/scripts/impeccable' ] || '/home/xiaoq/.agents/skills/impeccable/scripts/impeccable' hook",
-            "commandWindows": "if exist \"/home/xiaoq/.agents/skills/impeccable/scripts/impeccable.cmd\" (\"/home/xiaoq/.agents/skills/impeccable/scripts/impeccable.cmd\" hook & exit /b)",
+            "command": "\".agents/skills/impeccable/scripts/impeccable\" hook",
+            "commandWindows": "\".agents/skills/impeccable/scripts/impeccable.cmd\" hook",
             "timeout": 5,
             "statusMessage": "Checking UI changes"
           }
@@ -19,8 +19,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ ! -f '/home/xiaoq/.agents/skills/impeccable/scripts/impeccable' ] || '/home/xiaoq/.agents/skills/impeccable/scripts/impeccable' hook",
-            "commandWindows": "if exist \"/home/xiaoq/.agents/skills/impeccable/scripts/impeccable.cmd\" (\"/home/xiaoq/.agents/skills/impeccable/scripts/impeccable.cmd\" hook & exit /b)",
+            "command": "\".agents/skills/impeccable/scripts/impeccable\" hook",
+            "commandWindows": "\".agents/skills/impeccable/scripts/impeccable.cmd\" hook",
             "timeout": 30,
             "statusMessage": "Design deep pass"
           }
