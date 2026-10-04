@@ -6,9 +6,7 @@ const providers: Record<string, (id: string, size?: number) => string> = {
   qq: (id: string) =>
     `//q1.qlogo.cn/g?b=qq&nk=${(/(\d+)/g.exec(id) || ['', ''])[1]}&s=160`,
   url: (id: string) =>
-    /^\/file\/\d+\/\.avatar\.(?:jpe?g|png)$/i.test(id)
-      ? `https://next-cdn.ycoj.cc/api${id}`
-      : '',
+    /^\/file\/\d+\/\.avatar\.(?:jpe?g|png)$/i.test(id) ? `/api${id}` : '',
   github: (id: string, size?: number) =>
     `//github.com/${id}.png?size=${Math.min(size || 460, 460)}`,
 };
