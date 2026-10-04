@@ -9,13 +9,12 @@ describe('avatarUrl', () => {
     expect(avatarUrl('unknown:id')).toBe('');
   });
 
-  it('resolves local uploaded avatars through the backend and blocks arbitrary URL sources', () => {
-    expect(avatarUrl('url:/file/2/.avatar.png')).toBe(
-      '/api/file/2/.avatar.png'
-    );
-    expect(avatarUrl('url:/file/2/.avatar.jpg')).toBe(
-      '/api/file/2/.avatar.jpg'
-    );
+  it('resolves uploaded avatars through the CDN and blocks arbitrary URL sources', () => {
+    for (const extension of ['png', 'jpg', 'jpeg']) {
+      expect(avatarUrl(`url:/file/2/.avatar.${extension}`)).toBe(
+        `https://next-cdn.ycoj.cc/api/file/2/.avatar.${extension}`
+      );
+    }
     for (const source of [
       'javascript:alert(1)',
       'https://example.com/avatar.gif',
