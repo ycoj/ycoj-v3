@@ -458,6 +458,47 @@ describe('avatar settings', () => {
     expect(revokeUrl).toHaveBeenCalledWith('blob:avatar-preview');
   });
 
+  it('imports an image URL, saves the verified local copy and refreshes', async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 2;
+    canvas.height = 2;
+    const blob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((value) => resolve(value!), 'image/png')
+    );
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(blob));
+    render(page());
+    await chooseSelect('Avatar source', 'Image URL');
+    fireEvent.change(screen.getByLabelText('Image URL'), {
+      target: { value: 'https://example.com/avatar.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Update avatar' }));
+    await waitFor(() => expect(mocks.uploadAvatar).toHaveBeenCalledOnce());
+    const file = mocks.uploadAvatar.mock.calls[0][0] as File;
+    expect(file.type).toBe('image/png');
+    await waitFor(() => expect(mocks.refresh).toHaveBeenCalledOnce());
+    expect(mocks.updateAvatar).not.toHaveBeenCalled();
+  });
+
+  it('shows an actionable error for a GIF disguised as a PNG URL without saving', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(new Blob(['GIF89a'], { type: 'image/png' }))
+    );
+    render(page());
+    await chooseSelect('Avatar source', 'Image URL');
+    fireEvent.change(screen.getByLabelText('Image URL'), {
+      target: { value: 'https://example.com/avatar.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Update avatar' }));
+    expect(
+      await screen.findByText(/Could not import this image/)
+    ).toBeVisible();
+    expect(screen.getByLabelText('Image URL')).toHaveValue(
+      'https://example.com/avatar.png'
+    );
+    expect(mocks.uploadAvatar).not.toHaveBeenCalled();
+    expect(mocks.updateAvatar).not.toHaveBeenCalled();
+  });
+
   it('keeps avatar inputs after backend rejection', async () => {
     mocks.updateAvatar.mockReturnValue({
       send: vi.fn().mockResolvedValue({

@@ -43,17 +43,20 @@
       "gravatar": "Gravatar",
       "github": "GitHub",
       "qq": "QQ",
-      "upload": "Upload"
+      "upload": "Upload",
+      "url": "Image URL"
     },
     "labels": {
       "gravatar": "Email address",
       "github": "GitHub username",
-      "qq": "QQ number"
+      "qq": "QQ number",
+      "url": "Image URL"
     },
     "placeholders": {
       "gravatar": "Email registered with Gravatar",
       "github": "Enter your GitHub username",
-      "qq": "Enter your QQ number"
+      "qq": "Enter your QQ number",
+      "url": "https://example.com/avatar.png"
     },
     "file": "Avatar image",
     "uploadHelp": "JPG, JPEG or PNG, up to 8 MiB.",
@@ -67,6 +70,9 @@
     "invalidQq": "Enter a QQ number using digits only.",
     "fileRequired": "Choose an avatar image.",
     "fileTooLarge": "The image must not exceed 8 MiB.",
-    "invalidFileType": "Choose a JPG, JPEG or PNG image."
+    "invalidFileType": "Choose a JPG, JPEG or PNG image.",
+    "invalidUrl": "Enter an HTTPS image URL without a username or password.",
+    "urlHelp": "Import a JPG or PNG (up to 8 MiB) and save a local copy. The image host must allow browser downloads.",
+    "urlImportFailed": "Could not import this image. Use a downloadable JPG or PNG, or upload the file. GIF and SVG are not supported."
   }
 }

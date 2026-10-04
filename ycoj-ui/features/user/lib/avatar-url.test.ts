@@ -9,6 +9,23 @@ describe('avatarUrl', () => {
     expect(avatarUrl('unknown:id')).toBe('');
   });
 
+  it('resolves local uploaded avatars through the backend and blocks arbitrary URL sources', () => {
+    expect(avatarUrl('url:/file/2/.avatar.png')).toBe(
+      '/api/file/2/.avatar.png'
+    );
+    expect(avatarUrl('url:/file/2/.avatar.jpg')).toBe(
+      '/api/file/2/.avatar.jpg'
+    );
+    for (const source of [
+      'javascript:alert(1)',
+      'https://example.com/avatar.gif',
+      '/file/2/.avatar.svg',
+      '//example.com/a.png',
+    ]) {
+      expect(avatarUrl(`url:${source}`)).toBe('');
+    }
+  });
+
   it('builds gravatar URLs with normalized email hash', () => {
     const email = '  User@Example.COM ';
     const hash = md5(email.trim().toLowerCase());

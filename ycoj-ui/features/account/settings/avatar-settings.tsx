@@ -7,6 +7,7 @@ import {
   getAvatarFormValues,
   type AvatarFormValues,
 } from './avatar-form-utils';
+import { importAvatarUrl } from './avatar-url-import';
 import SettingsSection from './settings-section';
 import ClientApis from '@/api/client/method';
 import avatarUrl from '@/features/user/lib/avatar-url';
@@ -60,6 +61,7 @@ export default function AvatarSettings({ current, disabled = false }: Props) {
         required: t('required'),
         invalidEmail: t('invalidEmail'),
         invalidQq: t('invalidQq'),
+        invalidUrl: t('invalidUrl'),
         fileRequired: t('fileRequired'),
         fileTooLarge: t('fileTooLarge'),
         invalidFileType: t('invalidFileType'),
@@ -79,16 +81,29 @@ export default function AvatarSettings({ current, disabled = false }: Props) {
 
   const submit = async (values: AvatarFormValues) => {
     try {
+      let file = values.file;
+      if (values.provider === 'url') {
+        try {
+          file = await importAvatarUrl(values.identifier);
+        } catch (error) {
+          const message =
+            error instanceof Error && error.message === 'size'
+              ? t('fileTooLarge')
+              : t('urlImportFailed');
+          setError('identifier', { message });
+          return;
+        }
+      }
       const request =
-        values.provider === 'upload'
-          ? values.file && ClientApis.Account.uploadAvatar(values.file)
+        values.provider === 'upload' || values.provider === 'url'
+          ? file && ClientApis.Account.uploadAvatar(file)
           : ClientApis.Account.updateAvatar(values.provider, values.identifier);
       if (!request) return;
       const response = await request.send();
       if ('error' in response)
         throw new Error(parseErrorMessage(response.error));
-      if (values.provider === 'upload' && values.file)
-        setPreview(URL.createObjectURL(values.file));
+      if (file && (values.provider === 'upload' || values.provider === 'url'))
+        setPreview(URL.createObjectURL(file));
       else
         setPreview(
           `${avatarUrl(`${values.provider}:${values.identifier}`, 128)}&v=${previewVersion + 1}`
@@ -205,12 +220,23 @@ export default function AvatarSettings({ current, disabled = false }: Props) {
                 id="avatar-identifier"
                 className="h-9"
                 {...register('identifier')}
-                type={provider === 'gravatar' ? 'email' : 'text'}
+                type={
+                  provider === 'gravatar'
+                    ? 'email'
+                    : provider === 'url'
+                      ? 'url'
+                      : 'text'
+                }
                 inputMode={provider === 'qq' ? 'numeric' : undefined}
                 placeholder={t(`placeholders.${provider}`)}
                 disabled={busy}
                 aria-invalid={Boolean(errors.identifier)}
               />
+              {provider === 'url' && (
+                <FieldDescription className="text-xs">
+                  {t('urlHelp')}
+                </FieldDescription>
+              )}
               <FieldError errors={[errors.identifier]} />
             </Field>
           )}

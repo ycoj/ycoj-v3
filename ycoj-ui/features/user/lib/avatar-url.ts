@@ -5,6 +5,8 @@ const providers: Record<string, (id: string, size?: number) => string> = {
     `https://gravatar.loli.net/avatar/${md5((email || '').toString().trim().toLowerCase())}?d=mm&s=${size || 32}`,
   qq: (id: string) =>
     `//q1.qlogo.cn/g?b=qq&nk=${(/(\d+)/g.exec(id) || ['', ''])[1]}&s=160`,
+  url: (id: string) =>
+    /^\/file\/\d+\/\.avatar\.(?:jpe?g|png)$/i.test(id) ? `/api${id}` : '',
   github: (id: string, size?: number) =>
     `//github.com/${id}.png?size=${Math.min(size || 460, 460)}`,
 };

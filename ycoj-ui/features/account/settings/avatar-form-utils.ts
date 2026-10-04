@@ -1,8 +1,15 @@
+import { AVATAR_MAX_BYTES, isAvatarImportUrl } from './avatar-url-import';
 import { z } from 'zod';
 
-export const AVATAR_MAX_BYTES = 8 * 1024 * 1024;
+export { AVATAR_MAX_BYTES } from './avatar-url-import';
 export const AVATAR_ACCEPT = '.jpg,.jpeg,.png';
-export const avatarProviders = ['gravatar', 'github', 'qq', 'upload'] as const;
+export const avatarProviders = [
+  'gravatar',
+  'github',
+  'qq',
+  'url',
+  'upload',
+] as const;
 
 export type AvatarFormValues = {
   provider: (typeof avatarProviders)[number];
@@ -19,6 +26,9 @@ export function getAvatarFormValues(
   if (provider === 'gravatar' || provider === 'github' || provider === 'qq') {
     return { provider, identifier: avatar.slice(separator + 1) };
   }
+  if (provider === 'url' && isAvatarImportUrl(avatar.slice(separator + 1))) {
+    return { provider: 'url', identifier: avatar.slice(separator + 1) };
+  }
   return {
     provider: avatar.startsWith('url:/file/') ? 'upload' : 'gravatar',
     identifier: mail,
@@ -29,6 +39,7 @@ export const createAvatarSchema = (messages: {
   required: string;
   invalidEmail: string;
   invalidQq: string;
+  invalidUrl: string;
   fileRequired: string;
   fileTooLarge: string;
   invalidFileType: string;
@@ -54,6 +65,11 @@ export const createAvatarSchema = (messages: {
         !z.string().email().safeParse(values.identifier).success
       )
         report('identifier', messages.invalidEmail);
+      else if (
+        values.provider === 'url' &&
+        !isAvatarImportUrl(values.identifier)
+      )
+        report('identifier', messages.invalidUrl);
       else if (values.provider === 'qq' && !/^\d+$/.test(values.identifier))
         report('identifier', messages.invalidQq);
     });

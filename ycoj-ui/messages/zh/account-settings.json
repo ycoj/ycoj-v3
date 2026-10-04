@@ -43,17 +43,20 @@
       "gravatar": "Gravatar",
       "github": "GitHub",
       "qq": "QQ",
-      "upload": "上传图片"
+      "upload": "上传图片",
+      "url": "图片链接"
     },
     "labels": {
       "gravatar": "邮箱地址",
       "github": "GitHub 用户名",
-      "qq": "QQ 号"
+      "qq": "QQ 号",
+      "url": "图片链接"
     },
     "placeholders": {
       "gravatar": "填写 Gravatar 使用的邮箱",
       "github": "填写 GitHub 用户名",
-      "qq": "填写 QQ 号"
+      "qq": "填写 QQ 号",
+      "url": "https://example.com/avatar.png"
     },
     "file": "头像图片",
     "uploadHelp": "支持 JPG、JPEG、PNG 格式，最大 8 MiB。",
@@ -67,6 +70,9 @@
     "invalidQq": "QQ 号只能包含数字。",
     "fileRequired": "请选择头像图片。",
     "fileTooLarge": "图片大小不能超过 8 MiB。",
-    "invalidFileType": "请选择 JPG、JPEG 或 PNG 图片。"
+    "invalidFileType": "请选择 JPG、JPEG 或 PNG 图片。",
+    "invalidUrl": "请输入不含用户名或密码的 HTTPS 图片链接。",
+    "urlHelp": "导入 JPG 或 PNG 图片（最大 8 MiB）并保存本地副本。图片网站必须允许浏览器下载。",
+    "urlImportFailed": "无法导入此图片。请使用可下载的 JPG 或 PNG，或直接上传文件。不支持 GIF 和 SVG。"
   }
 }
