@@ -319,6 +319,9 @@ export class ProblemDetailHandler extends ContestDetailBaseHandler {
     pdoc: ProblemDoc;
     udoc: User;
     psdoc: ProblemStatusDoc;
+    // Opt-in for handlers that contest managers (owner/maintainer or PERM_EDIT_CONTEST)
+    // may use before the contest starts or without attending it, e.g. printing the paper.
+    allowContestManagerAccess = false;
 
     @route('pid', Types.ProblemId, true)
     @param('tid', Types.ObjectId, true)
@@ -327,9 +330,13 @@ export class ProblemDetailHandler extends ContestDetailBaseHandler {
         if (!this.pdoc) throw new ProblemNotFoundError(domainId, pid);
         if (tid) {
             if (!this.tdoc?.pids?.includes(this.pdoc.docId)) throw new ContestNotFoundError(domainId, tid);
-            if (contest.isNotStarted(this.tdoc)) throw new ContestNotLiveError(tid);
-            if (!contest.isDone(this.tdoc, this.tsdoc) && (!this.tsdoc?.attend || !this.tsdoc.startAt)) {
-                throw new ContestNotAttendedError(tid);
+            const isContestManager = this.allowContestManagerAccess
+                && (this.user.own(this.tdoc) || this.user.hasPerm(PERM.PERM_EDIT_CONTEST));
+            if (!isContestManager) {
+                if (contest.isNotStarted(this.tdoc)) throw new ContestNotLiveError(tid);
+                if (!contest.isDone(this.tdoc, this.tsdoc) && (!this.tsdoc?.attend || !this.tsdoc.startAt)) {
+                    throw new ContestNotAttendedError(tid);
+                }
             }
             // Delete problem-related info in contest mode
             if (this.pdoc.tag) this.pdoc.tag.length = 0;
@@ -826,6 +833,8 @@ export class ProblemFilesHandler extends ProblemDetailHandler {
 }
 
 export class ProblemFileDownloadHandler extends ProblemDetailHandler {
+    allowContestManagerAccess = true;
+
     @query('type', Types.Range(['additional_file', 'testdata']), true)
     @param('filename', Types.Filename)
     @param('noDisposition', Types.Boolean)

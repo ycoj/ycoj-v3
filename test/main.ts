@@ -517,6 +517,43 @@ describe('App', () => {
         }
     });
 
+    it('Allows contest managers to download problem attachments without attending', async () => {
+        const filename = 'manager-attachment.png';
+        const pid = await global.Hydro.model.problem.add(
+            'system', 'CONTEST_MANAGER_FILE_TEST', 'Contest manager file test', '', 2,
+        );
+        await global.Hydro.model.problem.addAdditionalFile('system', pid, filename, Buffer.from('image'), 2);
+        const ongoingTid = await global.Hydro.model.contest.add(
+            'system', 'Manager file ongoing', '', 2, 'acm',
+            new Date(Date.now() - 60_000), new Date(Date.now() + 60_000), [pid],
+        );
+        const upcomingTid = await global.Hydro.model.contest.add(
+            'system', 'Manager file upcoming', '', 2, 'acm',
+            new Date(Date.now() + 60_000), new Date(Date.now() + 120_000), [pid],
+        );
+        for (const tid of [ongoingTid, upcomingTid]) {
+            // eslint-disable-next-line no-await-in-loop
+            const response = await agent.get(`/p/${pid}/file/${filename}?tid=${tid}`)
+                .set('Accept', 'application/json').expect(200);
+            const url = decodeURIComponent(String(response.body.url));
+            assert.ok(url.includes(`filename=${filename}`), url);
+            // eslint-disable-next-line no-await-in-loop
+            const fetched = await agent.get(response.body.url).expect(200);
+            assert.equal(fetched.body.toString(), 'image');
+        }
+
+        const password = '123456';
+        const outsiderUid = await global.Hydro.model.user.create(
+            'contest-file-outsider@example.com', 'contest-file-outsider', password, undefined, '127.0.0.1',
+        );
+        await global.Hydro.model.user.setById(outsiderUid, { realnameStatus: 'approved' });
+        const outsider = supertest.agent(require('hydrooj').httpServer);
+        await outsider.post('/login').send({ uname: 'contest-file-outsider', password }).expect(302);
+        const denied = await outsider.get(`/p/${pid}/file/${filename}?tid=${ongoingTid}`)
+            .set('Accept', 'application/json').expect(403);
+        assert.equal(denied.body.error.name, 'ContestNotAttendedError');
+    });
+
     it('Expires accounts on access and only restores automatic bans', async () => {
         const username = 'expire-test';
         const password = '123456';

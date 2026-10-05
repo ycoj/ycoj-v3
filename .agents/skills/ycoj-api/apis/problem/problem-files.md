@@ -45,7 +45,7 @@ GET renders `problem_files.html`; representative body: `{ "pdoc":{"pid":"P1000"}
 
 ## Description
 
-Creates a signed storage download redirect. `type` defaults to `additional_file`; `type=testdata` applies the same test-data permission checks. Referenced problems cannot expose test data.
+Creates a signed storage download redirect. `type` defaults to `additional_file`; `type=testdata` applies the same test-data permission checks. Referenced problems cannot expose test data. Without `tid` the caller needs `PERM_VIEW_PROBLEM`; with `tid` the problem must belong to that contest and the caller normally must have started and attended it. Contest owners/maintainers and users with `PERM_EDIT_CONTEST` may download `additional_file` attachments before the contest starts or without attending it (printing the contest paper), while `testdata` still requires `PRIV_READ_PROBLEM_DATA`/`PERM_READ_PROBLEM_DATA` and an ended contest for non-owners.
 
 ## Request format
 
