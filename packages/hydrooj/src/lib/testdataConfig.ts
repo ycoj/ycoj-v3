@@ -10,6 +10,8 @@ export async function parseConfig(config: string | ProblemConfigFile = {}, files
         : await readYamlCases(config);
     const result: ProblemConfig = {
         count: Object.keys(cfg.answers || {}).length || Math.sum((cfg.subtasks || []).map((s) => s.cases.length)),
+        // A legacy flat `cases` list is wrapped into one subtask by readYamlCases.
+        subtaskCount: cfg.subtasks?.length ?? 0,
         memoryMin: Number.MAX_SAFE_INTEGER,
         memoryMax: 0,
         timeMin: Number.MAX_SAFE_INTEGER,

@@ -134,6 +134,7 @@ const problem1002Doc = {
   data: [],
   config: {
     count: 20,
+    subtaskCount: 4,
     memoryMax: 256,
     memoryMin: 256,
     timeMax: 2000,
@@ -145,8 +146,9 @@ const problem1002Doc = {
 
 /**
  * Minimal two-problem contest: one bilingual file-I/O problem with image,
- * math, table, code and a directive; one plain zh markdown problem. The
- * `document` half records the default draft at language `zh`.
+ * math, table, code and a directive; one plain zh markdown problem whose
+ * config declares four subtasks (subtask-bound scoring). The `document` half
+ * records the default draft at language `zh`.
  */
 export const twoProblemContest: PrintFixture = {
   name: 'two-problem-contest',
@@ -254,8 +256,8 @@ export const twoProblemContest: PrintFixture = {
         inputFile: '',
         outputFile: '',
         submitFilenames: ['p1002.cpp'],
-        testcaseCount: '20',
-        scoreNote: '是',
+        testcaseCount: '4',
+        scoreNote: '子任务捆绑',
         pretestCount: '',
       },
     ],

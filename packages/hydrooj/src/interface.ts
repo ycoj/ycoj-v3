@@ -151,6 +151,8 @@ export type BaseUserDict = Record<number, BaseUser>;
 export interface ProblemConfig {
     redirect?: [string, string];
     count: number;
+    /** Number of subtasks in the parsed testdata config; a legacy flat `cases` list counts as one. */
+    subtaskCount?: number;
     memoryMax: number;
     memoryMin: number;
     timeMax: number;

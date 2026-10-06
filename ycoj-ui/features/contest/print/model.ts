@@ -65,11 +65,15 @@ export type PrintProblem = {
    * `PrintableContest.languages` when the paper prints per-language rows.
    */
   submitFilenames: string[];
-  /** Testcase count text; defaults to `pdoc.config.count`. */
+  /**
+   * Testcase count text; defaults to `pdoc.config.count`, or to the number of
+   * configured subtasks when the problem declares more than one.
+   */
   testcaseCount: string;
   /**
    * Subtask/score note for the overview table (equal-split, subtask weights,
-   * …). Defaults to `是`; empty string hides the row.
+   * …). Defaults to `是`, or `子任务捆绑` for a problem that declares more
+   * than one subtask; empty string hides the row.
    */
   scoreNote: string;
   /** Pretest count text; empty string hides the row. */

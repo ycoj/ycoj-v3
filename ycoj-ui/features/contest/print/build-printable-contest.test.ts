@@ -306,11 +306,27 @@ describe('buildPrintableContest', () => {
   it.each([
     [{ count: 10 }, '10'],
     [{ count: 0 }, ''],
+    [{ count: 10, subtaskCount: 3 }, '3'],
+    [{ count: 10, subtaskCount: 1 }, '10'],
+    [{ count: 0, subtaskCount: 0 }, ''],
+    [{ subtaskCount: 4 }, '4'],
   ])('formats testcase count %o as %s', (config, expected) => {
     const response = makeResponse({ 1: makeProblem(1, config) });
     expect(
       buildPrintableContest(response).document.problems[0].testcaseCount
     ).toBe(expected);
+  });
+
+  it.each([
+    [{}, '是'],
+    [{ subtaskCount: 0 }, '是'],
+    [{ subtaskCount: 1 }, '是'],
+    [{ subtaskCount: 3 }, '子任务捆绑'],
+  ])('defaults score note %o to %s', (config, expected) => {
+    const response = makeResponse({ 1: makeProblem(1, config) });
+    expect(buildPrintableContest(response).document.problems[0].scoreNote).toBe(
+      expected
+    );
   });
 
   it('maps file-I/O problems to .in/.out names and sets fileIo', () => {

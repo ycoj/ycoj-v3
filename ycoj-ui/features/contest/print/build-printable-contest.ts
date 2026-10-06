@@ -190,6 +190,11 @@ function buildProblem(
   }
   const pidName =
     sanitizeShortName(pdoc.pid ?? '') || sanitizeShortName(`p${pdoc.docId}`);
+  // A problem that declares more than one subtask is judged subtask-bound:
+  // the overview table prints the subtask count and the bundle note instead
+  // of the flat testcase count and the equal-split note.
+  const subtaskCount = config?.subtaskCount ?? 0;
+  const subtaskBound = subtaskCount > 1;
   const rawProblemType = config?.type ?? '';
   // The paper prints display text, not judge ids: resolve the localized
   // label for known `config.type` values, passthrough otherwise.
@@ -224,11 +229,12 @@ function buildProblem(
     submitFilenames: languages.map(
       (lang) => `${submitBase}.${judgeLanguageExtension(lang.id)}`
     ),
-    testcaseCount:
-      Number.isFinite(config?.count) && (config?.count ?? 0) > 0
+    testcaseCount: subtaskBound
+      ? String(subtaskCount)
+      : Number.isFinite(config?.count) && (config?.count ?? 0) > 0
         ? String(config?.count)
         : '',
-    scoreNote: '是',
+    scoreNote: subtaskBound ? '子任务捆绑' : '是',
     // Hydro has no per-problem pretest count, so the row stays hidden until
     // the editor fills it in.
     pretestCount: '',
