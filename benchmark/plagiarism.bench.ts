@@ -1,5 +1,10 @@
 import { bench, describe } from 'vitest';
-import { compareCpp, MAX_SOURCE_BYTES, prepareCpp } from '../packages/hydrooj/src/lib/plagiarism';
+import { compareCpp, prepareCpp } from '../packages/hydrooj/src/lib/plagiarism';
+
+// Keep CI fixtures small enough for CodSpeed simulation and the engine's real-time deadline.
+// Full-size sources and the 760-pair event are covered by packages/hydrooj/src/lib/plagiarism/benchmark.ts.
+const statementCount = 128;
+const repeatedStatements = 128;
 
 // An accepted solution written the way contestants usually structure a contest submission.
 function solution(problem: number, participant: number) {
@@ -21,9 +26,9 @@ int main() {
 }`;
 }
 
-// A problem holds at most 20 representatives, so every event compares the same 4 x 20 shape.
-const event = Array.from({ length: 4 }, (_, problem) => (
-    Array.from({ length: 20 }, (_, participant) => prepareCpp(solution(problem, participant)))
+// Two problems with five representatives each exercise the event loop over 20 pairs.
+const event = Array.from({ length: 2 }, (_, problem) => (
+    Array.from({ length: 5 }, (_, participant) => prepareCpp(solution(problem, participant)))
 ));
 
 // A near-copy with a changed constant and operator, so it cannot take the canonical fast path.
@@ -41,30 +46,32 @@ int main() {
     return 0;
 }`);
 
-// Long sources with few repeated features stress the size of every prepared feature bag.
-function longSource() {
+// Distinct constants exercise feature bags without a full-size stress fixture.
+function uniqueTokenSource() {
     let source = 'int main(){long long value=0;';
-    for (let i = 0; i < 3500; i++) source += `value+=${i + 100000};`;
+    for (let i = 0; i < statementCount; i++) source += `value+=${i + 100000};`;
     source += 'cout<<value;}';
-    if (Buffer.byteLength(source) > Math.min(MAX_SOURCE_BYTES, 64 * 1024)) throw new Error('long source exceeded the intended size');
     return source;
 }
 
+const uniqueSource = uniqueTokenSource();
+const repetitiveSource = `int main(){int x=0;${'x += x + 1;'.repeat(repeatedStatements)}cout<<x;}`;
+
 // Repetitive tokens maximize fingerprint occurrences without creating a quadratic cross-product.
-const repetitiveLeft = prepareCpp(`int main(){int x=0;${'x += x + 1;'.repeat(3000)}cout<<x;}`);
-const repetitiveRight = prepareCpp(`int main(){int y=0;${'y += y + 1;'.repeat(2999)}y-=2;cout<<y;}`);
+const repetitiveLeft = prepareCpp(repetitiveSource);
+const repetitiveRight = prepareCpp(`int main(){int y=0;${'y += y + 1;'.repeat(repeatedStatements - 1)}y-=2;cout<<y;}`);
 
 describe('hydrooj/plagiarism', () => {
     bench('prepareCpp typical solution', () => {
         prepareCpp(solution(0, 0));
     });
 
-    bench('prepareCpp 64 KiB unique-token source', () => {
-        prepareCpp(longSource());
+    bench('prepareCpp unique-token source (128 statements)', () => {
+        prepareCpp(uniqueSource);
     });
 
-    bench('prepareCpp repetitive source', () => {
-        prepareCpp(`int main(){int x=0;${'x += x + 1;'.repeat(3000)}cout<<x;}`);
+    bench('prepareCpp repetitive source (128 statements)', () => {
+        prepareCpp(repetitiveSource);
     });
 
     bench('compareCpp identical submissions', () => {
@@ -79,11 +86,11 @@ describe('hydrooj/plagiarism', () => {
         compareCpp(event[0][0], unrelated);
     });
 
-    bench('compareCpp pathological repeated tokens', () => {
+    bench('compareCpp repeated tokens (128 statements)', () => {
         compareCpp(repetitiveLeft, repetitiveRight);
     });
 
-    bench('compareCpp 20-participant four-problem event (760 pairs)', () => {
+    bench('compareCpp five-participant two-problem event (20 pairs)', () => {
         for (const submissions of event) {
             for (let left = 0; left < submissions.length; left++) {
                 for (let right = left + 1; right < submissions.length; right++) {

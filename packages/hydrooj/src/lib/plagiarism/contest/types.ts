@@ -1,4 +1,4 @@
-import type { BackgroundTaskStatus } from '../../model/backgroundTask';
+import type { BackgroundTaskStatus } from '../../../model/backgroundTask';
 
 export interface PlagiarismSubmission {
     rid: string;

@@ -1,11 +1,11 @@
 import { ObjectId } from 'mongodb';
 import type { Readable } from 'stream';
-import { STATUS } from '../../model/builtin';
-import * as contest from '../../model/contest';
-import problem from '../../model/problem';
-import record from '../../model/record';
-import storage from '../../model/storage';
-import user from '../../model/user';
+import { STATUS } from '../../../model/builtin';
+import * as contest from '../../../model/contest';
+import problem from '../../../model/problem';
+import record from '../../../model/record';
+import storage from '../../../model/storage';
+import user from '../../../model/user';
 import type { PlagiarismRequest, PlagiarismSnapshot, PlagiarismSubmission } from './types';
 
 export const PLAGIARISM_MAX_SOURCE_BYTES = 65_536;

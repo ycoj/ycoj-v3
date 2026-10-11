@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { test } from 'node:test';
-import { runPlagiarismComparisons } from '../src/lib/plagiarismExecutor';
+import { runPlagiarismComparisons } from '../../src/lib/plagiarism/executor';
 
 const code = `#include <bits/stdc++.h>
 using namespace std;

@@ -11,9 +11,9 @@ import ContestBalloons from '@/features/contest/management/contest-balloons';
 import ContestBulkSubmit from '@/features/contest/management/contest-bulk-submit';
 import ContestClarifications from '@/features/contest/management/contest-clarifications';
 import ContestManagementOverview from '@/features/contest/management/contest-management-overview';
-import ContestPlagiarism from '@/features/contest/management/contest-plagiarism';
 import ContestUsers from '@/features/contest/management/contest-users';
 import type { RenderedClarificationDoc } from '@/features/contest/management/render-clarifications';
+import ContestPlagiarism from '@/features/contest/plagiarism/contest-plagiarism';
 
 export type ContestManagementClientProps =
   | { mode: 'management'; tid: string; data: ContestManagementResponse }

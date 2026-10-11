@@ -3,7 +3,7 @@ import { performance } from 'perf_hooks';
 import { describe, it } from 'node:test';
 import {
     compareCpp, MAX_SOURCE_BYTES, MAX_TOKENS, PlagiarismLimitError, prepareCpp,
-} from '../src/lib/plagiarism';
+} from '../../src/lib/plagiarism';
 
 const core = `
     long long answer = 0;

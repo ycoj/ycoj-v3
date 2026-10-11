@@ -1,5 +1,5 @@
 import { Worker } from 'worker_threads';
-import { type PlagiarismLimitCode, PlagiarismLimitError, type PreparedCpp } from './plagiarism';
+import { type PlagiarismLimitCode, PlagiarismLimitError, type PreparedCpp } from './engine';
 
 export const PLAGIARISM_TASK_TIMEOUT_MS = 300_000;
 
@@ -30,7 +30,7 @@ export function runPlagiarismComparisons(
 ): Promise<PlagiarismComparisonOutput> {
     if (signal.aborted) return Promise.reject(new Error('Plagiarism check aborted.'));
     return new Promise((resolve, reject) => {
-        const entry = require.resolve('./plagiarismWorker');
+        const entry = require.resolve('./worker');
         const worker = new Worker(`require(${JSON.stringify(entry)});`, {
             eval: true,
             execArgv: ['-r', require.resolve('@hydrooj/register')],

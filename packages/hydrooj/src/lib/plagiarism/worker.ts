@@ -1,9 +1,9 @@
 import { parentPort, workerData } from 'worker_threads';
-import { compareCpp, type CppComparison, PlagiarismLimitError, prepareCpp, SOFT_TIMEOUT_MS } from './plagiarism';
+import { compareCpp, type CppComparison, PlagiarismLimitError, prepareCpp, SOFT_TIMEOUT_MS } from './engine';
 import {
     PLAGIARISM_TASK_TIMEOUT_MS,
     type PlagiarismComparisonOutput, type PlagiarismSourceInput, type PlagiarismWorkerMessage, type PreparedPlagiarismSource,
-} from './plagiarismExecutor';
+} from './executor';
 
 function send(message: PlagiarismWorkerMessage) {
     parentPort?.postMessage(message);

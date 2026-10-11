@@ -2,7 +2,7 @@ import type { Collection, IndexDescription } from 'mongodb';
 import {
     BACKGROUND_TASK_INDEXES, BACKGROUND_TASK_TIMEOUT_MESSAGE, type BackgroundTaskDoc, BackgroundTaskModel, backgroundTaskModel,
     type BackgroundTaskOwner,
-} from '../../model/backgroundTask';
+} from '../../../model/backgroundTask';
 import type { PlagiarismJob, PlagiarismPayload, PlagiarismReport, PlagiarismScope } from './types';
 
 export const PLAGIARISM_TASK_TYPE = 'contest-plagiarism';

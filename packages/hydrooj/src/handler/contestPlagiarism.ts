@@ -4,8 +4,8 @@ import {
     ContestNotEndedError, ContestNotFoundError, CreateError as createError, NotFoundError, UserFacingError,
 } from '../error';
 import type { Tdoc } from '../interface';
-import { ContestPlagiarismJobs } from '../lib/contestPlagiarism/jobs';
-import { PLAGIARISM_TASK_INDEXES } from '../lib/contestPlagiarism/store';
+import { ContestPlagiarismJobs } from '../lib/plagiarism/contest/jobs';
+import { PLAGIARISM_TASK_INDEXES } from '../lib/plagiarism/contest/store';
 import { PERM } from '../model/builtin';
 import * as contest from '../model/contest';
 import { Handler, route, Types } from '../service/server';

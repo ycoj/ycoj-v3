@@ -3,45 +3,45 @@ import { Readable } from 'stream';
 import { type Collection, MongoClient, ObjectId } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { after, before, beforeEach, describe, it } from 'node:test';
-import type { PlagiarismRequest, PlagiarismSnapshot } from '../src/lib/contestPlagiarism/types';
-import type { PlagiarismComparisonOutput, PlagiarismProgress, PlagiarismSourceInput } from '../src/lib/plagiarismExecutor';
+import type { PlagiarismRequest, PlagiarismSnapshot } from '../../src/lib/plagiarism/contest/types';
+import type { PlagiarismComparisonOutput, PlagiarismProgress, PlagiarismSourceInput } from '../../src/lib/plagiarism/executor';
 
 function mock(request: string, exports: unknown) {
     require.cache[require.resolve(request)] = { exports } as NodeJS.Module;
 }
 
 Object.assign(global, { Hydro: { model: {}, ui: {} }, app: { get: () => undefined } });
-mock('../src/service/db', { collection: () => null });
-mock('../src/service/server', require('@hydrooj/framework'));
-mock('../src/model/builtin', { STATUS: { STATUS_CANCELED: 9 }, PERM: { PERM_EDIT_CONTEST: 1n }, PERMS: [] });
+mock('../../src/service/db', { collection: () => null });
+mock('../../src/service/server', require('@hydrooj/framework'));
+mock('../../src/model/builtin', { STATUS: { STATUS_CANCELED: 9 }, PERM: { PERM_EDIT_CONTEST: 1n }, PERMS: [] });
 
 let recordCollection: Collection;
 let statusCollection: typeof recordCollection;
 let tdoc: { owner: number, maintainer: number[], pids: number[], beginAt: Date, endAt: Date };
-mock('../src/model/record', {
+mock('../../src/model/record', {
     get coll() { return recordCollection; },
     getMulti: (domainId: string, query: object) => recordCollection.find({ domainId, ...query }),
 });
-mock('../src/model/contest', {
+mock('../../src/model/contest', {
     get: async () => tdoc,
     isDone: (doc: typeof tdoc) => doc.endAt.getTime() <= Date.now(),
     getMultiStatus: (domainId: string, query: object) => statusCollection.find({ domainId, ...query }),
 });
-mock('../src/model/problem', {
+mock('../../src/model/problem', {
     getList: async (_domainId: string, pids: number[]) => Object.fromEntries(pids.map((pid) => [pid, { title: `Problem ${pid}` }])),
 });
-mock('../src/model/user', {
+mock('../../src/model/user', {
     getList: async (_domainId: string, uids: number[]) => Object.fromEntries(uids.map((uid) => [uid, { uname: `user${uid}` }])),
 });
-mock('../src/model/storage', { get: async () => Readable.from(['int main() { return 0; }']) });
+mock('../../src/model/storage', { get: async () => Readable.from(['int main() { return 0; }']) });
 
 const { ContestPlagiarismStore, PLAGIARISM_TASK_INDEXES, PLAGIARISM_TASK_TYPE, PLAGIARISM_TIMEOUT_MS, PLAGIARISM_RETENTION_MS } =
-    require('../src/lib/contestPlagiarism/store');
-const { ContestPlagiarismJobs } = require('../src/lib/contestPlagiarism/jobs');
-const { loadPlagiarismSnapshot, readSubmissionSource } = require('../src/lib/contestPlagiarism/snapshot');
+    require('../../src/lib/plagiarism/contest/store');
+const { ContestPlagiarismJobs } = require('../../src/lib/plagiarism/contest/jobs');
+const { loadPlagiarismSnapshot, readSubmissionSource } = require('../../src/lib/plagiarism/contest/snapshot');
 const { ContestPlagiarismHandler, ContestPlagiarismJobHandler, ContestPlagiarismSourceHandler, resolvePlagiarismContest } =
-    require('../src/handler/contestPlagiarism');
-const { PermissionError, ContestNotEndedError, NotFoundError, ValidationError } = require('../src/error');
+    require('../../src/handler/contestPlagiarism');
+const { PermissionError, ContestNotEndedError, NotFoundError, ValidationError } = require('../../src/error');
 
 let mongod: MongoMemoryServer;
 let client: MongoClient;

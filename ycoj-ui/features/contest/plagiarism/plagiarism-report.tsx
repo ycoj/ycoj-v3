@@ -1,7 +1,7 @@
 'use client';
 
-import { localizePlagiarismExplanation } from '@/features/contest/management/plagiarism-messages';
-import PlagiarismSourceReview from '@/features/contest/management/plagiarism-source-review';
+import { localizePlagiarismExplanation } from '@/features/contest/plagiarism/plagiarism-messages';
+import PlagiarismSourceReview from '@/features/contest/plagiarism/plagiarism-source-review';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {

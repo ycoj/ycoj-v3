@@ -1,7 +1,7 @@
 import '@/app/globals.css';
-import ContestManagementClient from './contest-management-client';
 import ContestPlagiarism from './contest-plagiarism';
 import type { ContestManagementResponse } from '@/api/server/method/contests/management';
+import ContestManagementClient from '@/features/contest/management/contest-management-client';
 import messages from '@/messages/en';
 import messagesZh from '@/messages/zh';
 import TwoColumnLayout from '@/shared/layout/two-column';

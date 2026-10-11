@@ -1,6 +1,6 @@
-import { BackgroundTaskService } from '../background/runner';
-import { ENGINE_VERSION } from '../plagiarism';
-import { runPlagiarismComparisons } from '../plagiarismExecutor';
+import { BackgroundTaskService } from '../../background/runner';
+import { ENGINE_VERSION } from '../engine';
+import { runPlagiarismComparisons } from '../executor';
 import { loadPlagiarismSnapshot, PlagiarismInputError } from './snapshot';
 import {
     ContestPlagiarismStore, PLAGIARISM_FAILURE_ERROR, PLAGIARISM_RETENTION_MS, PLAGIARISM_TASK_TYPE,

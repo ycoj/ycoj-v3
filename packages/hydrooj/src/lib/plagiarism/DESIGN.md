@@ -60,14 +60,28 @@ The asynchronous executor must enforce the five-minute wall-clock budget outside
 | `unused-scalar-ignored` | Conservative unused scalar filtering removed declarations. |
 | `evidence-regions-limited` | Only the 100 largest regions are displayed; scores are complete. |
 
+## Project structure
+
+The backend feature lives under `packages/hydrooj/src/lib/plagiarism/`:
+
+- `engine.ts` contains the synchronous C++ lexical preparation and comparison engine; `index.ts` exports its public API.
+- `executor.ts` starts and supervises the isolated CPU worker in `worker.ts`.
+- `contest/` contains contest snapshots, persistent job storage, orchestration, and report types.
+- `benchmark.ts` runs the full-size local stress workloads.
+
+HTTP integration remains in `packages/hydrooj/src/handler/contestPlagiarism.ts`. Backend regression tests are grouped under `packages/hydrooj/tests/plagiarism/`. The frontend screen, report, source review, messages, and browser tests live together in `ycoj-ui/features/contest/plagiarism/`; transport methods and shared API response types remain in their existing API directories.
+
 ## Verification and benchmark
 
 Run from the repository root:
 
 ```powershell
-node -r @hydrooj/register --test packages/hydrooj/tests/plagiarismEngine.spec.ts
+yarn test:plagiarism
+yarn bench
 node --max-old-space-size=192 -r @hydrooj/register packages/hydrooj/src/lib/plagiarism/benchmark.ts
 ```
+
+`benchmark/plagiarism.bench.ts` uses bounded fixtures (128 statements and a 20-pair event) for CodSpeed simulation. The standalone stress benchmark retains long sources and the full 760-pair contest workload.
 
 The 16 regression tests cover copying/renaming (including library-named variables/helpers), qualified library distinctions, bounded repetitive comparison preparation, comments and padding, helper extraction, block moves, equivalent loop rewrites, unrelated algorithm/input boilerplate, variable equality, operators/library/literal distinctions, raw strings, original line mapping, lexical warnings, input/deadline errors, repeated tokens, and a full event's 760 pairs.
 

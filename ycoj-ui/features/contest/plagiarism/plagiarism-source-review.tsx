@@ -1,7 +1,7 @@
 'use client';
 
 import ClientApis from '@/api/client/method';
-import { localizePlagiarismExplanation } from '@/features/contest/management/plagiarism-messages';
+import { localizePlagiarismExplanation } from '@/features/contest/plagiarism/plagiarism-messages';
 import { Button } from '@/shared/components/ui/button';
 import { throwBackendError } from '@/shared/lib/backend-response';
 import { cn } from '@/shared/lib/utils';
