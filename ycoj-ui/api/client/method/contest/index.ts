@@ -16,6 +16,12 @@ import {
   setContestBalloonColor,
   toggleContestUserRank,
 } from '@/api/client/method/contest/management-actions';
+import {
+  getContestPlagiarism,
+  getContestPlagiarismJob,
+  getContestPlagiarismSource,
+  startContestPlagiarism,
+} from '@/api/client/method/contest/plagiarism';
 import { getContestProblems } from '@/api/client/method/contest/problems';
 import { attendContest } from '@/api/client/method/contest/registration';
 import {
@@ -33,6 +39,10 @@ const Contest = {
   deleteContest,
   attendContest,
   getContestProblems,
+  getContestPlagiarism,
+  startContestPlagiarism,
+  getContestPlagiarismJob,
+  getContestPlagiarismSource,
   unlockScoreboard,
   downloadScoreboard,
   uploadContestFile,

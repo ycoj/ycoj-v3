@@ -13,9 +13,11 @@ import ContestClarifications from '@/features/contest/management/contest-clarifi
 import ContestManagementOverview from '@/features/contest/management/contest-management-overview';
 import ContestUsers from '@/features/contest/management/contest-users';
 import type { RenderedClarificationDoc } from '@/features/contest/management/render-clarifications';
+import ContestPlagiarism from '@/features/contest/plagiarism/contest-plagiarism';
 
 export type ContestManagementClientProps =
   | { mode: 'management'; tid: string; data: ContestManagementResponse }
+  | { mode: 'plagiarism'; tid: string; data: ContestManagementResponse }
   | { mode: 'user'; tid: string; data: ContestUsersResponse }
   | {
       mode: 'clarification';
@@ -32,6 +34,14 @@ export default function ContestManagementClient(
   switch (props.mode) {
     case 'management':
       return <ContestManagementOverview tid={props.tid} data={props.data} />;
+    case 'plagiarism':
+      return (
+        <ContestPlagiarism
+          key={`${props.tid}-${String(props.data.tdoc.endAt)}`}
+          tid={props.tid}
+          contest={props.data.tdoc}
+        />
+      );
     case 'user':
       return <ContestUsers tid={props.tid} data={props.data} />;
     case 'clarification':
