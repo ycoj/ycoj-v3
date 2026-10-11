@@ -14,6 +14,9 @@ This is the implementation-backed route index; operation names are request-body 
 | `GET/POST /contest/:tid/edit` | Edit/delete; same validated fields as create. |
 | `GET/POST /contest/:tid/print`, `/api/printing/team` | Print HTML or `{success,output}`; print-task operations. |
 | `GET/POST /contest/:tid/management` | Management HTML with full problem documents; file and score operations. |
+| `GET/POST /contest/:tid/plagiarism` | Manager-only JSON after contest end; latest task or HTTP 202 admission with `{}` body. See [plagiarism.md](plagiarism.md). |
+| `GET /contest/:tid/plagiarism/:jobId` | Manager-only asynchronous task progress/report JSON, scoped to contest/domain. |
+| `GET /contest/:tid/plagiarism/:jobId/source/:rid` | Manager-only immutable analyzed C++ source snapshot for a completed task. |
 | `GET/POST /contest/:tid/bulk-submit` | Bulk-submit HTML; POST zip of contestant C++ sources (see [bulk-submit.md](bulk-submit.md)). |
 | `GET/POST /contest/:tid/clarification` | Clarification HTML; clarification operation. |
 | `GET /contest/:tid/code` | Code view HTML (`all` filter). |
@@ -22,6 +25,6 @@ This is the implementation-backed route index; operation names are request-body 
 | `GET/POST /contest/:tid/balloon` | Balloon HTML; setColor/done operations. |
 | `GET/POST /contest/:tid/scoreboard[/:view]` | Scoreboard HTML; unlock operation. |
 
-Decorated parameters and permission checks are documented in [README.md](./README.md). GET responses are HTML unless a PJAX/JSON request asks for the handler body; uploads are multipart and downloads are binary redirects.
+Decorated parameters and permission checks are documented in [README.md](./README.md). Ordinary GET responses are HTML unless a PJAX/JSON request asks for the handler body. Plagiarism routes and scoreboard export data return JSON directly; uploads are multipart and downloads are binary redirects.
 
 `GET /contest/:tid/scoreboard/export-data?details=true` returns authorized image export JSON; see [contract](endpoints.md#image-export-data).

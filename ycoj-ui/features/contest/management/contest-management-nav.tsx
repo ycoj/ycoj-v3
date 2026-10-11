@@ -10,6 +10,7 @@ import {
   Pencil,
   Printer,
   Send,
+  ScanSearch,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -96,6 +97,12 @@ export default function ContestManagementNav({
             href={`/contest/${tid}/bulk-submit`}
             icon={FileArchive}
             label={t('bulkSubmit')}
+            nested
+          />
+          <NavButton
+            href={`/contest/${tid}/plagiarism`}
+            icon={ScanSearch}
+            label={t('plagiarism.title')}
             nested
           />
           <NavButton

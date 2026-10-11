@@ -1,13 +1,13 @@
 # YCOJ API documents
 
-This is the routing index for the backend contracts present in the repository snapshot on 2026-09-18. It covers all 159 literal HTTP route registrations (every `Route('name', '/path', Handler)` call in the packages, including destructured `Route` from `ctx.inject` but not capture routes), five literal connection registrations, and the indirectly registered `/api/:op` HTTP/connection transport. Routes from optional packages or conditional configuration are documented but exist at runtime only when their package or feature is enabled.
+This is the routing index for the backend contracts present in the repository. It covers literal HTTP route registrations (`Route('name', '/path', Handler)` calls in the packages, including destructured `Route` from `ctx.inject` but not capture routes), connection registrations, and the indirectly registered `/api/:op` HTTP/connection transport. Routes from optional packages or conditional configuration are documented but exist at runtime only when their package or feature is enabled.
 
 The default base URL is `https://ycoj.cc/`. Every documented route is relative to that base. Prefix a path with `/d/{domainId}` when selecting a domain by URL rather than host; for example, `/p` in domain `school` becomes `https://ycoj.cc/d/school/p`.
 
 | URL or operation | Documents | Includes |
 | --- | --- | --- |
 | `/p`, `/p/*`, `/problem/*`; problem `/api` ops | [Problem](problem/README.md) | Search with reviewer-only pending solution counts, detail, create/edit, submit/hack, user feedback and admin feedback moderation, async HTML-to-Markdown jobs and polling, files, solutions/review/author blocks, statistics, compatibility/import routes, problem queries/mutation |
-| `/contest`, `/contest/*` | [Contest](contest/README.md) | Lists, details, creation/editing, problem list, management with full problem documents and contest-wide rejudge, bulk submit, files, users, print, balloons, scoreboard, onsite-toolkit routes |
+| `/contest`, `/contest/*` | [Contest](contest/README.md) | Lists, details, creation/editing, problem list, management with full problem documents and contest-wide rejudge, asynchronous C++ plagiarism jobs and source snapshots, bulk submit, files, users, print, balloons, scoreboard, onsite-toolkit routes |
 | `/homework`, `/homework/*` | [Homework](homework/README.md) | Creation/editing, attendance, files, code, scoreboard |
 | `/training`, `/training/*` | [Training](training/README.md) | Lists, plans, editing, files and downloads |
 | `/preliminary`, `/preliminary/*` | [Preliminary Round Training](preliminary/README.md) | Structured objective and programming papers, referenced problem dictionaries, draft/publish management, attempts, scores, and incorrect-answer explanations |
