@@ -103,7 +103,7 @@ function ProblemFilesContent({
           <ProblemFilesManager
             pid={pid}
             tid={tid}
-            testdata={data.testdata}
+            testdata={canDownloadTestdata ? data.testdata : []}
             additionalFiles={data.additional_file}
             canManage={canManage}
             canGenerate={canGenerate}

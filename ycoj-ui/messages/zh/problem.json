@@ -52,6 +52,7 @@
   },
   "fileManager": {
     "testdata": "测试数据",
+    "testdataUnavailable": "测试数据不可用，你没有下载权限。",
     "additionalFiles": "附加文件",
     "createFile": "创建文件",
     "editFile": "编辑文件",
