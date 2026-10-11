@@ -1,7 +1,7 @@
 import { parentPort, workerData } from 'worker_threads';
-import { compareCpp, PlagiarismLimitError, prepareCpp } from './plagiarism';
+import { compareCpp, type CppComparison, PlagiarismLimitError, prepareCpp, SOFT_TIMEOUT_MS } from './plagiarism';
 import {
-    PLAGIARISM_PAIR_TIMEOUT_MS, PLAGIARISM_TASK_TIMEOUT_MS,
+    PLAGIARISM_TASK_TIMEOUT_MS,
     type PlagiarismComparisonOutput, type PlagiarismSourceInput, type PlagiarismWorkerMessage, type PreparedPlagiarismSource,
 } from './plagiarismExecutor';
 
@@ -44,9 +44,19 @@ function compareSources(sources: PlagiarismSourceInput[]): PlagiarismComparisonO
                 if (Date.now() >= deadline) throw new Error('Plagiarism check exceeded five minutes.');
                 const left = ready[i];
                 const right = ready[j];
-                const comparison = compareCpp(left.prepared, right.prepared, {
-                    deadline: Math.min(deadline, Date.now() + PLAGIARISM_PAIR_TIMEOUT_MS),
-                });
+                let comparison: CppComparison;
+                try {
+                    comparison = compareCpp(left.prepared, right.prepared, {
+                        deadline: Math.min(deadline, Date.now() + SOFT_TIMEOUT_MS),
+                    });
+                } catch (error: unknown) {
+                    // A pair that exceeds the soft timeout is omitted rather than failing the whole job.
+                    if (error instanceof PlagiarismLimitError && error.code === 'deadline-exceeded') {
+                        totalPairs--;
+                        continue;
+                    }
+                    throw error;
+                }
                 pairs.push({
                     pid: left.pid, leftRid: left.rid, rightRid: right.rid, ...comparison,
                     matches: comparison.matches.sort((a, b) => b.tokenCount - a.tokenCount).slice(0, 16),

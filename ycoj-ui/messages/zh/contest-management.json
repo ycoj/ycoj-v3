@@ -203,7 +203,7 @@
       "storedSourceUnreadable": "无法读取已存储的源码。",
       "engineByteLimit": "源码超过查重引擎 256 KiB 的大小上限。",
       "tokenLimit": "源码超过 30,000 个词元的上限。",
-      "pairTimeout": "某对提交的比较超过了两秒时限。",
+      "pairTimeout": "某份源码或某对提交的比较超过十秒时限。",
       "contestTimeout": "查重超过五分钟时限，可重新查重以重试。",
       "problemLimit": "代码查重仅支持最多四道题的比赛。",
       "participantLimit": "代码查重仅支持最多 20 位参赛者的比赛。",

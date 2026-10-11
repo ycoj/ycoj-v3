@@ -40,11 +40,11 @@ Reordered substantial blocks normally retain token/fingerprint evidence and iden
 
 ## Resource bounds
 
-Preparation rejects sources above 256 KiB or 30,000 lexical tokens before returning a result. Preparation has a two-second cooperative deadline. `compareCpp(left, right, { deadline })` accepts an absolute `Date.now()` deadline and always clamps it to at most two seconds from entry. Violations throw `PlagiarismLimitError` with `source-too-large`, `too-many-tokens`, or `deadline-exceeded`; no partial/truncated score is returned.
+Preparation rejects sources above 256 KiB or 30,000 lexical tokens before returning a result. Preparation and comparison share a ten-second soft timeout: `prepareCpp(source, { deadline })` and `compareCpp(left, right, { deadline })` accept an absolute `Date.now()` deadline and clamp it to at most ten seconds from entry. Exceeding the timeout throws `PlagiarismLimitError` with `deadline-exceeded`, but the worker treats it as a soft failure: a source or pair that reaches the timeout is skipped or omitted from the report instead of failing the whole job. `source-too-large` and `too-many-tokens` are detected before analysis. No partial/truncated score is returned.
 
 With fixed shingle/window lengths, preparation is linear in input size. Comparison scans feature bags and occurrence lists linearly, then sorts evidence in `O(f log f)` for `f` fingerprint occurrences. Repetitive input never creates a quadratic occurrence cross-product. Deadline checks occur throughout feature loops and again before returning.
 
-The asynchronous executor must enforce the five-minute wall-clock budget outside this synchronous engine, so a stalled worker can be terminated. Prepare one problem's maximum 20 representatives at a time and release them before the next problem. Retaining all 80 worst-case prepared submissions can exceed the worker's 192 MiB heap allowance. A pair-level error or skipped oversized source must be reported by the job rather than converted to similarity zero.
+The asynchronous executor must enforce the five-minute wall-clock budget outside this synchronous engine, so a stalled worker can be terminated. Prepare one problem's maximum 20 representatives at a time and release them before the next problem. Retaining all 80 worst-case prepared submissions can exceed the worker's 192 MiB heap allowance. A skipped oversized source or a soft-timeout source or pair must be omitted from the report rather than converted to similarity zero.
 
 ## Warning contract
 

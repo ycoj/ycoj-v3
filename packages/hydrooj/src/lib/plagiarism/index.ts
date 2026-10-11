@@ -2,7 +2,7 @@ import { createHash } from 'crypto';
 
 export const MAX_SOURCE_BYTES = 256 * 1024;
 export const MAX_TOKENS = 30000;
-export const PAIR_TIMEOUT_MS = 2000;
+export const SOFT_TIMEOUT_MS = 10_000;
 export const ENGINE_VERSION = 'cpp-lexical-v1';
 export const CPP_WARNING_CODES = [
     'short-source', 'preprocessor-not-expanded', 'incomplete-comment', 'incomplete-raw-string',
@@ -77,7 +77,7 @@ const OPERATORS = ['%:%:', '<=>', '>>=', '<<=', '->*', '...', '::', '++', '--', 
 
 function checkDeadline(deadline: number) {
     if (Date.now() >= deadline) {
-        throw new PlagiarismLimitError('deadline-exceeded', 'The C++ similarity comparison exceeded its two-second time limit.');
+        throw new PlagiarismLimitError('deadline-exceeded', 'The C++ similarity comparison exceeded its ten-second soft time limit.');
     }
 }
 
@@ -331,8 +331,8 @@ function statementFeatures(tokens: CppToken[], deadline: number) {
     return features;
 }
 
-export function prepareCpp(source: string): PreparedCpp {
-    const deadline = Date.now() + PAIR_TIMEOUT_MS;
+export function prepareCpp(source: string, options: { deadline?: number } = {}): PreparedCpp {
+    const deadline = Math.min(options.deadline ?? Infinity, Date.now() + SOFT_TIMEOUT_MS);
     if (Buffer.byteLength(source, 'utf8') > MAX_SOURCE_BYTES) {
         throw new PlagiarismLimitError('source-too-large', `C++ submissions may contain at most ${MAX_SOURCE_BYTES} bytes.`);
     }
@@ -438,7 +438,7 @@ function round(score: number) {
 }
 
 export function compareCpp(left: PreparedCpp, right: PreparedCpp, options: { deadline?: number } = {}): CppComparison {
-    const deadline = Math.min(options.deadline ?? Infinity, Date.now() + PAIR_TIMEOUT_MS);
+    const deadline = Math.min(options.deadline ?? Infinity, Date.now() + SOFT_TIMEOUT_MS);
     checkDeadline(deadline);
     const warnings = new Set([...left.warnings, ...right.warnings]);
     const short = Math.min(left.tokenCount, right.tokenCount) < MIN_EVIDENCE_TOKENS;

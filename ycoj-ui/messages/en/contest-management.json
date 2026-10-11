@@ -203,7 +203,7 @@
       "storedSourceUnreadable": "Stored source code could not be read.",
       "engineByteLimit": "Source code exceeds the engine's 256 KiB limit.",
       "tokenLimit": "Source code exceeds the 30,000 token limit.",
-      "pairTimeout": "A comparison exceeded its two-second time limit.",
+      "pairTimeout": "A source or comparison exceeded its ten-second time limit.",
       "contestTimeout": "The check exceeded its five-minute time limit. Run it again to retry.",
       "problemLimit": "Plagiarism checks support contests with at most four problems.",
       "participantLimit": "Plagiarism checks support contests with at most 20 participants.",

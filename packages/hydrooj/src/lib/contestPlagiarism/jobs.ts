@@ -1,5 +1,5 @@
 import { BackgroundTaskService } from '../background/runner';
-import { ENGINE_VERSION, PlagiarismLimitError } from '../plagiarism';
+import { ENGINE_VERSION } from '../plagiarism';
 import { runPlagiarismComparisons } from '../plagiarismExecutor';
 import { loadPlagiarismSnapshot, PlagiarismInputError } from './snapshot';
 import {
@@ -104,7 +104,7 @@ export class ContestPlagiarismJobs {
                     });
                     return report;
                 } catch (error) {
-                    if (error instanceof PlagiarismInputError || (error instanceof PlagiarismLimitError && error.code === 'deadline-exceeded')) {
+                    if (error instanceof PlagiarismInputError) {
                         await this.store.updatePayload(jobId, { failureError: error.message });
                     }
                     throw error;

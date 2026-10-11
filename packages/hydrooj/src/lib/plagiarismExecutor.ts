@@ -2,7 +2,6 @@ import { Worker } from 'worker_threads';
 import { type PlagiarismLimitCode, PlagiarismLimitError, type PreparedCpp } from './plagiarism';
 
 export const PLAGIARISM_TASK_TIMEOUT_MS = 300_000;
-export const PLAGIARISM_PAIR_TIMEOUT_MS = 2_000;
 
 export interface PlagiarismSourceInput { rid: string, pid: number, code: string }
 export interface PlagiarismProgress { completedPairs: number, totalPairs: number }

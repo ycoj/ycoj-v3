@@ -188,6 +188,9 @@ int main() { ${input}
             error instanceof PlagiarismLimitError && error.code === 'too-many-tokens'
         ));
         const prepared = prepareCpp(original);
+        assert.throws(() => prepareCpp(original, { deadline: Date.now() - 1 }), (error: unknown) => (
+            error instanceof PlagiarismLimitError && error.code === 'deadline-exceeded'
+        ));
         assert.throws(() => compareCpp(prepared, prepared, { deadline: Date.now() - 1 }), (error: unknown) => (
             error instanceof PlagiarismLimitError && error.code === 'deadline-exceeded'
         ));

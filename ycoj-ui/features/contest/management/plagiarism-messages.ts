@@ -9,7 +9,7 @@ const explanationKeys: Record<string, string> = {
     'explanations.engineByteLimit',
   'C++ submissions may contain at most 30000 lexical tokens.':
     'explanations.tokenLimit',
-  'The C++ similarity comparison exceeded its two-second time limit.':
+  'The C++ similarity comparison exceeded its ten-second soft time limit.':
     'explanations.pairTimeout',
   'The plagiarism check exceeded the five-minute time limit. Please try again.':
     'explanations.contestTimeout',
