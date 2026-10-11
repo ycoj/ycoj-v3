@@ -1,4 +1,5 @@
 import type { BackgroundTaskStatus } from '../../../model/backgroundTask';
+import type { PlagiarismMethod } from '../method';
 
 export interface PlagiarismSubmission {
     rid: string;
@@ -47,6 +48,7 @@ export interface PlagiarismProblem {
 }
 
 export interface PlagiarismReport {
+    method: PlagiarismMethod;
     version: string;
     generatedAt: string;
     elapsedMs: number;
@@ -60,6 +62,7 @@ export interface PlagiarismReport {
 }
 
 export interface PlagiarismJob {
+    method: PlagiarismMethod;
     jobId: string;
     status: BackgroundTaskStatus;
     createdAt: string;
@@ -70,6 +73,7 @@ export interface PlagiarismJob {
 
 export interface PlagiarismScope { domainId: string, contestId: string }
 export type PlagiarismRequest = PlagiarismScope & {
+    method?: PlagiarismMethod;
     actorUid: number;
     beginAt: string;
     endAt: string;

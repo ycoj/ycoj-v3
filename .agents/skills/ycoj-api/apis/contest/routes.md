@@ -14,7 +14,7 @@ This is the implementation-backed route index; operation names are request-body 
 | `GET/POST /contest/:tid/edit` | Edit/delete; same validated fields as create. |
 | `GET/POST /contest/:tid/print`, `/api/printing/team` | Print HTML or `{success,output}`; print-task operations. |
 | `GET/POST /contest/:tid/management` | Management HTML with full problem documents; file and score operations. |
-| `GET/POST /contest/:tid/plagiarism` | JSON after contest end; owners/maintainers require `PERM_EDIT_CONTEST_SELF`, non-owners require `PERM_EDIT_CONTEST`. Latest task or HTTP 202 admission with `{}` body. See [plagiarism.md](plagiarism.md). |
+| `GET/POST /contest/:tid/plagiarism` | JSON after contest end; owners/maintainers require `PERM_EDIT_CONTEST_SELF`, non-owners require `PERM_EDIT_CONTEST`. Latest task or HTTP 202 admission with `{method?: 'tree-sitter' \| 'heuristic'}` (Tree-sitter by default). Jobs/reports return their method; active tasks keep their original method. See [plagiarism.md](plagiarism.md). |
 | `GET /contest/:tid/plagiarism/:jobId` | Same permission checks; asynchronous task progress/report JSON, scoped to contest/domain, with the 100 largest matching regions per pair in source order. |
 | `GET /contest/:tid/plagiarism/:jobId/source/:rid` | Same permission checks; immutable analyzed C++ source snapshot for a completed task. |
 | `GET/POST /contest/:tid/bulk-submit` | Bulk-submit HTML; POST zip of contestant C++ sources (see [bulk-submit.md](bulk-submit.md)). |

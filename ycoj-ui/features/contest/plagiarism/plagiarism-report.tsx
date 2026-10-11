@@ -72,6 +72,11 @@ export default function PlagiarismReportView({ tid, jobId, report }: Props) {
       <header className="space-y-2">
         <h2 className="text-lg font-semibold">{t('report')}</h2>
         <p className="text-sm text-muted-foreground">
+          {t('usedMethod', {
+            method: t(`methods.${report.method ?? 'heuristic'}`),
+          })}
+        </p>
+        <p className="text-sm text-muted-foreground">
           {t('summary', {
             participants: report.participantCount,
             submissions: report.submissionCount,

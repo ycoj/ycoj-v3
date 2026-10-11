@@ -6,7 +6,7 @@ export const SOFT_TIMEOUT_MS = 10_000;
 export const ENGINE_VERSION = 'cpp-lexical-v1';
 export const CPP_WARNING_CODES = [
     'short-source', 'preprocessor-not-expanded', 'incomplete-comment', 'incomplete-raw-string',
-    'incomplete-string', 'unused-scalar-ignored', 'evidence-regions-limited',
+    'incomplete-string', 'unused-scalar-ignored', 'evidence-regions-limited', 'tree-sitter-parse-errors',
 ] as const;
 
 const GRAM_LENGTH = 16;
@@ -23,8 +23,8 @@ export class PlagiarismLimitError extends Error {
     }
 }
 
-interface CppToken { value: string, kind: 'identifier' | 'fixed', line: number, endLine: number }
-interface Feature { count: number, weight: number }
+export interface CppToken { value: string, kind: 'identifier' | 'fixed', line: number, endLine: number }
+export interface Feature { count: number, weight: number }
 interface TokenInterval { left: number, right: number, length: number }
 
 export interface PreparedCpp {
@@ -60,7 +60,7 @@ const KEYWORDS = new Set(`alignas alignof and and_eq asm atomic_cancel atomic_co
     requires return short signed sizeof static static_assert static_cast struct switch template this thread_local
     throw true try typedef typeid typename union unsigned using virtual void volatile wchar_t while xor xor_eq`
     .split(/\s+/));
-const LIBRARY_NAMES = new Set(`main std cin cout cerr clog endl scanf printf getchar putchar puts gets
+export const LIBRARY_NAMES = new Set(`main std cin cout cerr clog endl scanf printf getchar putchar puts gets
     fread fwrite sort stable_sort lower_bound upper_bound binary_search reverse swap min max abs sqrt pow gcd
     lcm accumulate iota unique distance begin end size empty push_back pop_back emplace_back push pop top front
     back insert erase find count clear resize reserve assign fill memset memcpy malloc free vector array deque
@@ -75,7 +75,7 @@ const CONTROL_WORDS = new Set('if for while switch catch else do try'.split(' ')
 const OPERATORS = ['%:%:', '<=>', '>>=', '<<=', '->*', '...', '::', '++', '--', '->', '.*', '&&', '||',
     '<=', '>=', '==', '!=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<', '>>', '##', '<:', ':>', '<%', '%>', '%:'];
 
-function checkDeadline(deadline: number) {
+export function checkDeadline(deadline: number) {
     if (Date.now() >= deadline) {
         throw new PlagiarismLimitError('deadline-exceeded', 'The C++ similarity comparison exceeded its ten-second soft time limit.');
     }
@@ -331,15 +331,7 @@ function statementFeatures(tokens: CppToken[], deadline: number) {
     return features;
 }
 
-export function prepareCpp(source: string, options: { deadline?: number } = {}): PreparedCpp {
-    const deadline = Math.min(options.deadline ?? Infinity, Date.now() + SOFT_TIMEOUT_MS);
-    if (Buffer.byteLength(source, 'utf8') > MAX_SOURCE_BYTES) {
-        throw new PlagiarismLimitError('source-too-large', `C++ submissions may contain at most ${MAX_SOURCE_BYTES} bytes.`);
-    }
-    const warnings = new Set<string>();
-    const lexical = lex(source, deadline, warnings);
-    classifyLibraryNames(lexical, deadline);
-    const tokens = removeBoilerplate(lexical, warnings);
+export function prepareCppTokens(tokens: CppToken[], warnings: Set<string>, deadline: number, structure?: Map<string, Feature>): PreparedCpp {
     if (tokens.length < MIN_EVIDENCE_TOKENS) warnings.add('short-source');
     const grams = new Map<string, Feature>();
     const fingerprints = new Map<string, number[]>();
@@ -368,10 +360,22 @@ export function prepareCpp(source: string, options: { deadline?: number } = {}):
             else fingerprints.set(keys[selected], [selected]);
         }
     }
-    const statements = statementFeatures(tokens, deadline);
+    const statements = structure ?? statementFeatures(tokens, deadline);
     const canonical = canonicalize(tokens);
     checkDeadline(deadline);
     return { tokenCount: tokens.length, warnings: [...warnings], tokens, canonical, grams, fingerprints, statements };
+}
+
+export function prepareCpp(source: string, options: { deadline?: number } = {}): PreparedCpp {
+    const deadline = Math.min(options.deadline ?? Infinity, Date.now() + SOFT_TIMEOUT_MS);
+    if (Buffer.byteLength(source, 'utf8') > MAX_SOURCE_BYTES) {
+        throw new PlagiarismLimitError('source-too-large', `C++ submissions may contain at most ${MAX_SOURCE_BYTES} bytes.`);
+    }
+    const warnings = new Set<string>();
+    const lexical = lex(source, deadline, warnings);
+    classifyLibraryNames(lexical, deadline);
+    const tokens = removeBoilerplate(lexical, warnings);
+    return prepareCppTokens(tokens, warnings, deadline);
 }
 
 function featureSimilarity(left: Map<string, Feature>, right: Map<string, Feature>, deadline: number) {

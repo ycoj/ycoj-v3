@@ -15,11 +15,13 @@ The asynchronous job supports up to 20 distinct participants and four distinct c
 | Method/path | Request type | Successful response |
 | --- | --- | --- |
 | `GET /contest/:tid/plagiarism` | No body | HTTP 200 `{ tdoc: Tdoc, job: PlagiarismJob \| null }` |
-| `POST /contest/:tid/plagiarism` | Empty JSON object `{}`; no `operation` field | HTTP 202 `PlagiarismJob` |
+| `POST /contest/:tid/plagiarism` | `{ method?: 'tree-sitter' \| 'heuristic' }`; defaults to `'tree-sitter'`; no `operation` field | HTTP 202 `PlagiarismJob` |
 | `GET /contest/:tid/plagiarism/:jobId` | No body | HTTP 200 `PlagiarismJob` |
 | `GET /contest/:tid/plagiarism/:jobId/source/:rid` | No body | HTTP 200 `PlagiarismSource` |
 
 The initial GET returns the latest non-expired job for this contest, shared among all authorized managers. POST admits a new job or returns the existing pending/running job for the same contest, including across concurrent requests and server workers. Four contest plagiarism tasks can run concurrently across the shared pool. When the pool is full and this contest has no active task to reuse, POST returns `PlagiarismCapacityError` (HTTP 503) and does not queue another task. A completed or failed task can be rerun with another POST.
+
+The optional `method` parameter accepts only `tree-sitter` or `heuristic`; unsupported values return `ValidationError` before job admission. An omitted method (including body `{}`) selects Tree-sitter. An active job keeps its original method even if a different method is requested; inspect the returned `method` and wait for completion before starting a different method.
 
 Example requests:
 
@@ -28,7 +30,7 @@ POST /d/school/contest/665f00000000000000000001/plagiarism
 Accept: application/json
 Content-Type: application/json
 
-{}
+{ "method": "heuristic" }
 ```
 
 ```http
@@ -47,6 +49,7 @@ All dates are ISO-8601 strings. All similarity scores are percentages in `[0, 10
 
 ```ts
 type PlagiarismJob = {
+  method: 'tree-sitter' | 'heuristic';
   jobId: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
   createdAt: string;
@@ -64,6 +67,7 @@ type PlagiarismParticipant = {
 };
 
 type PlagiarismReport = {
+  method: 'tree-sitter' | 'heuristic';
   version: string; // engine version used for this snapshot
   generatedAt: string;
   elapsedMs: number;
@@ -129,6 +133,7 @@ Example POST response:
 {
   "jobId": "4d548c56-28fc-4cf2-881c-a0f636466f59",
   "status": "pending",
+  "method": "heuristic",
   "createdAt": "2026-10-11T02:00:00.000Z"
 }
 ```
@@ -139,6 +144,7 @@ Example running poll:
 {
   "jobId": "4d548c56-28fc-4cf2-881c-a0f636466f59",
   "status": "running",
+  "method": "heuristic",
   "createdAt": "2026-10-11T02:00:00.000Z",
   "progress": { "completedPairs": 120, "totalPairs": 760 }
 }
@@ -150,10 +156,12 @@ Example completed poll for two identical sum-of-squares submissions. The token c
 {
   "jobId": "4d548c56-28fc-4cf2-881c-a0f636466f59",
   "status": "completed",
+  "method": "heuristic",
   "createdAt": "2026-10-11T02:00:00.000Z",
   "progress": { "completedPairs": 1, "totalPairs": 1 },
   "result": {
     "version": "cpp-lexical-v1",
+    "method": "heuristic",
     "generatedAt": "2026-10-11T02:00:01.000Z",
     "elapsedMs": 1000,
     "participantCount": 2,
@@ -181,6 +189,7 @@ Example failed poll:
 {
   "jobId": "4d548c56-28fc-4cf2-881c-a0f636466f59",
   "status": "failed",
+  "method": "heuristic",
   "createdAt": "2026-10-11T02:00:00.000Z",
   "error": "Plagiarism checks support contests with at most 20 participants."
 }
@@ -202,9 +211,9 @@ Example source response:
 
 The job captures the contest's problem IDs and global start/end times when admitted. It selects one latest C++ record (`cc` or `cc.*`) per user/problem in that contest and domain, regardless of judge outcome. A later non-C++ submission does not replace an earlier C++ submission. If a user/problem has only unsupported-language submissions, its latest submission is listed in `skippedSubmissions`. Canceled records, hack records/targets, other contests/domains/problems, pretests, and record-history revisions are excluded. Submission times come from ObjectId timestamps, which have one-second precision; selection uses timestamp buckets intersecting the contest window. Submissions made after the contest window, including later bulk imports, are excluded.
 
-Inline and `files.code` storage-backed code are supported. Sources are bounded to 64 KiB each; empty, missing, unreadable, or over-limit sources are listed as skipped with an explicit reason. Tokenization-limit failures are also skipped. Each valid source is analyzed once; only different users' sources for the same problem are paired. The report includes all those pairs, sorted by descending similarity, with separate normalized token, statement-structure, and winnowed-fingerprint scores. The engine ignores comments/whitespace, canonicalizes identifiers, drops conservative unused scalar declarations, and uses order-independent features for moved statements and helper extraction. It is a lexical similarity detector rather than a complete C++ compiler or a proof of misconduct.
+Inline and `files.code` storage-backed code are supported. Sources are bounded to 64 KiB each; empty, missing, unreadable, or over-limit sources are listed as skipped with an explicit reason. Tokenization-limit failures are also skipped. Each valid source is analyzed once; only different users' sources for the same problem are paired. The report includes all those pairs, sorted by descending similarity, with separate normalized token, structure, and winnowed-fingerprint scores. Both methods ignore comments/whitespace, canonicalize identifiers, and retain operators and literal values. The `heuristic` method (`cpp-lexical-v1`) infers token/statement boundaries lexically and drops conservative unused scalar declarations. The `tree-sitter` method (`cpp-tree-sitter-v1`) uses the C++ grammar to obtain tokens and actual declarators, and compares normalized syntax-subtree features for structure. It retains unused declarations. Parse recovery does not switch methods; `tree-sitter-parse-errors` warns that a recovered tree was used. Neither method expands macros, resolves C++ names fully, proves semantic equivalence, or establishes misconduct. Old stored jobs/reports without a method are returned as `heuristic`.
 
-Preparation and pair comparison share a ten-second soft timeout. The entire asynchronous task has a five-minute deadline, including preparation. A source or pair that reaches the soft timeout is skipped or omitted from the report; a worker crash or unexpected computation failure still fails the whole job. Short code is capped at a lower aggregate similarity to reduce unsupported conclusions from common snippets. The 100 largest matching regions per pair are returned in source order; `evidence-regions-limited` indicates additional regions were omitted, while scores still use all features. Codes currently include `short-source`, `preprocessor-not-expanded`, `incomplete-comment`, `incomplete-raw-string`, `incomplete-string`, `unused-scalar-ignored`, and `evidence-regions-limited`.
+Preparation and pair comparison share a ten-second soft timeout. The entire asynchronous task has a five-minute deadline, including preparation. A source or pair that reaches the soft timeout is skipped or omitted from the report; a worker crash or unexpected computation failure still fails the whole job. Short code is capped at a lower aggregate similarity to reduce unsupported conclusions from common snippets. The 100 largest matching regions per pair are returned in source order; `evidence-regions-limited` indicates additional regions were omitted, while scores still use all features. Codes currently include `short-source`, `preprocessor-not-expanded`, `incomplete-comment`, `incomplete-raw-string`, `incomplete-string`, `unused-scalar-ignored`, `tree-sitter-parse-errors`, and `evidence-regions-limited`.
 
 Reports and accepted source snapshots are retained for 24 hours after completion. The source endpoint returns the immutable snapshot used for that report, rather than the current record content, and only for accepted report submissions in a completed job. Source requests for pending, running, failed, expired, unknown, cross-contest, or cross-domain references return `NotFoundError` (HTTP 404) after authorization. Job polling returns in-flight/failed states normally, but expired, unknown, cross-contest, or cross-domain jobs return HTTP 404. Failed task sources are cleared. Jobs abandoned by a restarted worker eventually become failed through timeout reads or periodic cleanup; they are not automatically recomputed.
 

@@ -2,6 +2,7 @@ import { clientRequest } from '@/api/client';
 import type {
   ContestPlagiarismResponse,
   PlagiarismJob,
+  PlagiarismMethod,
   PlagiarismSource,
 } from '@/shared/types/contest-plagiarism';
 import type { Errorable } from '@/shared/types/error';
@@ -12,11 +13,13 @@ export const getContestPlagiarism = (tid: string) =>
     { cacheFor: 0 }
   );
 
-export const startContestPlagiarism = (tid: string) =>
-  clientRequest.Post<Errorable<PlagiarismJob>>(
-    `/contest/${tid}/plagiarism`,
-    {}
-  );
+export const startContestPlagiarism = (
+  tid: string,
+  method: PlagiarismMethod = 'tree-sitter'
+) =>
+  clientRequest.Post<Errorable<PlagiarismJob>>(`/contest/${tid}/plagiarism`, {
+    method,
+  });
 
 export const getContestPlagiarismJob = (tid: string, jobId: string) =>
   clientRequest.Get<Errorable<PlagiarismJob>>(

@@ -138,6 +138,16 @@
   "cancel": "取消",
   "plagiarism": {
     "title": "代码查重",
+    "method": "比较方法",
+    "usedMethod": "使用方法：{method}",
+    "methods": {
+      "tree-sitter": "Tree-sitter 语法分析",
+      "heuristic": "启发式词元分析"
+    },
+    "methodDescriptions": {
+      "tree-sitter": "解析 C++ 语法，比较代码词元与语法树。解析错误会标记出来，供人工复核。",
+      "heuristic": "使用原有的启发式查重方法，比较代码词元并推断语句结构。"
+    },
     "description": "比赛结束后，按题目比较每位参赛者最后一次 C++ 提交。查重在后台进行，离开页面后仍可返回查看结果。",
     "run": "开始查重",
     "runAgain": "重新查重",
@@ -210,6 +220,7 @@
       "reportLimit": "相似度报告超过存储上限。"
     },
     "warnings": {
+      "tree-sitter-parse-errors": "Tree-sitter 未能完整解析此代码，比较使用了恢复后的语法树，请仔细检查源码。",
       "short-source": "较短的提交提供的证据有限，通用模板可能对相似度产生较大影响。",
       "preprocessor-not-expanded": "预处理宏按原文比较，展开后的代码可能不同。",
       "incomplete-comment": "某份源码含有未闭合的注释，比较可能遗漏部分代码。",

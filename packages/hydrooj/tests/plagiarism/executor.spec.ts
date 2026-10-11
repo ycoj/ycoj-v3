@@ -17,6 +17,19 @@ int main() {
     return 0;
 }`;
 
+test('tree-sitter runs in the worker and surfaces recovered parse warnings', async () => {
+    const result = await runPlagiarismComparisons([
+        { rid: 'a', pid: 1, code },
+        { rid: 'b', pid: 1, code: code.replaceAll('values', 'array') },
+        { rid: 'c', pid: 2, code: code.slice(0, -1) },
+    ], new AbortController().signal, undefined, 'tree-sitter');
+    assert.equal(result.prepared.length, 3);
+    assert.equal(result.skipped.length, 0);
+    assert.equal(result.pairs.length, 1);
+    assert.equal(result.pairs[0].similarity, 100);
+    assert.ok(result.prepared.find((item) => item.rid === 'c')?.warnings.includes('tree-sitter-parse-errors'));
+});
+
 test('isolated comparisons report progress, compare only the same problem, and finish below two seconds', async () => {
     const controller = new AbortController();
     const progress: { completedPairs: number, totalPairs: number }[] = [];
@@ -79,26 +92,28 @@ test('progress persistence failures fail the job rather than return an incomplet
     ], controller.signal, async () => { throw new Error('Database unavailable.'); }), /Database unavailable/);
 });
 
-test('a full contest with large sources fits the isolated heap and leaves the main event loop responsive', async () => {
-    const sources = Array.from({ length: 80 }, (_, index) => {
-        const statements = Array.from({ length: 6200 }, (_entry, statement) => `x+=${statement + index * 10000};`).join('');
-        const source = `int main(){long long x=0;${statements}cout<<x;}`;
-        assert.ok(Buffer.byteLength(source) <= 65536);
-        return { rid: String(index), pid: Math.floor(index / 20), code: source };
+for (const method of ['heuristic', 'tree-sitter'] as const) {
+    test(`a full ${method} contest with large sources fits the isolated heap and leaves the main event loop responsive`, async () => {
+        const sources = Array.from({ length: 80 }, (_, index) => {
+            const statements = Array.from({ length: 6200 }, (_entry, statement) => `x+=${statement + index * 10000};`).join('');
+            const source = `int main(){long long x=0;${statements}cout<<x;}`;
+            assert.ok(Buffer.byteLength(source) <= 65536);
+            return { rid: String(index), pid: Math.floor(index / 20), code: source };
+        });
+        let ticks = 0;
+        let finalProgress: { completedPairs: number, totalPairs: number } | undefined;
+        const interval = setInterval(() => { ticks++; }, 25);
+        const started = performance.now();
+        try {
+            const result = await runPlagiarismComparisons(sources, new AbortController().signal, (progress) => { finalProgress = progress; }, method);
+            assert.equal(result.prepared.length, 80);
+            assert.equal(result.skipped.length, 0);
+            assert.equal(result.pairs.length, 760);
+            assert.deepEqual(finalProgress, { completedPairs: 760, totalPairs: 760 });
+            assert.ok(ticks >= 2);
+            assert.ok(performance.now() - started < 300000);
+        } finally {
+            clearInterval(interval);
+        }
     });
-    let ticks = 0;
-    let finalProgress: { completedPairs: number, totalPairs: number } | undefined;
-    const interval = setInterval(() => { ticks++; }, 25);
-    const started = performance.now();
-    try {
-        const result = await runPlagiarismComparisons(sources, new AbortController().signal, (progress) => { finalProgress = progress; });
-        assert.equal(result.prepared.length, 80);
-        assert.equal(result.skipped.length, 0);
-        assert.equal(result.pairs.length, 760);
-        assert.deepEqual(finalProgress, { completedPairs: 760, totalPairs: 760 });
-        assert.ok(ticks >= 2);
-        assert.ok(performance.now() - started < 300000);
-    } finally {
-        clearInterval(interval);
-    }
-});
+}

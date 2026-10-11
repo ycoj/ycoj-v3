@@ -4,9 +4,19 @@ import ClientApis from '@/api/client/method';
 import { localizePlagiarismExplanation } from '@/features/contest/plagiarism/plagiarism-messages';
 import PlagiarismReportView from '@/features/contest/plagiarism/plagiarism-report';
 import { Button } from '@/shared/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
 import { throwBackendError } from '@/shared/lib/backend-response';
 import type { Contest } from '@/shared/types/contest';
-import type { PlagiarismJob } from '@/shared/types/contest-plagiarism';
+import type {
+  PlagiarismJob,
+  PlagiarismMethod,
+} from '@/shared/types/contest-plagiarism';
 import { LoaderCircle, ScanSearch } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
@@ -20,6 +30,7 @@ export default function ContestPlagiarism({ tid, contest }: Props) {
     () => new Date(contest.endAt).getTime() <= Date.now()
   );
   const [job, setJob] = useState<PlagiarismJob | null>(null);
+  const [method, setMethod] = useState<PlagiarismMethod>('tree-sitter');
   const [loading, setLoading] = useState(true);
   const [startingTid, setStartingTid] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -54,7 +65,10 @@ export default function ContestPlagiarism({ tid, contest }: Props) {
         const response =
           await ClientApis.Contest.getContestPlagiarism(tid).send();
         throwBackendError(response);
-        if (!('error' in response) && !canceled) setJob(response.job);
+        if (!('error' in response) && !canceled) {
+          setJob(response.job);
+          if (response.job) setMethod(response.job.method ?? 'heuristic');
+        }
       } catch (cause) {
         if (!canceled)
           setError(
@@ -105,10 +119,15 @@ export default function ContestPlagiarism({ tid, contest }: Props) {
     setStartingTid(tid);
     setError('');
     try {
-      const response =
-        await ClientApis.Contest.startContestPlagiarism(tid).send();
+      const response = await ClientApis.Contest.startContestPlagiarism(
+        tid,
+        method
+      ).send();
       throwBackendError(response);
-      if (!('error' in response) && !scope.canceled) setJob(response);
+      if (!('error' in response) && !scope.canceled) {
+        setJob(response);
+        setMethod(response.method ?? 'heuristic');
+      }
     } catch (cause) {
       if (!scope.canceled)
         setError(
@@ -142,7 +161,30 @@ export default function ContestPlagiarism({ tid, contest }: Props) {
             {t('description')}
           </p>
         </header>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="space-y-2 text-sm font-medium">
+            <span>{t('method')}</span>
+            <Select
+              value={method}
+              onValueChange={(value) => setMethod(value as PlagiarismMethod)}
+              disabled={!ended || loading || starting || active}
+            >
+              <SelectTrigger
+                className="w-64 max-w-full"
+                aria-label={t('method')}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tree-sitter">
+                  {t('methods.tree-sitter')}
+                </SelectItem>
+                <SelectItem value="heuristic">
+                  {t('methods.heuristic')}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </label>
           <Button
             type="button"
             disabled={!ended || loading || starting || active}
@@ -167,6 +209,9 @@ export default function ContestPlagiarism({ tid, contest }: Props) {
             </p>
           )}
         </div>
+        <p className="max-w-prose text-sm text-muted-foreground">
+          {t(`methodDescriptions.${method}`)}
+        </p>
         {error && (
           <div className="flex flex-wrap items-center gap-3">
             <p role="alert" className="text-sm text-destructive">
@@ -185,6 +230,13 @@ export default function ContestPlagiarism({ tid, contest }: Props) {
         )}
         {job && (
           <div className="space-y-2 border-y py-4" aria-live="polite">
+            {job.status !== 'completed' && (
+              <p className="text-sm text-muted-foreground">
+                {t('usedMethod', {
+                  method: t(`methods.${job.method ?? 'heuristic'}`),
+                })}
+              </p>
+            )}
             <p className="text-sm font-medium" role="status">
               {statusText}
               {job.progress && active && (

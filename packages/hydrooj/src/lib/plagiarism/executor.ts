@@ -1,5 +1,6 @@
 import { Worker } from 'worker_threads';
 import { type PlagiarismLimitCode, PlagiarismLimitError, type PreparedCpp } from './engine';
+import type { PlagiarismMethod } from './method';
 
 export const PLAGIARISM_TASK_TIMEOUT_MS = 300_000;
 
@@ -27,6 +28,7 @@ export type PreparedPlagiarismSource = PlagiarismSourceInput & { prepared: Prepa
 export function runPlagiarismComparisons(
     sources: PlagiarismSourceInput[], signal: AbortSignal,
     onProgress?: (progress: PlagiarismProgress) => Promise<void> | void,
+    method: PlagiarismMethod = 'heuristic',
 ): Promise<PlagiarismComparisonOutput> {
     if (signal.aborted) return Promise.reject(new Error('Plagiarism check aborted.'));
     return new Promise((resolve, reject) => {
@@ -34,7 +36,7 @@ export function runPlagiarismComparisons(
         const worker = new Worker(`require(${JSON.stringify(entry)});`, {
             eval: true,
             execArgv: ['-r', require.resolve('@hydrooj/register')],
-            workerData: sources,
+            workerData: { sources, method },
             resourceLimits: { maxOldGenerationSizeMb: 192, stackSizeMb: 4 },
         });
         let settled = false;

@@ -4,12 +4,14 @@ import {
     PLAGIARISM_TASK_TIMEOUT_MS,
     type PlagiarismComparisonOutput, type PlagiarismSourceInput, type PlagiarismWorkerMessage, type PreparedPlagiarismSource,
 } from './executor';
+import type { PlagiarismMethod } from './method';
+import { prepareTreeSitterCpp } from './tree-sitter';
 
 function send(message: PlagiarismWorkerMessage) {
     parentPort?.postMessage(message);
 }
 
-function compareSources(sources: PlagiarismSourceInput[]): PlagiarismComparisonOutput {
+function compareSources(sources: PlagiarismSourceInput[], method: PlagiarismMethod): PlagiarismComparisonOutput {
     const started = Date.now();
     const deadline = started + PLAGIARISM_TASK_TIMEOUT_MS;
     const prepared: PlagiarismComparisonOutput['prepared'] = [];
@@ -30,7 +32,8 @@ function compareSources(sources: PlagiarismSourceInput[]): PlagiarismComparisonO
         for (const source of group) {
             if (Date.now() >= deadline) throw new Error('Plagiarism check exceeded five minutes.');
             try {
-                const analyzed = prepareCpp(source.code);
+                const analyze = method === 'tree-sitter' ? prepareTreeSitterCpp : prepareCpp;
+                const analyzed = analyze(source.code, { deadline });
                 ready.push({ ...source, prepared: analyzed });
                 prepared.push({ rid: source.rid, tokenCount: analyzed.tokenCount, warnings: analyzed.warnings });
             } catch (error: unknown) {
@@ -73,7 +76,8 @@ function compareSources(sources: PlagiarismSourceInput[]): PlagiarismComparisonO
 
 if (parentPort) {
     try {
-        send({ type: 'complete', result: compareSources(workerData as PlagiarismSourceInput[]) });
+        const { sources, method } = workerData as { sources: PlagiarismSourceInput[], method: PlagiarismMethod };
+        send({ type: 'complete', result: compareSources(sources, method) });
     } catch (error: unknown) {
         send({
             type: 'failed', error: error instanceof Error ? error.message : 'Plagiarism comparison failed.',

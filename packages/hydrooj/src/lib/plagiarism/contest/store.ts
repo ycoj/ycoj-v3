@@ -38,10 +38,13 @@ export function toPlagiarismJob(doc: BackgroundTaskDoc): PlagiarismJob {
     const task = doc as PlagiarismTaskDoc;
     return {
         jobId: task.jobId,
+        method: task.payload?.method ?? 'heuristic',
         status: task.status,
         createdAt: task.createdAt.toISOString(),
         ...(task.payload?.progress ? { progress: task.payload.progress } : {}),
-        ...(task.status === 'completed' ? { result: task.result } : {}),
+        ...(task.status === 'completed' && task.result ? {
+            result: { ...task.result, method: task.result.method ?? task.payload?.method ?? 'heuristic' },
+        } : {}),
         ...(task.status === 'failed' ? {
             error: task.error === BACKGROUND_TASK_TIMEOUT_MESSAGE
                 ? PLAGIARISM_TIMEOUT_ERROR : task.error || PLAGIARISM_FAILURE_ERROR,

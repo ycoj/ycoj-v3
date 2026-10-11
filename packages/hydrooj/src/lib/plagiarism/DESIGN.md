@@ -1,5 +1,11 @@
 # C++ submission similarity engine
 
+Contest checks select `tree-sitter` (the default for new requests) or `heuristic`. The selected method is stored in the job payload, returned with job progress, and included in the report alongside `cpp-tree-sitter-v1` or `cpp-lexical-v1`. Existing jobs/reports without a method are treated as heuristic. Concurrent starts reuse the active contest job with its original method.
+
+`prepareTreeSitterCpp` uses the native Tree-sitter C++ grammar in the isolated worker. It obtains tokens from syntax nodes, treats string/character/raw-string literals atomically, retains source line ranges, and finds actual declarators before classifying familiar library names. Comments, includes, pragmas, `using namespace std`, and `std::` tokens are omitted. Macros are retained without expansion. It builds incremental SHA-256 subtree features for statements, declarations, calls, assignments, and binary expressions; identifiers normalize to their syntax role and operators/literals remain significant. Subtree weights are capped at 16 tokens to limit nested-container dominance. It shares canonical token shingles, winnowing, evidence generation, and score limits with the heuristic method. It retains unused declarations and flags recovered parses with `tree-sitter-parse-errors`, without falling back to heuristics. Traversal is iterative, preparation honors the source/token/deadline limits, and no syntax trees are retained in the prepared source maps. Full name resolution and semantic equivalence remain outside scope.
+
+Native dependencies are pinned to `tree-sitter@0.21.1` and `tree-sitter-cpp@0.23.4`, with the transitive C grammar pinned to `0.23.1` to keep its parser peer range compatible. Installation uses shipped native prebuilds where available, or the packages' Node build toolchain otherwise.
+
 This engine returns evidence for administrator review. A high score identifies similar source code; it does not prove copying, establish authorship, or automatically impose a penalty. Independently written solutions to the same standard algorithm can resemble each other. No submitted code is compiled, run, or sent to an external service.
 
 ## Research basis

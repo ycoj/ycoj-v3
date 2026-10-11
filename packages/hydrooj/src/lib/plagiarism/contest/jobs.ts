@@ -1,6 +1,7 @@
 import { BackgroundTaskService } from '../../background/runner';
 import { ENGINE_VERSION, MAX_MATCHES } from '../engine';
 import { runPlagiarismComparisons } from '../executor';
+import { DEFAULT_PLAGIARISM_METHOD, TREE_SITTER_ENGINE_VERSION } from '../method';
 import { loadPlagiarismSnapshot, PlagiarismInputError } from './snapshot';
 import {
     ContestPlagiarismStore, PLAGIARISM_FAILURE_ERROR, PLAGIARISM_RETENTION_MS, PLAGIARISM_TASK_TYPE,
@@ -35,6 +36,7 @@ export class ContestPlagiarismJobs {
             run: async (payload: PlagiarismPayload, signal: AbortSignal): Promise<PlagiarismReport> => {
                 const startedAt = Date.now();
                 const jobId = payload.jobId;
+                const method = payload.method ?? 'heuristic';
                 if (!jobId) throw new Error('Missing persistent job ID.');
                 try {
                     const snapshot = await loadSnapshot(payload, signal);
@@ -42,7 +44,7 @@ export class ContestPlagiarismJobs {
                     await this.store.updatePayload(jobId, { sources: snapshot.sources });
                     const comparison = await compare(snapshot.sources, signal, async (progress) => {
                         await this.store.updatePayload(jobId, { progress });
-                    });
+                    }, method);
                     if (signal.aborted) throw new Error('aborted');
                     const prepared = new Map(comparison.prepared.map((item) => [item.rid, item]));
                     const byId = new Map(snapshot.sources.map((item) => [item.rid, item]));
@@ -71,7 +73,8 @@ export class ContestPlagiarismJobs {
                         ])],
                     })).sort((left, right) => right.similarity - left.similarity || left.pid - right.pid);
                     const report: PlagiarismReport = {
-                        version: ENGINE_VERSION,
+                        method,
+                        version: method === 'tree-sitter' ? TREE_SITTER_ENGINE_VERSION : ENGINE_VERSION,
                         generatedAt: new Date().toISOString(),
                         elapsedMs: Date.now() - startedAt,
                         participantCount: snapshot.participantCount,
@@ -117,13 +120,18 @@ export class ContestPlagiarismJobs {
         await this.service.sweep();
         const existing = await this.store.latest(request, true);
         if (existing && (existing.status === 'pending' || existing.status === 'running')) return toPlagiarismJob(existing);
-        const admitted = await this.service.submit(PLAGIARISM_TASK_TYPE, this.store.owner(request), request);
+        const admitted = await this.service.submit(PLAGIARISM_TASK_TYPE, this.store.owner(request), {
+            ...request, method: request.method ?? DEFAULT_PLAGIARISM_METHOD,
+        });
         if (!admitted) {
             const competing = await this.store.latest(request, true);
             return competing ? toPlagiarismJob(competing) : null;
         }
         const doc = await this.store.get(admitted.jobId, PLAGIARISM_TASK_TYPE, this.store.owner(request));
-        return doc ? { jobId: admitted.jobId, status: 'pending', createdAt: doc.createdAt.toISOString() } : null;
+        return doc ? {
+            jobId: admitted.jobId, status: 'pending', createdAt: doc.createdAt.toISOString(),
+            method: request.method ?? DEFAULT_PLAGIARISM_METHOD,
+        } : null;
     }
 
     async latest(scope: PlagiarismScope): Promise<PlagiarismJob | null> {

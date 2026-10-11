@@ -5,6 +5,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import type { PlagiarismRequest, PlagiarismSnapshot } from '../../src/lib/plagiarism/contest/types';
 import type { PlagiarismComparisonOutput, PlagiarismProgress, PlagiarismSourceInput } from '../../src/lib/plagiarism/executor';
+import type { PlagiarismMethod } from '../../src/lib/plagiarism/method';
 
 function mock(request: string, exports: unknown) {
     require.cache[require.resolve(request)] = { exports } as NodeJS.Module;
@@ -211,12 +212,46 @@ describe('persistent contest plagiarism jobs', () => {
             assert.equal(done.result.pairs[0].warnings.includes('evidence-regions-limited'), count > 100);
         });
     }
+    for (const method of ['tree-sitter', 'heuristic'] as const) {
+        it(`persists and executes the selected ${method} method across managers and reruns`, async () => {
+            const store = await freshStore();
+            let executed: PlagiarismMethod;
+            let release: () => void;
+            const blocked = new Promise<void>((resolve) => { release = resolve; });
+            const jobs = new ContestPlagiarismJobs({
+                store, loadSnapshot: async () => fixtureSnapshot(),
+                compare: async (sources, signal, progress, selected) => {
+                    executed = selected;
+                    await blocked;
+                    return compareFixture(sources, signal, progress);
+                },
+            });
+            const admitted = await jobs.submit({ ...request, method });
+            assert.equal(admitted.method, method);
+            const reused = await jobs.submit({ ...request, method: method === 'heuristic' ? 'tree-sitter' : 'heuristic' });
+            assert.equal(reused.jobId, admitted.jobId);
+            assert.equal(reused.method, method);
+            release();
+            await jobs.drain();
+            const other = new ContestPlagiarismJobs({ store });
+            const done = await other.latest(request);
+            assert.equal(executed, method);
+            assert.equal(done.method, method);
+            assert.equal(done.result.method, method);
+            assert.equal(done.result.version, method === 'tree-sitter' ? 'cpp-tree-sitter-v1' : 'cpp-lexical-v1');
+            const rerun = await jobs.submit({ ...request, method: method === 'heuristic' ? 'tree-sitter' : 'heuristic' });
+            assert.notEqual(rerun.jobId, admitted.jobId);
+            assert.notEqual(rerun.method, method);
+            await jobs.drain();
+        });
+    }
     it('persists reports and immutable snapshots accessible to other authorized managers and workers', async () => {
         const store = await freshStore();
         const snapshot = fixtureSnapshot();
         const jobs = new ContestPlagiarismJobs({ store, loadSnapshot: async () => snapshot, compare: compareFixture });
         const admitted = await jobs.submit(request);
         assert.equal(admitted.status, 'pending');
+        assert.equal(admitted.method, 'tree-sitter');
         assert.ok(admitted.createdAt);
         await jobs.drain();
         const other = new ContestPlagiarismJobs({ store, compare: compareFixture });
@@ -383,6 +418,7 @@ describe('contest plagiarism HTTP permissions', () => {
                 assert.equal(payload.contestId, tid.toHexString());
                 assert.equal(payload.beginAt, request.beginAt);
                 assert.equal(payload.actorUid, 1);
+                assert.equal(payload.method, 'tree-sitter');
                 return { jobId: 'job', status: 'pending', createdAt: request.endAt };
             },
         });
@@ -390,6 +426,26 @@ describe('contest plagiarism HTTP permissions', () => {
         assert.equal(handler.response.status, 202);
         assert.equal(handler.response.body.status, 'pending');
     });
+    for (const method of ['heuristic', 'tree-sitter', 'invalid']) {
+        it(`validates method=${method} before admitting a job`, async () => {
+            let called = false;
+            const handler = makeHandler(ContestPlagiarismHandler, fakeUser(1), {
+                submit: async (payload: PlagiarismRequest) => {
+                    called = true;
+                    assert.equal(payload.method, method);
+                    return { jobId: 'job', method, status: 'pending', createdAt: request.endAt };
+                },
+            });
+            handler.request.body = { method };
+            if (method === 'invalid') {
+                assert.throws(() => handler.post({ domainId: 'test', method }), ValidationError);
+                assert.equal(called, false);
+            } else {
+                await handler.post({ domainId: 'test', method });
+                assert.equal(handler.response.body.method, method);
+            }
+        });
+    }
     it('uses route-only ObjectId validation and returns 404 for absent snapshot sources', async () => {
         const handler = makeHandler(ContestPlagiarismSourceHandler, fakeUser(1), { source: async () => null });
         await assert.rejects(handler.get({ domainId: 'test' }), NotFoundError);

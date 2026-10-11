@@ -219,6 +219,59 @@ afterEach(() => {
 });
 
 describe('contest plagiarism check', () => {
+  for (const method of ['tree-sitter', 'heuristic'] as const) {
+    it(`runs the selected ${method} method and shows the stored method after reload`, async () => {
+      const name = messages.contestManagement.plagiarism.methods[method];
+      const stored = { ...completed, method, result: { ...report, method } };
+      mocks.start.mockResolvedValue(stored);
+      const view = mount();
+      const run = await screen.findByRole('button', {
+        name: 'Run plagiarism check',
+      });
+      await waitFor(() => expect(run).toBeEnabled());
+      const select = screen.getByRole('combobox', {
+        name: 'Comparison method',
+      });
+      expect(select).toHaveTextContent('Tree-sitter syntax analysis');
+      if (method === 'heuristic') {
+        await userEvent.click(select);
+        await userEvent.click(screen.getByRole('option', { name }));
+      }
+      await userEvent.click(run);
+      expect(mocks.start).toHaveBeenCalledWith('contest', method);
+      await screen.findByRole('heading', { name: 'Similarity report' });
+      expect(
+        screen
+          .getAllByText(`Method used: ${name}`)
+          .every((element) => element.checkVisibility())
+      ).toBe(true);
+      view.unmount();
+      mocks.latest.mockResolvedValue({ tdoc: contest, job: stored });
+      mount();
+      await screen.findByRole('heading', { name: 'Similarity report' });
+      expect(
+        screen.getByRole('combobox', { name: 'Comparison method' })
+      ).toHaveTextContent(name);
+    });
+  }
+
+  it('locks the method selector while an existing job is active', async () => {
+    mocks.latest.mockResolvedValue({
+      tdoc: contest,
+      job: {
+        ...completed,
+        status: 'running',
+        result: undefined,
+        method: 'heuristic',
+      },
+    });
+    mount();
+    await screen.findByText('Comparing submissions');
+    const select = screen.getByRole('combobox', { name: 'Comparison method' });
+    expect(select).toHaveTextContent('Heuristic tokenization');
+    expect(select).toBeDisabled();
+  });
+
   for (const outcome of ['success', 'failure'] as const) {
     it(`ignores a stale start ${outcome} after switching contests`, async () => {
       let settle: () => void = () => {};
@@ -622,7 +675,13 @@ describe('contest plagiarism check', () => {
             },
           ],
           pairs: [
-            { ...report.pairs[0], warnings: ['preprocessor-not-expanded'] },
+            {
+              ...report.pairs[0],
+              warnings: [
+                'preprocessor-not-expanded',
+                'tree-sitter-parse-errors',
+              ],
+            },
           ],
         },
       },
@@ -641,6 +700,13 @@ describe('contest plagiarism check', () => {
     );
     expect(
       screen.getByText('预处理宏按原文比较，展开后的代码可能不同。')
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        messagesZh.contestManagement.plagiarism.warnings[
+          'tree-sitter-parse-errors'
+        ]
+      )
     ).toBeVisible();
   });
 

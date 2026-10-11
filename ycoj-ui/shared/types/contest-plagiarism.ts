@@ -1,5 +1,7 @@
 import type { Contest } from '@/shared/types/contest';
 
+export type PlagiarismMethod = 'heuristic' | 'tree-sitter';
+
 export type PlagiarismSubmission = {
   rid: string;
   uid: number;
@@ -27,6 +29,7 @@ export type PlagiarismPair = {
 };
 
 export type PlagiarismReport = {
+  method?: PlagiarismMethod;
   version: string;
   generatedAt: string;
   elapsedMs: number;
@@ -51,6 +54,7 @@ export type PlagiarismReport = {
 };
 
 export type PlagiarismJob = {
+  method?: PlagiarismMethod;
   jobId: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
   createdAt: string;

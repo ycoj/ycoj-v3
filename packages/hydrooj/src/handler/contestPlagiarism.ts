@@ -6,9 +6,10 @@ import {
 import type { Tdoc } from '../interface';
 import { ContestPlagiarismJobs } from '../lib/plagiarism/contest/jobs';
 import { PLAGIARISM_TASK_INDEXES } from '../lib/plagiarism/contest/store';
+import { DEFAULT_PLAGIARISM_METHOD, PLAGIARISM_METHODS, type PlagiarismMethod } from '../lib/plagiarism/method';
 import { PERM } from '../model/builtin';
 import * as contest from '../model/contest';
-import { Handler, route, Types } from '../service/server';
+import { Handler, param, route, Types } from '../service/server';
 
 const PlagiarismCapacityError = createError(
     'PlagiarismCapacityError', UserFacingError,
@@ -47,10 +48,12 @@ export class ContestPlagiarismHandler extends Handler {
     }
 
     @route('tid', Types.ObjectId)
-    async post(domainId: string, tid: ObjectId) {
+    @param('method', Types.Range([...PLAGIARISM_METHODS]), true)
+    async post(domainId: string, tid: ObjectId, method: PlagiarismMethod = DEFAULT_PLAGIARISM_METHOD) {
         const tdoc = await resolvePlagiarismContest(this, domainId, tid);
         const result = await getJobs(this).submit({
             domainId, contestId: tid.toHexString(), actorUid: this.user._id,
+            method,
             beginAt: tdoc.beginAt.toISOString(), endAt: tdoc.endAt.toISOString(), pids: tdoc.pids,
         });
         if (!result) throw new PlagiarismCapacityError();
