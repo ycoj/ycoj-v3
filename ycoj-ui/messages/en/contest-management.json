@@ -216,7 +216,7 @@
       "incomplete-raw-string": "A source contains an incomplete raw string; review the source carefully.",
       "incomplete-string": "A source contains an incomplete string; review the source carefully.",
       "unused-scalar-ignored": "Unused scalar declarations were omitted from the comparison.",
-      "evidence-regions-limited": "Only the first 100 matching fragments are shown."
+      "evidence-regions-limited": "Only the 100 largest matching fragments are shown."
     }
   }
 }

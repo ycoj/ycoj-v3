@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { test } from 'node:test';
+import { compareCpp, prepareCpp } from '../../src/lib/plagiarism/engine';
 import { runPlagiarismComparisons } from '../../src/lib/plagiarism/executor';
 
 const code = `#include <bits/stdc++.h>
@@ -40,6 +41,27 @@ test('aborted comparisons reject without starting a worker', async () => {
     controller.abort();
     await assert.rejects(runPlagiarismComparisons([], controller.signal), /aborted/);
 });
+
+for (const count of [20, 120]) {
+    test(`worker preserves the engine's largest regions and source order for ${count} fragments`, async () => {
+        const source = (offset: number) => `int main(){int x,y,z;cin>>x>>y>>z;\n${
+            Array.from({ length: count }, (_, index) => (
+                `x += ${index}; y *= ${index + 2}; z -= ${index + 3}; cout << x + y + z;\n x = ${offset + index * 1000};`
+            )).join('\n')
+        }\nreturn 0;}`;
+        const left = source(10);
+        const right = source(100);
+        const expected = compareCpp(prepareCpp(left), prepareCpp(right));
+        assert.ok(expected.matches.length > 16);
+        assert.ok(expected.matches.length <= 100);
+        assert.equal(expected.warnings.includes('evidence-regions-limited'), count > 100);
+        const result = await runPlagiarismComparisons([
+            { rid: 'a', pid: 1, code: left }, { rid: 'b', pid: 1, code: right },
+        ], new AbortController().signal);
+        assert.deepEqual(result.pairs[0].matches, expected.matches);
+        assert.deepEqual(result.pairs[0].warnings, expected.warnings);
+    });
+}
 
 test('active worker termination releases CPU work and rejects promptly', async () => {
     const controller = new AbortController();

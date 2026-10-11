@@ -1,6 +1,6 @@
 # Run and review a contest plagiarism check
 
-Use the [contest plagiarism contract](../apis/contest/plagiarism.md). Every request needs an account that owns/maintains the contest or has `PERM_EDIT_CONTEST`; contestant access and record-code permissions are insufficient.
+Use the [contest plagiarism contract](../apis/contest/plagiarism.md). Every request needs an owner/maintainer with `PERM_EDIT_CONTEST_SELF`, or a non-owner with `PERM_EDIT_CONTEST`; ownership alone and the broader edit permission do not bypass the self-edit check. Contestant access and record-code permissions are insufficient. Stop on a permission error before starting or reading a job.
 
 1. Resolve the deployment, domain, contest ID, and authorized session. Send `GET /contest/:tid/plagiarism` with `Accept: application/json`. Verify the returned contest ID/title and that its global end time has passed. The endpoint itself enforces this condition. If a pending/running `job` already exists, reuse its `jobId` instead of starting another job. A completed report may be reused while it remains retained.
 2. When a new check is requested, send `POST /contest/:tid/plagiarism` with `Content-Type: application/json` and body `{}`. Require HTTP 202 and retain the returned `jobId` and `createdAt`. The server returns the same active task for concurrent starts; a fresh check after completion/failure creates a different ID. On a validation, permission, or HTTP 503 capacity error, stop this attempt and surface that response.

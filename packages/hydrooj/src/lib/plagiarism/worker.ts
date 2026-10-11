@@ -59,8 +59,6 @@ function compareSources(sources: PlagiarismSourceInput[]): PlagiarismComparisonO
                 }
                 pairs.push({
                     pid: left.pid, leftRid: left.rid, rightRid: right.rid, ...comparison,
-                    matches: comparison.matches.sort((a, b) => b.tokenCount - a.tokenCount).slice(0, 16),
-                    warnings: [...new Set([...comparison.warnings, ...(comparison.matches.length > 16 ? ['evidence-regions-limited'] : [])])],
                 });
                 if (pairs.length % 10 === 0) send({ type: 'progress', progress: { completedPairs: pairs.length, totalPairs } });
             }

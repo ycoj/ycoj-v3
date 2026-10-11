@@ -9,7 +9,7 @@ import type { Contest } from '@/shared/types/contest';
 import type { PlagiarismJob } from '@/shared/types/contest-plagiarism';
 import { LoaderCircle, ScanSearch } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Props = { tid: string; contest: Contest };
 
@@ -21,10 +21,20 @@ export default function ContestPlagiarism({ tid, contest }: Props) {
   );
   const [job, setJob] = useState<PlagiarismJob | null>(null);
   const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
+  const [startingTid, setStartingTid] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
+  const startScope = useRef<{ canceled: boolean } | null>(null);
+  const starting = startingTid === tid;
   const active = job?.status === 'pending' || job?.status === 'running';
+
+  useEffect(() => {
+    const scope = { canceled: false };
+    startScope.current = scope;
+    return () => {
+      scope.canceled = true;
+    };
+  }, [tid]);
 
   useEffect(() => {
     if (ended) return;
@@ -90,21 +100,24 @@ export default function ContestPlagiarism({ tid, contest }: Props) {
 
   async function start() {
     if (!ended || starting || active || loading) return;
-    setStarting(true);
+    const scope = startScope.current;
+    if (!scope || scope.canceled) return;
+    setStartingTid(tid);
     setError('');
     try {
       const response =
         await ClientApis.Contest.startContestPlagiarism(tid).send();
       throwBackendError(response);
-      if (!('error' in response)) setJob(response);
+      if (!('error' in response) && !scope.canceled) setJob(response);
     } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? localizePlagiarismExplanation(cause.message, t)
-          : t('startFailed')
-      );
+      if (!scope.canceled)
+        setError(
+          cause instanceof Error
+            ? localizePlagiarismExplanation(cause.message, t)
+            : t('startFailed')
+        );
     } finally {
-      setStarting(false);
+      if (!scope.canceled) setStartingTid(null);
     }
   }
 

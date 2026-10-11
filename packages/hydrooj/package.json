@@ -24,6 +24,7 @@
         "@earendil-works/pi-ai": "0.84.2",
         "@hydrooj/common": "workspace:^",
         "@hydrooj/framework": "workspace:^",
+        "@hydrooj/register": "workspace:^",
         "@hydrooj/utils": "workspace:^",
         "@mongodb-js/saslprep": "^1.4.13",
         "@simplewebauthn/server": "13.2.2",

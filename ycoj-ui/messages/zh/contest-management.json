@@ -216,7 +216,7 @@
       "incomplete-raw-string": "某份源码含有未闭合的原始字符串，请仔细检查源码。",
       "incomplete-string": "某份源码含有未闭合的字符串，请仔细检查源码。",
       "unused-scalar-ignored": "比较时已忽略未使用的标量变量声明。",
-      "evidence-regions-limited": "仅展示前 100 个匹配片段。"
+      "evidence-regions-limited": "仅展示最大的 100 个匹配片段。"
     }
   }
 }

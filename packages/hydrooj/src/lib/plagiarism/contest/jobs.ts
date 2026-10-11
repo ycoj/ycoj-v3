@@ -1,5 +1,5 @@
 import { BackgroundTaskService } from '../../background/runner';
-import { ENGINE_VERSION } from '../engine';
+import { ENGINE_VERSION, MAX_MATCHES } from '../engine';
 import { runPlagiarismComparisons } from '../executor';
 import { loadPlagiarismSnapshot, PlagiarismInputError } from './snapshot';
 import {
@@ -62,12 +62,12 @@ export class ContestPlagiarismJobs {
                         right: participant(pair.rightRid),
                         similarity: pair.similarity,
                         scores: pair.scores,
-                        matches: pair.matches.slice(0, 16),
+                        matches: pair.matches.slice(0, MAX_MATCHES),
                         warnings: [...new Set([
                             ...pair.warnings,
                             ...(prepared.get(pair.leftRid)?.warnings || []),
                             ...(prepared.get(pair.rightRid)?.warnings || []),
-                            ...(pair.matches.length > 16 ? ['evidence-regions-limited'] : []),
+                            ...(pair.matches.length > MAX_MATCHES ? ['evidence-regions-limited'] : []),
                         ])],
                     })).sort((left, right) => right.similarity - left.similarity || left.pid - right.pid);
                     const report: PlagiarismReport = {

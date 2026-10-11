@@ -13,7 +13,9 @@ function mock(request: string, exports: unknown) {
 Object.assign(global, { Hydro: { model: {}, ui: {} }, app: { get: () => undefined } });
 mock('../../src/service/db', { collection: () => null });
 mock('../../src/service/server', require('@hydrooj/framework'));
-mock('../../src/model/builtin', { STATUS: { STATUS_CANCELED: 9 }, PERM: { PERM_EDIT_CONTEST: 1n }, PERMS: [] });
+mock('../../src/model/builtin', {
+    STATUS: { STATUS_CANCELED: 9 }, PERM: { PERM_EDIT_CONTEST: 1n, PERM_EDIT_CONTEST_SELF: 2n }, PERMS: [],
+});
 
 let recordCollection: Collection;
 let statusCollection: typeof recordCollection;
@@ -186,6 +188,29 @@ describe('contest plagiarism source loading', () => {
 
 describe('persistent contest plagiarism jobs', () => {
     before(startDatabase);
+    for (const count of [17, 100, 101]) {
+        it(`retains up to 100 evidence regions in source order for ${count} matches`, async () => {
+            const store = await freshStore();
+            const matches = Array.from({ length: count }, (_, index) => ({
+                leftStartLine: index + 1, leftEndLine: index + 1,
+                rightStartLine: index + 2, rightEndLine: index + 2, tokenCount: 20 + index,
+            }));
+            const jobs = new ContestPlagiarismJobs({
+                store, loadSnapshot: async () => fixtureSnapshot(),
+                compare: async (sources, signal) => {
+                    const comparison = await compareFixture(sources, signal);
+                    comparison.pairs[0].matches = matches;
+                    return comparison;
+                },
+            });
+            const admitted = await jobs.submit(request);
+            await jobs.drain();
+            const done = await jobs.get(admitted.jobId, request);
+            assert.equal(done.status, 'completed');
+            assert.deepEqual(done.result.pairs[0].matches, matches.slice(0, 100));
+            assert.equal(done.result.pairs[0].warnings.includes('evidence-regions-limited'), count > 100);
+        });
+    }
     it('persists reports and immutable snapshots accessible to other authorized managers and workers', async () => {
         const store = await freshStore();
         const snapshot = fixtureSnapshot();
@@ -298,8 +323,8 @@ describe('persistent contest plagiarism jobs', () => {
     });
 });
 
-function fakeUser(uid: number, editor = false) {
-    return { _id: uid, own: (doc: typeof tdoc) => doc.owner === uid || doc.maintainer.includes(uid), editor };
+function fakeUser(uid: number, editor = false, selfEditor = uid === 1 || uid === 2) {
+    return { _id: uid, own: (doc: typeof tdoc) => doc.owner === uid || doc.maintainer.includes(uid), editor, selfEditor };
 }
 
 function makeHandler(HandlerClass: { prototype: object }, user = fakeUser(1), jobs = {}) {
@@ -309,12 +334,28 @@ function makeHandler(HandlerClass: { prototype: object }, user = fakeUser(1), jo
         ctx: { get: () => jobs },
         request: { params: { tid: tid.toHexString(), jobId: 'job', rid: ridAt(10, 1).toHexString() }, query: {}, body: {} },
         response: {},
-        checkPerm: () => { if (!user.editor) throw new PermissionError(1n); },
+        checkPerm: (perm: bigint) => {
+            if (!(perm === 2n ? user.selfEditor : user.editor)) throw new PermissionError(perm);
+        },
     });
 }
 
 describe('contest plagiarism HTTP permissions', () => {
     beforeEach(prepareContest);
+    for (const uid of [1, 2, 99]) {
+        for (const editor of [false, true]) {
+            for (const selfEditor of [false, true]) {
+                it(`checks the applicable permission for uid=${uid}, editor=${editor}, selfEditor=${selfEditor}`, async () => {
+                    const handler = makeHandler(ContestPlagiarismHandler, fakeUser(uid, editor, selfEditor));
+                    if (uid === 99 ? editor : selfEditor) {
+                        await assert.doesNotReject(resolvePlagiarismContest(handler, 'test', tid));
+                    } else {
+                        await assert.rejects(resolvePlagiarismContest(handler, 'test', tid), PermissionError);
+                    }
+                });
+            }
+        }
+    }
     for (const uid of [1, 2, 3]) {
         it(`allows ${uid === 1 ? 'owner' : uid === 2 ? 'maintainer' : 'contest editor'} after the contest ends`, async () => {
             const handler = makeHandler(ContestPlagiarismHandler, fakeUser(uid, uid === 3), { latest: async () => null });

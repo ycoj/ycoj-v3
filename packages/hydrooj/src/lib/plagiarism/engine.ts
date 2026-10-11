@@ -12,7 +12,7 @@ export const CPP_WARNING_CODES = [
 const GRAM_LENGTH = 16;
 const WINDOW_LENGTH = 5;
 const MIN_EVIDENCE_TOKENS = 40;
-const MAX_MATCHES = 100;
+export const MAX_MATCHES = 100;
 
 export type PlagiarismLimitCode = 'source-too-large' | 'too-many-tokens' | 'deadline-exceeded';
 

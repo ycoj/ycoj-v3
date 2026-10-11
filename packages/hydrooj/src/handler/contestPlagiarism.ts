@@ -26,7 +26,7 @@ export async function resolvePlagiarismContest(
 ): Promise<Tdoc> {
     const tdoc = await contest.get(domainId, tid);
     if (!tdoc) throw new ContestNotFoundError(domainId, tid);
-    if (!handler.user.own(tdoc)) handler.checkPerm(PERM.PERM_EDIT_CONTEST);
+    handler.checkPerm(handler.user.own(tdoc) ? PERM.PERM_EDIT_CONTEST_SELF : PERM.PERM_EDIT_CONTEST);
     if (!contest.isDone(tdoc)) throw new ContestNotEndedError(domainId, tid);
     return tdoc;
 }

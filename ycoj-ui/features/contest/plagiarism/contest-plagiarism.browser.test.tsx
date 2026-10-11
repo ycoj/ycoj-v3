@@ -219,6 +219,49 @@ afterEach(() => {
 });
 
 describe('contest plagiarism check', () => {
+  for (const outcome of ['success', 'failure'] as const) {
+    it(`ignores a stale start ${outcome} after switching contests`, async () => {
+      let settle: () => void = () => {};
+      mocks.start.mockImplementationOnce(
+        () =>
+          new Promise<PlagiarismJob>((resolve, reject) => {
+            settle = () =>
+              outcome === 'success'
+                ? resolve(completed)
+                : reject(new Error('Old contest failure'));
+          })
+      );
+      const view = mount();
+      const run = await screen.findByRole('button', {
+        name: 'Run plagiarism check',
+      });
+      await waitFor(() => expect(run).toBeEnabled());
+      await userEvent.click(run);
+      view.rerender(
+        <NextIntlClientProvider
+          locale="en"
+          timeZone="Asia/Shanghai"
+          messages={messages}
+        >
+          <ContestPlagiarism tid="next-contest" contest={contest} />
+        </NextIntlClientProvider>
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Run plagiarism check' })
+        ).toBeEnabled()
+      );
+      await act(async () => settle());
+      expect(
+        screen.queryByRole('heading', { name: 'Similarity report' })
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Run plagiarism check' })
+      ).toBeEnabled();
+    });
+  }
+
   it('clears the old report and applies the end gate when switching contests', async () => {
     mocks.latest.mockResolvedValue({ tdoc: contest, job: completed });
     const data: ContestManagementResponse = {
