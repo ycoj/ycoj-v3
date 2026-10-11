@@ -2,6 +2,7 @@ import ProblemFilesManager from './problem-files-manager';
 import { uploadClientRequest } from '@/api/client';
 import ClientApis from '@/api/client/method';
 import messages from '@/messages/en';
+import type { FileInfo } from '@/shared/types/file';
 import { createAlovaMockAdapter, defineMock } from '@alova/mock';
 import {
   act,
@@ -125,6 +126,68 @@ function selectFiles(input: HTMLInputElement, files: File[]) {
   });
   fireEvent.change(input, { target: { files } });
 }
+
+describe('ProblemFilesManager test data permissions', () => {
+  const testFile: FileInfo = {
+    _id: 'test-input',
+    name: 'secret.in',
+    size: 1234,
+    etag: 'test-etag',
+    lastModified: new Date(),
+  };
+  const additionalFile: FileInfo = { ...testFile, name: 'attachment.txt' };
+
+  it.each([
+    { canManage: false, testdata: [testFile] },
+    { canManage: true, testdata: [testFile] },
+    { canManage: false, testdata: [] },
+  ])('shows unavailable without download access (%j)', (props) => {
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <ProblemFilesManager
+          pid="1000"
+          {...props}
+          additionalFiles={props.canManage ? [] : [additionalFile]}
+          canDownloadTestdata={false}
+        />
+      </NextIntlClientProvider>
+    );
+
+    expect(
+      screen.getByText(messages.problem.fileManager.testdataUnavailable)
+    ).toBeVisible();
+    expect(screen.queryByText(testFile.name)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: 'Select file secret.in' })
+    ).not.toBeInTheDocument();
+    if (!props.canManage) {
+      expect(screen.getByText(additionalFile.name)).toBeVisible();
+      expect(screen.getAllByRole('button', { name: 'Download' })).toHaveLength(
+        1
+      );
+    }
+  });
+
+  it('shows test data with download access without management access', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <ProblemFilesManager
+          pid="1000"
+          testdata={[testFile]}
+          additionalFiles={[]}
+          canManage={false}
+          canDownloadTestdata
+        />
+      </NextIntlClientProvider>
+    );
+
+    expect(screen.getByText(testFile.name)).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Download' })).toBeVisible();
+    expect(
+      screen.queryByText(messages.problem.fileManager.testdataUnavailable)
+    ).not.toBeInTheDocument();
+  });
+});
 
 describe('ProblemFilesManager uploads', () => {
   beforeEach(() => {

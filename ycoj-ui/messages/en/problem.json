@@ -52,6 +52,7 @@
   },
   "fileManager": {
     "testdata": "Test data",
+    "testdataUnavailable": "Test data is unavailable. You do not have permission to download it.",
     "additionalFiles": "Additional files",
     "createFile": "Create file",
     "editFile": "Edit file",

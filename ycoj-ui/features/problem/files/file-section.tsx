@@ -63,6 +63,8 @@ export default function FileSection<TType extends string = ProblemFileType>({
   const [selected, setSelected] = useState<string[]>([]);
   const title =
     titleProp ?? (type === 'testdata' ? t('testdata') : t('additionalFiles'));
+  const unavailable = type === 'testdata' && !canDownload;
+  const emptyMessage = unavailable ? t('testdataUnavailable') : t('empty');
 
   const toggle = (name: string, checked: boolean) => {
     setSelected((current) =>
@@ -123,7 +125,7 @@ export default function FileSection<TType extends string = ProblemFileType>({
         </div>
       </div>
 
-      {files.length ? (
+      {!unavailable && files.length ? (
         <>
           <div className="grid grid-cols-[2rem_minmax(0,1fr)_7rem_7rem] items-center gap-3 border-y px-3 py-2 text-sm text-muted-foreground">
             <Checkbox
@@ -271,9 +273,9 @@ export default function FileSection<TType extends string = ProblemFileType>({
       ) : (
         <div
           className="flex min-h-40 items-center justify-center border-y px-3 py-10 text-sm text-muted-foreground"
-          data-llm-text={t('empty')}
+          data-llm-text={emptyMessage}
         >
-          {t('empty')}
+          {emptyMessage}
         </div>
       )}
     </section>
