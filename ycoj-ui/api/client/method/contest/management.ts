@@ -1,5 +1,12 @@
 import { clientRequest, uploadClientRequest } from '@/api/client';
+import type { Errorable } from '@/shared/types/error';
 import type { FileInfo } from '@/shared/types/file';
+
+export const rejudgeContest = (tid: string) =>
+  clientRequest.Post<Errorable<{ count: number }>>(
+    `/contest/${tid}/management`,
+    { operation: 'rejudge' }
+  );
 
 export type ContestManagementMutationResponse =
   { tid?: string; sid?: string } | Record<string, unknown>;

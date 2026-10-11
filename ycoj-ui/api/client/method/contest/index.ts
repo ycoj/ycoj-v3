@@ -3,6 +3,7 @@ import { createContest } from '@/api/client/method/contest/create';
 import { deleteContest, editContest } from '@/api/client/method/contest/edit';
 import {
   deleteContestFiles,
+  rejudgeContest,
   setContestProblemScore,
   uploadContestFile,
 } from '@/api/client/method/contest/management';
@@ -36,6 +37,7 @@ const Contest = {
   downloadScoreboard,
   uploadContestFile,
   deleteContestFiles,
+  rejudgeContest,
   setContestProblemScore,
   postContestClarification,
   addContestUsers,

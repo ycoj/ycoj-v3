@@ -17,6 +17,7 @@ import {
 import { FileInfo, ScoreboardConfig, Tdoc } from '../interface';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import * as contest from '../model/contest';
+import { rejudgeContest } from '../model/contest/rejudge';
 import * as discussion from '../model/discussion';
 import * as document from '../model/document';
 import message from '../model/message';
@@ -489,6 +490,12 @@ export class ContestCodeHandler extends Handler {
 }
 
 export class ContestManagementHandler extends ContestManagementBaseHandler {
+    @param('tid', Types.ObjectId)
+    async postRejudge(domainId: string, tid: ObjectId) {
+        const count = await rejudgeContest(domainId, tid, this.user._id);
+        this.response.body = { count };
+    }
+
     @param('tid', Types.ObjectId)
     @param('d', Types.Range(['public', 'private']), true)
     @param('sidebar', Types.Boolean)

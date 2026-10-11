@@ -86,7 +86,18 @@ Description: render an existing contest for editing. Request: `type Query={tid:O
 ## `GET /contest/:tid/print`
 Description: render the printable contest page. Request: `type Query={tid:ObjectId}`; `GET /contest/665f.../print`. Response: `type Response={tdoc:Tdoc}`; `{ "tdoc":{"docId":"665f..."} }`, HTML `contest_print.html`.
 
+## POST `/contest/:tid/management` operation `rejudge`
+
+Description: queue every eligible submission belonging to this contest in the current domain for rejudging. Requires contest ownership (including maintainers) or `PERM_EDIT_CONTEST`; no separate record/problem rejudge permission or attendance is required. Canceled records and records with `files.hack` are excluded. All submitted problem configurations (including reference sources) are validated before any results are reset; invalid/missing configurations raise `ProblemConfigError`. Results are reset with judge history preserved and tasks queued separately per problem at bulk-rejudge priority, with `detail:false` and `rejudge:true`. Existing contest status/scoreboard updates run as judging completes. Queueing failures propagate and may leave earlier problem batches queued; retries are not idempotent.
+
+Request: `type Request={operation:"rejudge"}`; `POST /contest/665f00000000000000000001/management` with `{ "operation":"rejudge" }`.
+
+Response: `type Response={count:number}`; HTTP 200 JSON `{ "count":42 }` once tasks are queued, or `{ "count":0 }` for no eligible submissions. This operation does not redirect. The count reports queued submissions, not completed judgments.
+
+Workflow: obtain an authorized contest-management session, submit the operation once, check `count`, then monitor `/record?tid=:tid` and the contest scoreboard for completed judging. Do not repeat the mutation to poll progress.
+
 ## `GET /contest/:tid/management`
+
 Description: render contest management, selecting the public/private file tab. Requires the contest owner/maintainer or `PERM_EDIT_CONTEST`. Every `pdict` entry uses the contest-detail problem projection, including `content`, `html`, `config`, `data`, `additional_file`, `reference`, `maintainer`, and `tag`, so management clients can inspect complete statements without entering contest participation flow. `pdict[].config` is the parsed testdata configuration; `subtaskCount` is the number of parsed subtasks (a legacy flat `cases` list counts as one) and is `0` when the configuration declares none. Request: `type Query={tid:ObjectId;d?:"public"|"private";sidebar?:boolean}`; `GET /contest/665f.../management?d=private`. Response: `type Response={tdoc:Tdoc;tsdoc:ContestStatusDoc|null;owner_udoc:UserDoc;pdict:Record<number,ProblemDoc>;files:FileInfo[];privateFiles:FileInfo[]}`; `{ "tdoc":{"docId":"665f..."},"tsdoc":null,"owner_udoc":{"_id":1},"pdict":{"1001":{"docId":1001,"title":"A+B","content":"# Description","config":{"type":"default","count":10,"subtaskCount":1},"data":[]}},"files":[],"privateFiles":[] }`, HTML/PJAX `contest_manage.html`.
 
 ## `GET /contest/:tid/bulk-submit`
