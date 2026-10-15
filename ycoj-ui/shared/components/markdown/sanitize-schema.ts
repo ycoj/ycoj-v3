@@ -18,6 +18,10 @@ export const markdownSanitizeSchema: Schema = {
   ],
   attributes: {
     ...defaultSchema.attributes,
+    table: [
+      ...(defaultSchema.attributes?.table ?? []),
+      ['className', 'cute-table-tuack'],
+    ],
     code: [
       ['className', /^language-./, 'math-inline', 'math-display'],
       ...(defaultSchema.attributes?.code ?? []),

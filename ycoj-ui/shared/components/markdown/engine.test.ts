@@ -33,6 +33,85 @@ async function html(
 }
 
 describe('Markdown engine', () => {
+  it('merges table cells while keeping the original column alignment', async () => {
+    const rendered = await html(`| A | B | C | D |
+| :--- | :---: | ---: | ---: |
+| Group | < | $x^2$ | Tail |
+| ^ | ^ | ^ | End |
+| ^ | < | New | Last |`);
+
+    expect(rendered).toContain(
+      '<td colSpan="2" rowSpan="3" style="text-align:left">Group</td>'
+    );
+    expect(rendered).toContain('<td rowSpan="2" style="text-align:right">');
+    expect(rendered).toContain('class="katex"');
+    expect(rendered).toContain('<td style="text-align:right">End</td>');
+    expect(rendered).toContain('<td style="text-align:right">Last</td>');
+    expect(rendered).not.toMatch(/<td[^>]*>(?:\^|&lt;)<\/td>/);
+  });
+
+  it.each(['`^`', '**^**', '$^$', '^ text', '`<`', '**<**', '< text'])(
+    'keeps formatted or mixed table markers as content: %s',
+    async (value) => {
+      const rendered = await html(
+        `| A | B |\n| --- | --- |\n| a | b |\n| c | ${value} |`
+      );
+      expect(rendered.match(/<td/g)).toHaveLength(4);
+      expect(rendered).not.toContain('rowSpan=');
+      expect(rendered).not.toContain('colSpan=');
+    }
+  );
+
+  it('keeps boundary markers and partial vertical continuations literal', async () => {
+    const rendered = await html(`| A | B | C |
+| --- | --- | --- |
+| < | ^ | First |
+| Wide | < | Right |
+| ^ | Separate | ^ |`);
+
+    expect(rendered).toContain('<td>&lt;</td>');
+    expect(rendered).toContain('<td>^</td>');
+    expect(rendered).toContain('<td colSpan="2">Wide</td>');
+    expect(rendered).toContain('<td rowSpan="2">Right</td>');
+    expect(rendered).toContain('<td>Separate</td>');
+    expect(rendered).not.toContain('colSpan="2" rowSpan=');
+  });
+
+  it('applies Cute-Table only to the following table, including in containers', async () => {
+    const table = '| A | B |\n| :-: | :-: |\n| $x$ | value |\n| ^ | < |';
+    const rendered = await html(
+      `:::info\n\n::cute-table{tuack}\n${table}\n\n:::\n\n${table}`
+    );
+    expect(rendered.match(/class="cute-table-tuack"/g)).toHaveLength(1);
+    expect(rendered.match(/<table/g)).toHaveLength(2);
+    expect(rendered.match(/rowSpan="2"/g)).toHaveLength(2);
+    expect(rendered).not.toContain('::cute-table');
+    expect(rendered).toContain('<md-alert');
+  });
+
+  it('keeps standalone, formatted, and fenced Cute-Table examples literal', async () => {
+    const rendered = await html(
+      '::cute-table{tuack}\n\nParagraph\n\n`::cute-table{tuack}`\n\n| A |\n| --- |\n| Value |\n\n```text\n::cute-table{tuack}\n| A |\n| --- |\n| ^ |\n```'
+    );
+    expect(rendered).not.toContain('class="cute-table-tuack"');
+    expect(rendered).toContain('<p>::cute-table{tuack}</p>');
+    expect(rendered).toContain('<code>::cute-table{tuack}</code>');
+    expect(rendered).toContain('| ^ |');
+  });
+
+  it.each([
+    '> ::cute-table{tuack}\n> | A | B |\n> | --- | ---: |\n> | [Link](/target) | < |',
+    '- ::cute-table{tuack}\n\n  | A | B |\n  | --- | ---: |\n  | [Link](/target) | < |',
+  ])('handles Cute-Table inside quotes and lists: %s', async (source) => {
+    const rendered = await html(source);
+    expect(rendered).toContain('<table class="cute-table-tuack">');
+    expect(rendered).toContain('<th style="text-align:right">B</th>');
+    expect(rendered).toContain(
+      '<td colSpan="2"><a href="/target">Link</a></td>'
+    );
+    expect(rendered).not.toContain('::cute-table');
+  });
+
   it('renders math on the server without JavaScript or DOM observers', async () => {
     const rendered = await html(String.raw`Text $x_1^2$ and $$\frac{a}{b}$$`);
     expect(rendered).toContain('class="katex"');

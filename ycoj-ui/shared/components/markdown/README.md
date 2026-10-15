@@ -6,9 +6,10 @@
 The pipeline is defined in `engine.ts`:
 
 1. Parse CommonMark/GFM and the LaTeX syntax into an MDAST tree.
-2. Resolve alert/alignment containers, then transform standalone PDF links and
-   paired problem samples throughout the completed tree.
-3. Convert to HAST, parse raw HTML, and run the caller's rehype extensions.
+2. Resolve alert/alignment containers, then transform Cute-Table markers,
+   standalone PDF links, and paired problem samples throughout the completed tree.
+3. Convert to HAST, merge table cells, parse raw HTML, and run the caller's
+   rehype extensions.
 4. Sanitize the source and extension output with the supplied schema.
 5. Render LaTeX, enrich user links, and highlight/number code blocks.
 6. Render React elements with the default or caller-supplied components.
@@ -36,6 +37,22 @@ Alert titles retain literal text and may include formulas; their trusted title
 markup is generated after source sanitization, using the same formula parser.
 
 ## Containers and extensions
+
+Tables support the [Luogu table extensions](https://help.luogu.com.cn/rules/academic/handbook/markdown#table-tuack).
+A cell containing only plain-text `^` continues the cell above; `<` continues
+the cell to its left. Formatted markers and markers mixed with other content
+stay literal. Merges preserve column alignment and formula content, and remain
+within their header/body group. Continuing a cell spanning multiple columns
+requires markers across its entire width, using `^ | ^` or `^ | <`.
+Invalid boundary markers and incomplete rectangular spans remain literal.
+
+Put `::cute-table{tuack}` in a standalone paragraph immediately before a table
+to center it and apply the Tuack grid and heavier header/bottom rules. No blank
+line between the marker and table is required. The marker applies only to that
+table, including tables inside quotes, lists, and resolved containers.
+`remark-cute-table.ts` associates the marker with its table;
+`rehype-table-merge.ts` merges the parsed table before raw HTML parsing, so code
+examples and raw HTML tables do not acquire Markdown merge semantics.
 
 Containers retain the existing `:::info`, `:::warning`, `:::success`,
 `:::error`, and `:::align{left|center|right}` authoring syntax. Alert titles and

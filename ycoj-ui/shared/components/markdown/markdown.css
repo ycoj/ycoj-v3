@@ -73,4 +73,28 @@
   & :where(a):not(:where(.not-prose, .not-prose *)) {
     color: var(--primary);
   }
+
+  & :where(th, td)[rowspan] {
+    vertical-align: middle;
+  }
+
+  & table.cute-table-tuack {
+    width: auto;
+    margin-inline: auto;
+    border-collapse: collapse;
+    border-inline: hidden;
+    border-top: hidden;
+    border-bottom: 4px solid currentColor;
+
+    & :where(th, td) {
+      padding: 0.5em 0.75em;
+      border: 1px solid currentColor;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    & thead {
+      border-bottom: 3px solid currentColor;
+    }
+  }
 }
