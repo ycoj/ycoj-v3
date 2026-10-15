@@ -59,6 +59,63 @@ async function renderMarkdownDocument(source: string) {
   });
 }
 
+describe('Markdown tables', () => {
+  it('lays out mixed row and column spans without shifting later cells', async () => {
+    await renderMarkdownDocument(`| A | B | C |
+| :--- | :---: | ---: |
+| Group | < | First |
+| ^ | ^ | Second |
+| ^ | < | Third |`);
+
+    const group = screen.getByRole('cell', { name: 'Group' });
+    const first = screen.getByRole('cell', { name: 'First' });
+    const second = screen.getByRole('cell', { name: 'Second' });
+    const third = screen.getByRole('cell', { name: 'Third' });
+    const groupBox = group.getBoundingClientRect();
+    expect(groupBox.top).toBeCloseTo(first.getBoundingClientRect().top, 0);
+    expect(groupBox.bottom).toBeCloseTo(
+      third.getBoundingClientRect().bottom,
+      0
+    );
+    for (const cell of [first, second, third]) {
+      expect(cell.getBoundingClientRect().left).toBeCloseTo(groupBox.right, 0);
+      expect(getComputedStyle(cell).textAlign).toBe('right');
+    }
+  });
+
+  it('centers Tuack tables and draws the header, grid, and bottom rules', async () => {
+    const { container } = await renderMarkdownDocument(`::cute-table{tuack}
+| Test | Limit | Property |
+| :-: | :-: | :-: |
+| 1 | $10^3$ | C |
+| 2 | ^ | ^ |`);
+
+    const table = screen.getByRole('table');
+    const tableBox = table.getBoundingClientRect();
+    const wrapperBox = container
+      .querySelector('.markdown')!
+      .getBoundingClientRect();
+    expect(tableBox.left - wrapperBox.left).toBeCloseTo(
+      wrapperBox.right - tableBox.right,
+      0
+    );
+    const tableStyle = getComputedStyle(table);
+    expect(tableStyle.borderBottomWidth).toBe('4px');
+    expect(
+      getComputedStyle(table.querySelector('thead')!).borderBottomWidth
+    ).toBe('3px');
+    for (const cell of screen.getAllByRole('cell')) {
+      const style = getComputedStyle(cell);
+      expect(style.textAlign).toBe('center');
+      expect(style.verticalAlign).toBe('middle');
+      expect(style.borderRightWidth).toBe('1px');
+    }
+    expect(container.querySelector('.katex-html')).toBeVisible();
+    expect(container).not.toHaveTextContent('::cute-table');
+    expect(screen.queryByRole('cell', { name: '^' })).not.toBeInTheDocument();
+  });
+});
+
 describe('Markdown highlighter reuse', () => {
   it('does not rebuild the syntax highlighter for every block', async () => {
     const builtBefore = mocks.highlighterFactories;
