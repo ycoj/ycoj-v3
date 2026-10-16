@@ -64,5 +64,6 @@ For a workflow with multiple HTTP requests, persist response cookies in a cookie
 - For finding problems and creating a contest, read [workflows/create-contest-with-problems.md](workflows/create-contest-with-problems.md).
 - For applying the same edit across selected problems, read [workflows/bulk-edit-problems.md](workflows/bulk-edit-problems.md).
 - For starting, polling, and reviewing a contest C++ similarity check, read [workflows/check-contest-plagiarism.md](workflows/check-contest-plagiarism.md).
+- For an AI joint analysis of several finished contests, read [workflows/analyze-contests.md](workflows/analyze-contests.md).
 
 For mutations, validate target IDs before the first write, record each successful returned ID, stop on the first unexpected response, and do not retry non-idempotent requests unless the prior attempt is known not to have committed. Complete the workflow's read-back verification before reporting success.

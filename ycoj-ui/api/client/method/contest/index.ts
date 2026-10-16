@@ -1,3 +1,11 @@
+import {
+  cancelContestAnalysis,
+  createContestAnalysis,
+  deleteContestAnalysis,
+  getContestAnalysisJob,
+  getContestAnalysisOverview,
+  retryContestAnalysis,
+} from '@/api/client/method/contest/analysis';
 import { submitContestBulk } from '@/api/client/method/contest/bulk-submit';
 import { createContest } from '@/api/client/method/contest/create';
 import { deleteContest, editContest } from '@/api/client/method/contest/edit';
@@ -35,6 +43,12 @@ import {
 
 const Contest = {
   createContest,
+  getContestAnalysisOverview,
+  createContestAnalysis,
+  getContestAnalysisJob,
+  cancelContestAnalysis,
+  deleteContestAnalysis,
+  retryContestAnalysis,
   editContest,
   deleteContest,
   attendContest,

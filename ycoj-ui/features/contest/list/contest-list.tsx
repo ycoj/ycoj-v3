@@ -1,3 +1,5 @@
+'use client';
+
 import type { ContestListResponse } from '@/api/server/method/contests/list';
 import ContestRuleBadge from '@/features/contest/contest-rule-badge';
 import ContestStatus, {
@@ -7,6 +9,7 @@ import ContestStatus, {
 } from '@/features/contest/contest-status';
 import TimeDurationBadge from '@/shared/components/time-duration-badge';
 import { Badge } from '@/shared/components/ui/badge';
+import { Checkbox } from '@/shared/components/ui/checkbox';
 import {
   Empty,
   EmptyDescription,
@@ -23,8 +26,15 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { Fragment } from 'react';
 
+export type ContestSelection = {
+  selected: ReadonlySet<string>;
+  onToggle: (docId: string) => void;
+  isSelectable: (contest: ContestListProjection) => boolean;
+};
+
 type Props = {
   data: ContestListResponse;
+  selection?: ContestSelection;
 };
 
 function getContestStatus(
@@ -82,79 +92,103 @@ function ContestItem({
   status,
   attended,
   statusBadgeClassName,
+  selection,
 }: {
   contest: ContestListProjection;
   status: ContestRuntimeStatus;
   attended: boolean;
   statusBadgeClassName?: string;
+  selection?: ContestSelection;
 }) {
   const t = useTranslations('contest');
   const common = useTranslations('common');
 
   const problemCount = contest.pids?.length ?? 0;
   const contestHref = `/contest/${contest.docId}`;
+  const selectable = selection?.isSelectable(contest) ?? false;
+  const selected = selection?.selected.has(contest.docId) ?? false;
 
   return (
-    <div data-llm-visible="true" className="space-y-2">
-      <div className="flex items-start justify-between gap-3">
-        <Link
-          href={contestHref}
-          prefetch={false}
-          data-llm-text={contest.title}
-          className={cn(
-            'truncate text-sm font-medium hover:underline md:text-lg',
-            getContestStatusTextClassName(status),
-            getContestStatusHoverTextClassName(status)
-          )}
-        >
-          {contest.title}
-        </Link>
-        <ContestStatus status={status} className={statusBadgeClassName} />
-      </div>
+    <div
+      data-llm-visible="true"
+      className={cn('space-y-2', selection && 'flex items-start gap-3')}
+    >
+      {selection && (
+        <Checkbox
+          checked={selected}
+          disabled={!selectable}
+          aria-label={t('analysis.selectContest', { title: contest.title })}
+          className="mt-1"
+          onCheckedChange={() => {
+            if (!selectable) return;
+            selection.onToggle(contest.docId);
+          }}
+        />
+      )}
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="flex items-start justify-between gap-3">
+          <Link
+            href={contestHref}
+            prefetch={false}
+            data-llm-text={contest.title}
+            className={cn(
+              'truncate text-sm font-medium hover:underline md:text-lg',
+              getContestStatusTextClassName(status),
+              getContestStatusHoverTextClassName(status)
+            )}
+          >
+            {contest.title}
+          </Link>
+          <ContestStatus status={status} className={statusBadgeClassName} />
+        </div>
 
-      <div className="flex items-center gap-3 text-xs">
-        <div className="text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-          <ContestRuleBadge rule={contest.rule} />
-          {contest.rated && (
-            <Badge
-              variant="secondary"
-              className="bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400"
-              title={t('rated')}
-            >
-              <Star data-icon="inline-start" />
-              <span data-llm-text={t('rated')}>{t('rated')}</span>
+        <div className="flex items-center gap-3 text-xs">
+          <div className="text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+            <ContestRuleBadge rule={contest.rule} />
+            {contest.rated && (
+              <Badge
+                variant="secondary"
+                className="bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400"
+                title={t('rated')}
+              >
+                <Star data-icon="inline-start" />
+                <span data-llm-text={t('rated')}>{t('rated')}</span>
+              </Badge>
+            )}
+            <Badge variant="secondary" title={t('participants')}>
+              <Users data-icon="inline-start" />
+              <span
+                data-llm-text={String(contest.attend)}
+                className="tabular-nums"
+              >
+                {contest.attend}
+              </span>
             </Badge>
-          )}
-          <Badge variant="secondary" title={t('participants')}>
-            <Users data-icon="inline-start" />
-            <span
-              data-llm-text={String(contest.attend)}
-              className="tabular-nums"
-            >
-              {contest.attend}
-            </span>
-          </Badge>
-          <TimeDurationBadge
-            startTime={contest.beginAt}
-            endTime={contest.endAt}
-            durationLabel={t('duration')}
-            timeRangeLabel={t('time')}
-          />
-          <Badge variant="secondary" title={t('problemCount')}>
-            <Code2 data-icon="inline-start" />
-            <span data-llm-text={String(problemCount)} className="tabular-nums">
-              {common('problems', { count: problemCount })}
-            </span>
-          </Badge>
-          {attended && (
-            <Badge
-              variant="secondary"
-              className="bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
-            >
-              <Check data-icon="inline-start" />
-              <span data-llm-text={t('joined')}>{t('joined')}</span>
+            <TimeDurationBadge
+              startTime={contest.beginAt}
+              endTime={contest.endAt}
+              durationLabel={t('duration')}
+              timeRangeLabel={t('time')}
+            />
+            <Badge variant="secondary" title={t('problemCount')}>
+              <Code2 data-icon="inline-start" />
+              <span
+                data-llm-text={String(problemCount)}
+                className="tabular-nums"
+              >
+                {common('problems', { count: problemCount })}
+              </span>
             </Badge>
-          )}
+            {attended && (
+              <Badge
+                variant="secondary"
+                className="bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
+              >
+                <Check data-icon="inline-start" />
+                <span data-llm-text={t('joined')}>{t('joined')}</span>
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -167,12 +201,14 @@ function ContestItemList({
   attendedById,
   statusBadgeClassName,
   itemHoverClassName = 'hover:bg-accent/30',
+  selection,
 }: {
   contests: ContestListProjection[];
   statusById: Map<string, ContestRuntimeStatus>;
   attendedById: (docId: string) => boolean;
   statusBadgeClassName?: string;
   itemHoverClassName?: string;
+  selection?: ContestSelection;
 }) {
   return (
     <>
@@ -189,6 +225,7 @@ function ContestItemList({
               status={statusById.get(contest.docId) ?? 'ended'}
               attended={attendedById(contest.docId)}
               statusBadgeClassName={statusBadgeClassName}
+              selection={selection}
             />
           </div>
           {index < contests.length - 1 && <Separator />}
@@ -198,7 +235,7 @@ function ContestItemList({
   );
 }
 
-export default function ContestList({ data }: Props) {
+export default function ContestList({ data, selection }: Props) {
   const t = useTranslations('contest');
   if (!data.tdocs.length) {
     return (
@@ -252,6 +289,7 @@ export default function ContestList({ data }: Props) {
               attendedById={attendedById}
               statusBadgeClassName={sectionStatusBadgeClassName[section.status]}
               itemHoverClassName={sectionItemHoverClassName[section.status]}
+              selection={selection}
             />
           </section>
         ))}
@@ -265,6 +303,7 @@ export default function ContestList({ data }: Props) {
             contests={groups.ended}
             statusById={statusById}
             attendedById={attendedById}
+            selection={selection}
           />
         </div>
       )}

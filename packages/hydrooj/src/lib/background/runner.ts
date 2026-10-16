@@ -53,6 +53,12 @@ export class BackgroundTaskService {
         return doc && (d.toPublic ? d.toPublic(doc) : doc);
     }
 
+    // Abort an in-flight job started by this process. The run callback observes the abort signal and
+    // the store remains responsible for the terminal status.
+    cancel(id: string) {
+        this.controllers.get(id)?.abort();
+    }
+
     async sweep() {
         const now = new Date();
         const types = [...this.definitions.values()];

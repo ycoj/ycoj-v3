@@ -1,10 +1,11 @@
 {
   "title": "AI providers",
-  "description": "Manage AI providers and models for test-data generation and problem content conversion.",
+  "description": "Manage AI providers and models for test-data generation, problem content conversion and contest analysis.",
   "defaults": "Default models",
   "defaultsHint": "Choose the model each feature uses by default.",
   "dataGeneration": "AI data generation model",
   "htmlToMarkdown": "HTML to Markdown conversion model",
+  "contestAnalysis": "Contest analysis model",
   "chooseModel": "Choose a model",
   "addProvider": "Add provider",
   "removeProvider": "Remove provider",

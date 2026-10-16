@@ -1,6 +1,6 @@
 import ServerApis from '@/api/server/method';
+import ContestAnalysisLauncher from '@/features/contest/analysis/contest-analysis-launcher';
 import ContestFilter from '@/features/contest/list/contest-filter';
-import ContestList from '@/features/contest/list/contest-list';
 import { getUser } from '@/features/user/lib/get-user';
 import { hasPerm, PERM } from '@/features/user/lib/priv';
 import Pagination from '@/shared/components/pagination';
@@ -63,7 +63,12 @@ export default async function ContestListPage({
         groups={data.groups}
         canCreate={hasPerm(user, PERM.PERM_CREATE_CONTEST)}
       />
-      <ContestList data={data} />
+      <ContestAnalysisLauncher
+        data={data}
+        uid={user?._id ?? 0}
+        canManageAll={hasPerm(user, PERM.PERM_EDIT_CONTEST)}
+        canManageOwn={hasPerm(user, PERM.PERM_EDIT_CONTEST_SELF)}
+      />
       <div className="pt-1">
         <Pagination page={data.page} totalPages={data.tpcount} />
       </div>

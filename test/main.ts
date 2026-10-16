@@ -36,6 +36,13 @@ describe('App', () => {
         it(`GET ${route}`, () => agent.get(route).expect(200));
     }
 
+    it('Contest analysis list is reachable before the contest detail route', async () => {
+        const response = await agent.get('/contest/analysis')
+            .set('Accept', 'application/json').expect(200);
+        assert.ok(Array.isArray(response.body.jobs));
+        assert.equal(response.body.tdoc, undefined);
+    });
+
     it('Anonymous check-in API state', async () => {
         const home = await agent.get('/').set('Accept', 'application/json').expect(200);
         assert.equal(home.body.checkin.timezone, 'UTC+08:00');

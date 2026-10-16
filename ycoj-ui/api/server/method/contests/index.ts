@@ -1,3 +1,7 @@
+import {
+  getContestAnalysisJob,
+  getContestAnalysisOverview,
+} from '@/api/server/method/contests/analysis';
 import { getContestBulkSubmit } from '@/api/server/method/contests/bulk-submit';
 import { getContestDetail } from '@/api/server/method/contests/detail';
 import { getContestEdit } from '@/api/server/method/contests/edit';
@@ -21,6 +25,8 @@ import {
 
 const Contests = {
   getContestList,
+  getContestAnalysisOverview,
+  getContestAnalysisJob,
   getContestDetail,
   getContestEdit,
   getContestProblems,

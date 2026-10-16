@@ -35,6 +35,7 @@ import { ContestBulkSubmitHandler } from './contest/bulkSubmit';
 import { ContestManagementBaseHandler } from './contest/managementBase';
 import { getScoreboardExport } from './contest/scoreboardExport';
 import { ContestSolutionDetailHandler, ContestSolutionEditHandler, loadContestSolutions } from './contest/solution';
+import { ContestAnalysisHandler, ContestAnalysisJobHandler } from './contestAnalysis';
 
 export { ContestDetailBaseHandler } from './contest/base';
 export { ContestBulkSubmitHandler } from './contest/bulkSubmit';
@@ -877,6 +878,8 @@ declare module 'cordis' {
 
 export async function apply(ctx: Context) {
     ctx.Route('contest_create', '/contest/create', ContestEditHandler);
+    ctx.Route('contest_analysis', '/contest/analysis', ContestAnalysisHandler);
+    ctx.Route('contest_analysis_job', '/contest/analysis/:aid', ContestAnalysisJobHandler);
     ctx.Route('contest_main', '/contest', ContestListHandler, PERM.PERM_VIEW_CONTEST);
     ctx.Route('contest_detail', '/contest/:tid', ContestDetailHandler, PERM.PERM_VIEW_CONTEST);
     ctx.Route('contest_solution_create', '/contest/:tid/solution/create', ContestSolutionEditHandler, PERM.PERM_VIEW_CONTEST);

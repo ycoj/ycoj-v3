@@ -41,6 +41,7 @@ export interface AiProviderConfig {
     providers: AiProvider[];
     dataGeneration?: AiModelSelection;
     htmlToMarkdown?: AiModelSelection;
+    contestAnalysis?: AiModelSelection;
 }
 
 export interface AiModelConfig {
@@ -81,6 +82,7 @@ export function createAiProviderConfigDraft(): AiProviderConfig {
         }],
         dataGeneration: { providerId, modelId },
         htmlToMarkdown: { providerId, modelId },
+        contestAnalysis: { providerId, modelId },
     };
 }
 
@@ -175,7 +177,14 @@ export function normalizeAiProviderConfig(value: any, existing?: AiProviderConfi
         ? value.htmlToMarkdown
         : existing?.htmlToMarkdown || dataGeneration;
     const htmlToMarkdown = normalizeAssignment(htmlToMarkdownValue, 'htmlToMarkdown');
-    return { version: 1, providers, dataGeneration, htmlToMarkdown };
+    // Configurations saved before contest analysis was introduced use the data-generation model.
+    const contestAnalysisValue = Object.hasOwn(value, 'contestAnalysis')
+        ? value.contestAnalysis
+        : existing?.contestAnalysis || dataGeneration;
+    const contestAnalysis = normalizeAssignment(contestAnalysisValue, 'contestAnalysis');
+    return {
+        version: 1, providers, dataGeneration, htmlToMarkdown, contestAnalysis,
+    };
 }
 
 export function getAiProviderConfig(value: any): AiProviderConfig | undefined {

@@ -45,6 +45,7 @@ export interface SystemKeys {
     'aiGeneration.concurrency': number;
     'aiGeneration.sandboxHost': string;
     'aiGeneration.sandboxToken': string;
+    'contestAnalysis.enabled': boolean;
     'session.keys': string[];
     'session.saved_expire_seconds': number;
     'session.unsaved_expire_seconds': number;

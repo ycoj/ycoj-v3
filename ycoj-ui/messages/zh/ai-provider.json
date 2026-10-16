@@ -1,10 +1,11 @@
 {
   "title": "AI 提供商",
-  "description": "管理 AI 提供商及模型，用于测试数据生成和题目内容转换。",
+  "description": "管理 AI 提供商及模型，用于测试数据生成、题目内容转换和比赛分析。",
   "defaults": "默认模型",
   "defaultsHint": "选择各项功能默认使用的模型。",
   "dataGeneration": "AI 数据生成模型",
   "htmlToMarkdown": "HTML 转 Markdown 模型",
+  "contestAnalysis": "比赛分析模型",
   "chooseModel": "选择模型",
   "addProvider": "添加提供商",
   "removeProvider": "移除提供商",

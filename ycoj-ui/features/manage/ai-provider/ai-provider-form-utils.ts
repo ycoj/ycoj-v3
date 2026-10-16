@@ -68,9 +68,14 @@ export function createAiProviderSchema(messages: ValidationMessages) {
         .min(1, messages.providerRequired),
       dataGeneration: selection,
       htmlToMarkdown: selection,
+      contestAnalysis: selection,
     })
     .superRefine((config, ctx) => {
-      for (const key of ['dataGeneration', 'htmlToMarkdown'] as const) {
+      for (const key of [
+        'dataGeneration',
+        'htmlToMarkdown',
+        'contestAnalysis',
+      ] as const) {
         const selected = config[key];
         if (
           !config.providers.some(
@@ -136,6 +141,9 @@ export function getAiProviderDefaults(
     htmlToMarkdown: valid(config.htmlToMarkdown)
       ? config.htmlToMarkdown
       : dataGeneration,
+    contestAnalysis: valid(config.contestAnalysis)
+      ? config.contestAnalysis
+      : dataGeneration,
   };
 }
 
@@ -144,7 +152,11 @@ export function isAiModelSelected(
   providerId: string,
   modelId?: string
 ) {
-  return [config.dataGeneration, config.htmlToMarkdown].some(
+  return [
+    config.dataGeneration,
+    config.htmlToMarkdown,
+    config.contestAnalysis,
+  ].some(
     (selection) =>
       selection?.providerId === providerId &&
       (!modelId || selection.modelId === modelId)

@@ -7,7 +7,7 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 | URL or operation | Documents | Includes |
 | --- | --- | --- |
 | `/p`, `/p/*`, `/problem/*`; problem `/api` ops | [Problem](problem/README.md) | Search with reviewer-only pending solution counts, detail, create/edit, submit/hack, user feedback and admin feedback moderation, async HTML-to-Markdown jobs and polling, files, solutions/review/author blocks, statistics, compatibility/import routes, problem queries/mutation |
-| `/contest`, `/contest/*` | [Contest](contest/README.md) | Lists, details, creation/editing, problem list, management with full problem documents and contest-wide rejudge, asynchronous C++ plagiarism jobs and source snapshots, bulk submit, files, users, print, balloons, scoreboard, onsite-toolkit routes |
+| `/contest`, `/contest/*` | [Contest](contest/README.md) | Lists, details, creation/editing, problem list, management with full problem documents and contest-wide rejudge, asynchronous C++ plagiarism jobs and source snapshots, bulk submit, files, users, print, balloons, scoreboard, onsite-toolkit routes, as well as AI joint analysis of multiple finished contests with job polling and per-student reports |
 | `/homework`, `/homework/*` | [Homework](homework/README.md) | Creation/editing, attendance, files, code, scoreboard |
 | `/training`, `/training/*` | [Training](training/README.md) | Lists, plans, editing, files and downloads |
 | `/preliminary`, `/preliminary/*` | [Preliminary Round Training](preliminary/README.md) | Structured objective and programming papers, referenced problem dictionaries, draft/publish management, attempts, scores, and incorrect-answer explanations |

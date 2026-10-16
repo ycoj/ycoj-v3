@@ -34,4 +34,5 @@ export type AiProviderConfig = {
   providers: AiProvider[];
   dataGeneration?: AiModelSelection;
   htmlToMarkdown?: AiModelSelection;
+  contestAnalysis?: AiModelSelection;
 };

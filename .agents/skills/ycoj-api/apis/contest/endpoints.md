@@ -36,6 +36,10 @@ Description: show permitted contest source code. Request: `type Q={tid:ObjectId;
 ### GET `/contest/:tid/file/:type/:filename`
 Description: download a public/private contest file. Request: `type Q={tid:ObjectId;type:"public"|"private";filename:string;noDisposition?:boolean}`; `GET /contest/665f.../file/public/rules.pdf`. Response: `type R=Redirect|JsonRedirect`; browser `302 Location: https://storage/signed?...`; with `Accept: application/json`, HTTP 200 `{ "url":"https://storage/signed?..." }` (the `noDisposition` flag controls storage disposition).
 
+### GET/POST `/contest/analysis`, `GET/POST /contest/analysis/:aid`
+
+Description: AI analysis of 1-12 finished contests in the current domain. Request: `type B={tids:ObjectId[];title?:string;instructions?:string;includeStudents?:boolean;profileId?:string;language?:"zh"|"en"}` for creation and `type B={operation:"cancel"|"delete"|"retry"}` for job changes; `POST /contest/analysis` body `{ "tids":["665f00000000000000000001"],"includeStudents":true }`. Response: `type R={enabled:boolean;profiles:{id:string;label:string;model:string}[];defaultProfileId:string;jobs:ContestAnalysisJobSummary[]}` for the list, `{ "jobId":"4d548c56-28fc-4cf2-881c-a0f636466f59" }` for create/retry (HTTP 202), `{ job:ContestAnalysisJob;canManage:boolean }` for the job detail and `{ ok:true }` for cancel/delete. Requires `PERM_EDIT_CONTEST_SELF` on owned contests or `PERM_EDIT_CONTEST` on all selected contests, a finished contest, a visible scoreboard, the `contestAnalysis.enabled` flag and a configured analysis model. Full schemas, snapshot layout, agent behaviour, limits and retention: [analysis.md](analysis.md).
+
 ## Management, print, users, balloons, scoreboard
 
 ### POST `/contest/:tid/management`

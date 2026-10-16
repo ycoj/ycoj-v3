@@ -32,6 +32,7 @@ function fixture(): AiProviderConfig {
     ],
     dataGeneration: { providerId: 'provider-1', modelId: 'model-1' },
     htmlToMarkdown: { providerId: 'provider-1', modelId: 'model-1' },
+    contestAnalysis: { providerId: 'provider-1', modelId: 'model-1' },
   };
 }
 
@@ -65,24 +66,25 @@ describe('AI provider form validation', () => {
       expect(schema.safeParse(config).success).toBe(false);
     }
   );
-  it('requires both selections to reference models owned by their providers', () => {
-    const config = fixture();
-    config.htmlToMarkdown = {
-      providerId: 'provider-1',
-      modelId: 'missing-model',
-    };
-    const result = schema.safeParse(config);
-    expect(result.success).toBe(false);
-    if (!result.success)
-      expect(result.error.issues[0].message).toBe(
-        messages.aiProvider.validation.selectionRequired
-      );
-  });
-  it('uses the data-generation model for configurations without a conversion selection', () => {
-    const config = fixture();
-    delete config.htmlToMarkdown;
-    expect(getAiProviderDefaults(config).htmlToMarkdown).toEqual(
-      config.dataGeneration
-    );
-  });
+  it.each(['htmlToMarkdown', 'contestAnalysis'] as const)(
+    'requires %s to reference a model owned by its provider',
+    (key) => {
+      const config = fixture();
+      config[key] = { providerId: 'provider-1', modelId: 'missing-model' };
+      const result = schema.safeParse(config);
+      expect(result.success).toBe(false);
+      if (!result.success)
+        expect(result.error.issues[0].message).toBe(
+          messages.aiProvider.validation.selectionRequired
+        );
+    }
+  );
+  it.each(['htmlToMarkdown', 'contestAnalysis'] as const)(
+    'uses the data-generation model when %s is not configured',
+    (key) => {
+      const config = fixture();
+      delete config[key];
+      expect(getAiProviderDefaults(config)[key]).toEqual(config.dataGeneration);
+    }
+  );
 });

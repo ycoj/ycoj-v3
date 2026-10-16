@@ -1,17 +1,7 @@
+import type { AiAgentEvent as AiAgentEventType, AiAgentRunner as AiAgentRunnerType } from '../agent';
+import { createToolAgent } from '../agent';
 import type { AiModelRuntimeConfig } from '../runtime';
 import { GoJudgeSessionClient } from './session';
-
-export interface AiAgentEvent {
-    phase: 'tool-start' | 'tool-end';
-    toolCallId: string;
-    tool: string;
-    summary: string;
-    details?: Record<string, any>;
-    error?: string;
-    failed?: boolean;
-}
-
-const MAX_TOOL_ERROR_TEXT = 4_096;
 
 function textResult(text: string, details: any) {
     return { content: [{ type: 'text' as const, text }], details };
@@ -57,19 +47,6 @@ function toolResultDetails(tool: string, result: any): Record<string, any> {
         };
     }
     return {};
-}
-
-function boundedToolError(result: any) {
-    const content = Array.isArray(result?.content) ? result.content : [];
-    let text = '';
-    for (const block of content) {
-        if (block?.type !== 'text' || typeof block.text !== 'string') continue;
-        const prefix = text ? '\n' : '';
-        const remaining = MAX_TOOL_ERROR_TEXT - text.length - prefix.length;
-        if (remaining <= 0) break;
-        text += `${prefix}${block.text.slice(0, remaining)}`;
-    }
-    return text || undefined;
 }
 
 export function createSessionTools(
@@ -156,117 +133,24 @@ export function createSessionTools(
     return [Read, Edit, Shell];
 }
 
-function finalAssistantText(agent: any) {
-    const message = [...agent.state.messages].reverse().find((item: any) => item.role === 'assistant') as any;
-    if (!message) return '';
-    return message.content
-        .filter((block: any) => block.type === 'text')
-        .map((block: any) => block.text)
-        .join('\n')
-        .trim();
-}
-
-export interface AiAgentRunner {
-    prompt(text: string): Promise<string>;
-    abort(): void;
-}
+export { type AiAgentEvent, type AiAgentRunner } from '../agent';
 
 export async function createAiAgent(
     config: AiModelRuntimeConfig, client: GoJudgeSessionClient, sandboxSessionId: string,
     providerSessionId: string, systemPrompt: string,
-    onEvent?: (event: AiAgentEvent) => Promise<void> | void,
-): Promise<AiAgentRunner> {
-    const load = (specifier: string): Promise<any> => import(specifier);
-    const [{ Agent: PiAgent }, ai, apiModule] = await Promise.all([
-        load('@earendil-works/pi-agent-core'),
-        load('@earendil-works/pi-ai'),
-        config.apiType === 'openai-responses'
-            ? load('@earendil-works/pi-ai/api/openai-responses.lazy')
-            : load('@earendil-works/pi-ai/api/openai-completions.lazy'),
-    ]);
-    const providerId = config.providerId || 'ai-generation';
-    const baseUrl = config.baseUrl.replace(/\/+$/, '');
-    const model = {
-        id: config.model,
-        name: config.model,
-        api: config.apiType,
-        provider: providerId,
-        baseUrl,
-        reasoning: config.reasoning,
-        input: ['text'],
-        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-        contextWindow: config.contextTokens,
-        maxTokens: config.maxTokens,
-    };
-    const provider = ai.createProvider({
-        id: providerId,
-        name: config.providerName || 'AI testdata generation',
-        baseUrl,
-        auth: {
-            apiKey: {
-                name: 'AI generation API key',
-                resolve: async ({ signal }) => {
-                    signal.throwIfAborted();
-                    return config.apiKey ? { auth: { apiKey: config.apiKey }, source: 'Hydro AI provider configuration' } : undefined;
-                },
-            },
-        },
-        models: [model],
-        api: config.apiType === 'openai-responses'
-            ? apiModule.openAIResponsesApi()
-            : apiModule.openAICompletionsApi(),
+    onEvent?: (event: AiAgentEventType) => Promise<void> | void,
+): Promise<AiAgentRunnerType> {
+    return createToolAgent({
+        config,
+        providerSessionId,
+        systemPrompt,
+        providerLabel: 'AI testdata generation',
+        tools: createSessionTools(client, sandboxSessionId, (await import('@earendil-works/pi-ai')).Type),
+        describeToolStart: summarizeTool,
+        describeToolResult: (tool, result) => ({
+            summary: summarizeToolResult(tool, result),
+            details: toolResultDetails(tool, result),
+        }),
+        onEvent,
     });
-    const models = ai.createModels();
-    models.setProvider(provider);
-    const agent = new PiAgent({
-        initialState: {
-            systemPrompt,
-            model,
-            thinkingLevel: config.reasoning ? config.thinkingLevel : 'off',
-            tools: createSessionTools(client, sandboxSessionId, ai.Type),
-            messages: [],
-        },
-        streamFn: models.streamSimple.bind(models),
-        sessionId: providerSessionId,
-        toolExecution: 'sequential',
-    });
-    let eventUpdates = Promise.resolve();
-    agent.subscribe((event: any) => {
-        let update: AiAgentEvent | undefined;
-        if (event.type === 'tool_execution_start') {
-            update = {
-                phase: 'tool-start',
-                toolCallId: event.toolCallId,
-                tool: event.toolName,
-                summary: summarizeTool(event.toolName, event.args),
-            };
-        } else if (event.type === 'tool_execution_end') {
-            const failed = event.isError === true;
-            update = {
-                phase: 'tool-end',
-                toolCallId: event.toolCallId,
-                tool: event.toolName,
-                summary: failed ? 'tool execution error' : summarizeToolResult(event.toolName, event.result),
-                details: toolResultDetails(event.toolName, event.result),
-                error: failed ? boundedToolError(event.result) : undefined,
-                failed,
-            };
-        }
-        if (update && onEvent) {
-            eventUpdates = eventUpdates
-                .then(() => onEvent(update))
-                .catch(() => undefined)
-                .then(() => undefined);
-        }
-        // Deliberately ignore thinking and text streaming events. The final response is returned only to the caller.
-    });
-    return {
-        async prompt(text: string) {
-            await agent.prompt(text);
-            await eventUpdates;
-            if (agent.state.errorMessage) throw new Error(agent.state.errorMessage);
-            return finalAssistantText(agent);
-        },
-        abort: () => agent.abort(),
-    };
 }

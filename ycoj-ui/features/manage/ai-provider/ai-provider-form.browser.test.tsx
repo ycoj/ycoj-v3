@@ -159,6 +159,7 @@ describe('AI provider settings', () => {
     ).toBeDisabled();
     await choose('AI data generation model', 'OpenAI / Second model');
     await choose('HTML to Markdown conversion model', 'OpenAI / Second model');
+    await choose('Contest analysis model', 'OpenAI / Second model');
     expect(
       screen.getByRole('button', { name: 'Remove model First model' })
     ).toBeDisabled();

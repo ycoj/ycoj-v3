@@ -95,7 +95,11 @@ export default function AiProviderForm({ config }: Props) {
       providerId: provider.id,
       modelId: provider.models[0].id,
     };
-    for (const key of ['dataGeneration', 'htmlToMarkdown'] as const) {
+    for (const key of [
+      'dataGeneration',
+      'htmlToMarkdown',
+      'contestAnalysis',
+    ] as const) {
       if (!getValues(key)) setValue(key, selection, { shouldDirty: true });
     }
   };
@@ -157,7 +161,13 @@ export default function AiProviderForm({ config }: Props) {
             </CardHeader>
             <CardContent>
               <FieldGroup className="grid items-start gap-5 sm:grid-cols-2">
-                {(['dataGeneration', 'htmlToMarkdown'] as const).map((key) => (
+                {(
+                  [
+                    'dataGeneration',
+                    'htmlToMarkdown',
+                    'contestAnalysis',
+                  ] as const
+                ).map((key) => (
                   <Controller
                     key={key}
                     control={control}
