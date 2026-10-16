@@ -6,3 +6,6 @@ allowBuilds:
   sharp: true
   ssh2: true
   unrs-resolver: true
+
+overrides:
+  md-editor-rt>markdown-it: 14.3.1

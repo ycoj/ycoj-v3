@@ -17,6 +17,8 @@ vi.mock('next-themes', () => ({
 }));
 
 vi.mock('md-editor-rt', () => ({
+  config: vi.fn(),
+  XSSPlugin: vi.fn(),
   MdEditor: (props: EditorProps) => {
     editorProps.current = props;
 

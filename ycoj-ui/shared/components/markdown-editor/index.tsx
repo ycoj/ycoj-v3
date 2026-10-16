@@ -1,6 +1,7 @@
 'use client';
 
 import './style.css';
+import './editor-config';
 import { cn } from '@/shared/lib/utils';
 import { MdEditor } from 'md-editor-rt';
 import 'md-editor-rt/lib/style.css';
