@@ -97,6 +97,7 @@ function buildProblemFacts(raw: RawAnalysisContest): ContestAnalysisProblemFact[
         return {
             pid,
             title: pdoc?.title || `#${pid}`,
+            content: pdoc?.content || '',
             difficulty: pdoc?.difficulty || 0,
             tags: (pdoc?.tag || []).map((tag) => String(tag)),
             maxScore,
@@ -324,7 +325,9 @@ export async function collectContestAnalysisData(domainId: string, tids: ObjectI
         // eslint-disable-next-line no-await-in-loop
         const tdoc = await contest.get(domainId, tid);
         // eslint-disable-next-line no-await-in-loop
-        const pdict = await problem.getList(domainId, tdoc.pids, true, true, problem.PROJECTION_CONTEST_DETAIL);
+        const pdict = await problem.getList(domainId, tdoc.pids, true, true, [
+            ...problem.PROJECTION_CONTEST_DETAIL, 'difficulty', 'tag',
+        ]);
         const pdocs = tdoc.pids.map((pid) => pdict[pid]).filter(Boolean) as ProblemDoc[];
 
         const cursor = contest.getMultiStatus(domainId, { docId: tid, attend: { $gt: 0 } })

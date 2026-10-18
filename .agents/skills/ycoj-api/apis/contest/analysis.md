@@ -117,12 +117,13 @@ type ContestAnalysisResult = {
 
 ### Snapshot
 
-The snapshot is computed by the server from the contest scoreboards and problem metadata; it is deterministic and independent of the model. Scores use the contest's per-problem score weights, `maxScore` defaults to 100, and only submissions recorded in the contest journal count.
+The snapshot is computed by the server from the contest scoreboards, problem statements and problem metadata; it is deterministic and independent of the model. Scores use the contest's per-problem score weights, `maxScore` defaults to 100, and only submissions recorded in the contest journal count. Supplied tags and difficulty are preserved; model-inferred tags and difficulty appear only in the report text and do not change snapshot metadata or aggregate statistics.
 
 ```ts
 type ContestAnalysisProblemFact = {
   pid: number;
   title: string;
+  content?: string; // raw statement, empty if unavailable; absent in older snapshots
   difficulty: number; // 0 when the problem has no difficulty
   tags: string[];
   maxScore: number;
@@ -245,12 +246,14 @@ type ContestAnalysisReport = {
 ## Job lifecycle and agent behaviour
 
 1. `waiting` – the job is admitted with the selected scope; `GET` returns the scope immediately.
-2. `preparing` – the server builds the snapshot from scoreboards, problem metadata, participants and tags. Failures (missing contests, participant limits, snapshot problems) end the job with `stage: 'failed'`.
-3. `overview` – an agent turn reads the snapshot through read-only tools (`get_scope_overview`, `list_contests`, `get_contest`, `list_problems`, `get_tag_statistics`, `list_students`, `get_student`, `search_students`) and submits the group overview and per-contest reviews. Invalid submissions are retried up to three times with the validation message.
+2. `preparing` – the server builds the snapshot from scoreboards, problem statements, problem metadata, participants and tags. Failures (missing contests, participant limits, snapshot problems) end the job with `stage: 'failed'`.
+3. `overview` – an agent turn reads the snapshot through read-only tools (`get_scope_overview`, `list_contests`, `get_contest`, `list_problems`, `get_problem_statement`, `get_tag_statistics`, `list_students`, `get_student`, `search_students`) and submits the group overview and per-contest reviews. Invalid submissions are retried up to three times with the validation message.
 4. `students` – when `includeStudents` is true, the participants are processed in batches of six; every batch must submit one report per student in that batch, with the same three-attempt validation. `progress` advances with the batches and each batch appends an `agent` event that lists the uids it covered.
 5. `finalizing` – the group and per-student reports are merged, size-checked and stored as the job result.
 6. `done` – `progress` is 100 and `result` is returned.
 
 The agent never receives write access to platform data: the read-only tools expose the snapshot only, and the submission tools store the report on the job. Tool calls and turn boundaries are appended to `events`, newest last, so a client can poll `GET /contest/analysis/:aid` every few seconds and render progress.
+
+Both overview and student turns can call `get_problem_statement` with `{ tid, pid, offset? }` for a problem in the analyzed contest scope. It returns `{ tid, pid, content, offset, totalLength, nextOffset }`; offsets count JavaScript string code units, each page contains up to 2,000 code units, and `nextOffset: null` marks the end. Empty content means the statement is unavailable. Bulk contest/problem tools omit statement content. When tags are empty or difficulty is 0, the agent is instructed to read all statement pages, infer the missing information from algorithms and constraints with performance data as supporting evidence, and identify these judgments as inferred/estimated in the report. Existing metadata remains authoritative for supplied fields. If the statement is insufficient, the report should acknowledge the uncertainty. Tag statistics, tag filters and difficulty gradients continue to use supplied metadata only; the model must ground inferred knowledge points in actual problem/student statistics.
 
 Image export and other contest endpoints are unaffected by analysis jobs.

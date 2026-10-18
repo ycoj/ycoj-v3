@@ -91,6 +91,7 @@ function friendlyToolLabel(tool: string) {
         list_contests: 'Reading the contest list',
         get_contest: 'Reading a contest',
         list_problems: 'Reading the problem list',
+        get_problem_statement: 'Reading a problem statement',
         get_tag_statistics: 'Reading knowledge-point statistics',
         list_students: 'Reading the student list',
         get_student: 'Reading a student record',
@@ -174,6 +175,7 @@ export class ContestAnalysisJobs {
             const describeToolStart = (tool: string, args: any) => {
                 if (tool === 'get_student') return `uid ${args?.uid}`;
                 if (tool === 'get_contest') return String(args?.tid || '');
+                if (tool === 'get_problem_statement') return `${args?.tid || ''} / pid ${args?.pid}`;
                 return args?.query ? String(args.query) : '';
             };
 

@@ -204,6 +204,40 @@ export function createContestAnalysisTools(Type: any, context: AnalysisToolConte
         },
     };
 
+    const getProblemStatement = {
+        name: 'get_problem_statement',
+        label: 'Get problem statement',
+        description: 'Read the raw statement of a problem in an analyzed contest, including constraints and examples. '
+            + 'Use it to infer missing algorithm tags or difficulty. Statements are paginated; '
+            + 'continue with nextOffset until it is null before drawing conclusions.',
+        parameters: Type.Object({
+            tid: Type.String({ description: 'Contest id from the analysis scope' }),
+            pid: Type.Integer({ description: 'Problem id within that contest' }),
+            offset: Type.Optional(Type.Integer({ minimum: 0 })),
+        }),
+        ...readOnly,
+        async execute(_toolCallId: string, params: { tid: string, pid: number, offset?: number }) {
+            const problem = contestById.get(params.tid)?.problems.find((item) => item.pid === params.pid);
+            if (!problem) throw new Error(`Problem ${params.pid} in contest ${params.tid} is not part of this analysis.`);
+            const statement = problem.content || '';
+            const offset = params.offset ?? 0;
+            if (!Number.isInteger(offset) || offset < 0 || offset > statement.length) {
+                throw new Error(`Statement offset must be an integer between 0 and ${statement.length}.`);
+            }
+            // Keep even heavily JSON-escaped statement pages below the tool output limit.
+            const content = statement.slice(offset, offset + 2000);
+            const end = offset + content.length;
+            return json({
+                tid: params.tid,
+                pid: params.pid,
+                content,
+                offset,
+                totalLength: statement.length,
+                nextOffset: end < statement.length ? end : null,
+            }, { tool: 'get_problem_statement', tid: params.tid, pid: params.pid });
+        },
+    };
+
     const getTagStatistics = {
         name: 'get_tag_statistics',
         label: 'Get tag statistics',
@@ -299,7 +333,7 @@ export function createContestAnalysisTools(Type: any, context: AnalysisToolConte
     };
 
     return [
-        getScopeOverview, listContests, getContest, listProblems, getTagStatistics,
+        getScopeOverview, listContests, getContest, listProblems, getProblemStatement, getTagStatistics,
         listStudents, getStudent, searchStudents,
     ];
 }

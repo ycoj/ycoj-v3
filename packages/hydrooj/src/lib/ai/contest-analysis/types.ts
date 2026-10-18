@@ -55,6 +55,8 @@ export interface ContestAnalysisEvent {
 export interface ContestAnalysisProblemFact {
     pid: number;
     title: string;
+    /** Raw problem statement; absent in snapshots created before statement access was added. */
+    content?: string;
     difficulty: number;
     tags: string[];
     maxScore: number;
