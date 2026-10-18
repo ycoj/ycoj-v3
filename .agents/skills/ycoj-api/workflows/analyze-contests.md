@@ -15,7 +15,7 @@ Use this workflow when a coach or administrator wants one AI review of the class
 3. Create the job: `POST /contest/analysis` with `{ tids, title?, instructions?, includeStudents?, profileId?, language? }`. Expect HTTP 202 `{ jobId }`. Do not retry a request that timed out until you have read the job list, because a retry would create a second job.
 4. Poll `GET /contest/analysis/:aid` every few seconds. Track `status`, `stage`, `progress` and `events`; `preparing` reads the scoreboards, `overview` writes the group review, `students` writes the per-student batches, and `finalizing` merges the report.
 5. Stop when `status` is `completed`, `failed` or `cancelled`.
-   - `completed`: `result.snapshot` holds the deterministic numbers (contest, problem, participant, tag statistics) and `result.report` the AI text (`overview`, `contests`, `students`).
+   - `completed`: `result.snapshot` holds problem statements and the deterministic numbers (contest, problem, participant, tag statistics) and `result.report` the AI text (`overview`, `contests`, `students`). Missing tags/difficulty can be inferred from statements in the AI text; the snapshot retains supplied metadata only.
    - `failed`: read `error` and `stage`. `timed_out` means the one-hour limit was reached; reduce the number of contests or participants and retry.
    - `cancelled`: the job was cancelled; `retry` creates a new job with the same scope.
 6. Optional operations: `POST /contest/analysis/:aid` with `{ operation: "cancel" }` while pending/running, `{ operation: "delete" }` to remove the job, or `{ operation: "retry" }` to run the same scope again (HTTP 202 with a new `jobId`).
@@ -24,6 +24,7 @@ Use this workflow when a coach or administrator wants one AI review of the class
 
 - Confirm `GET /contest/analysis` lists the new job with the expected `contestCount`/`studentCount` and that the detail response has `canManage: true`.
 - Verify the completed report references only the analyzed contests and problems, and that `result.report.students` covers every uid in `result.snapshot.students` when `includeStudents` was not disabled.
+- For problems without tags or difficulty, verify that the report identifies statement-based judgments as inferred/estimated (or acknowledges insufficient information); do not treat these as stored metadata or precomputed tag statistics.
 - Completed jobs are retained for 30 days; re-reading a job after that returns 404 `NotFoundError`.
 
 ## Failure handling

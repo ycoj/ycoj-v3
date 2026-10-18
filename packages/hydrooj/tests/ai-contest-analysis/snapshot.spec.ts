@@ -7,12 +7,14 @@ function mock(request: string, exports: unknown) {
 }
 
 mock('../../src/service/db', {});
-mock('../../src/model/contest', {});
-mock('../../src/model/problem', { default: {} });
+const contestModel: any = { get: undefined, getMultiStatus: undefined };
+const problemModel: any = { PROJECTION_CONTEST_DETAIL: ['docId', 'title', 'content'] };
+mock('../../src/model/contest', contestModel);
+mock('../../src/model/problem', { __esModule: true, default: problemModel });
 mock('../../src/model/user', { default: {} });
 
 type SnapshotModule = typeof import('../../src/lib/ai/contest-analysis/snapshot');
-const { computeContestAnalysisSnapshot } = require('../../src/lib/ai/contest-analysis/snapshot') as SnapshotModule;
+const { collectContestAnalysisData, computeContestAnalysisSnapshot } = require('../../src/lib/ai/contest-analysis/snapshot') as SnapshotModule;
 
 const STATUS_ACCEPTED = 1;
 const STATUS_WRONG_ANSWER = 2;
@@ -45,6 +47,37 @@ function detail(pid: number, score: number, status: number) {
 }
 
 describe('contest analysis snapshot', () => {
+    it('collects statements and existing metadata and preserves missing metadata as unknown', async () => {
+        const tid = new ObjectId('665f000000000000000000aa');
+        const docs = [
+            { ...pdoc(1001, '排序', 3, ['排序']), content: '将 n 个整数按升序排列。' },
+            { docId: 1002, title: '最短路', content: '求带权有向图中的最短路，n <= 100000。' },
+        ];
+        contestModel.get = async () => tdoc(tid, 'R1', [1001, 1002]);
+        contestModel.getMultiStatus = () => ({ sort: () => ({ toArray: async () => [] }) });
+        problemModel.getList = async (domainId, pids, includeHidden, includeReferenced, projection) => {
+            assert.equal(domainId, 'school');
+            assert.deepEqual(pids, [1001, 1002]);
+            assert.equal(includeHidden, true);
+            assert.equal(includeReferenced, true);
+            assert.ok(projection.includes('content'));
+            assert.ok(projection.includes('tag'));
+            assert.ok(projection.includes('difficulty'));
+            return Object.fromEntries(docs.map((doc) => [doc.docId, Object.fromEntries(
+                Object.entries(doc).filter(([field]) => projection.includes(field)),
+            )]));
+        };
+        const raw = await collectContestAnalysisData('school', [tid]);
+        const snapshot = computeContestAnalysisSnapshot(raw);
+        const [known, unknown] = snapshot.contests[0].problems;
+        assert.equal(known.content, docs[0].content);
+        assert.deepEqual(known.tags, ['排序']);
+        assert.equal(known.difficulty, 3);
+        assert.equal(unknown.content, docs[1].content);
+        assert.deepEqual(unknown.tags, []);
+        assert.equal(unknown.difficulty, 0);
+    });
+
     it('aggregates contest, problem, student and tag statistics from scoreboards', () => {
         const tid = new ObjectId('665f000000000000000000aa');
         const raw = [{
