@@ -25,7 +25,10 @@ Adjacent formulas such as `$x$$y$` are parsed independently. Container markers
 inside formulas or multiline code spans remain literal content.
 
 `rehype-latex.ts` renders the parsed formulas after sanitization, with KaTeX
-trust disabled. It uses the same syntax to locate formulas in sanitized HTML
+trust disabled. The `rehype-katex>katex` override in `pnpm-workspace.yaml` keeps
+the renderer on the same KaTeX version as the directly imported CSS and fonts.
+Keep this override when upgrading KaTeX: its internal markup and CSS must match.
+It uses the same syntax to locate formulas in sanitized HTML
 text, preserving surrounding literal HTML text and skipping code/pre elements.
 `rehype-markdown-html.ts` preserves text already parsed by Markdown through raw
 HTML parsing, so escaped delimiters and character references in Markdown prose
