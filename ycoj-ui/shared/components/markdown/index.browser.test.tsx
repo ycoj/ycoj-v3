@@ -128,6 +128,60 @@ describe('Markdown highlighter reuse', () => {
 });
 
 describe('Markdown math rendering', () => {
+  it.each([String.raw`\ne`, String.raw`\neq`, String.raw`\not=`])(
+    'overlays the negation stroke on the equals sign for %s',
+    async (operator) => {
+      const { container } = await renderMarkdownDocument(`$x ${operator} 0$`);
+      await document.fonts.ready;
+
+      const equals = screen.getByText('=', { selector: '.katex-html span' });
+      const stroke = container.querySelector('.katex-html .rlap')!;
+      const equalsBox = equals.getBoundingClientRect();
+      const strokeBox = stroke.getBoundingClientRect();
+      expect(equals).toBeVisible();
+      expect(stroke).toBeVisible();
+      expect(strokeBox.left).toBeGreaterThanOrEqual(equalsBox.left - 1);
+      expect(strokeBox.left).toBeLessThan(equalsBox.right);
+    }
+  );
+
+  it('overlays the slash on the membership sign for notin', async () => {
+    await renderMarkdownDocument(String.raw`$1 \notin \{x,y\}$`);
+    await document.fonts.ready;
+
+    const member = screen.getByText('∈', { selector: '.katex-html span' });
+    const slash = screen.getByText('/', { selector: '.katex-html span' });
+    const memberBox = member.getBoundingClientRect();
+    const slashBox = slash.getBoundingClientRect();
+    const slashCenter = (slashBox.left + slashBox.right) / 2;
+    expect(member).toBeVisible();
+    expect(slash).toBeVisible();
+    expect(slashCenter).toBeGreaterThan(memberBox.left);
+    expect(slashCenter).toBeLessThan(memberBox.right);
+  });
+
+  it('keeps interval subscripts smaller than the minimum operator', async () => {
+    await renderMarkdownDocument(String.raw`$$
+\operatorname{mex}_{l\le i\le r} q_i = \min\left(\min_{i\in[0,l-1]}q_i,\min_{i\in[r+1,n-1]}q_i\right)
+$$`);
+    await document.fonts.ready;
+
+    const operator = screen.getAllByText('min', {
+      selector: '.katex-html .mop',
+    })[1];
+    const bracket = screen.getAllByText('[', {
+      selector: '.katex-html .mopen',
+    })[0];
+    expect(bracket).toBeVisible();
+    expect(parseFloat(getComputedStyle(bracket).fontSize)).toBeCloseTo(
+      parseFloat(getComputedStyle(operator).fontSize) * 0.7,
+      1
+    );
+    expect(bracket.getBoundingClientRect().top).toBeGreaterThan(
+      operator.getBoundingClientRect().top
+    );
+  });
+
   it.each([
     [String.raw`Literal \$x\$ and $y$`, 'Literal $x$ and'],
     [String.raw`Literal \$$x\$$ and $y$`, 'Literal $$x$$ and'],
