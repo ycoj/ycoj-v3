@@ -260,6 +260,10 @@ class RemoteStorageService {
         return false;
     }
 
+    async getAvatarDownloadLink(target: string) {
+        return await this.signDownloadLink(target, undefined, false, 'user');
+    }
+
     async signUpload(target: string, size: number) {
         const client = this.alternatives.user || this.client;
         const { url, fields } = await createPresignedPost(client, {
@@ -369,6 +373,13 @@ class LocalStorageService {
         parts.push(this.config.secret);
         const expected = md5(parts.join('/'));
         return expected === secret;
+    }
+
+    async getAvatarDownloadLink(target: string) {
+        target = convertPath(target);
+        const url = `https://localhost/storage/avatar/${target}`;
+        if (!this.config.endPointForUser) return new URL(url).pathname;
+        return this.replaceWithAlternativeUrlFor.user(url);
     }
 
     async signUpload() {

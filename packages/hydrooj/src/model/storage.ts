@@ -4,8 +4,10 @@ import moment from 'moment-timezone';
 import { nanoid } from 'nanoid';
 import type { Readable } from 'stream';
 import { Context } from '../context';
+import { NotFoundError } from '../error';
 import { FileNode } from '../interface';
 import mime from '../lib/mime';
+import { avatarPath, avatarStorageId } from '../lib/userFile';
 import db from '../service/db';
 import storage from '../service/storage';
 import ScheduleModel from './schedule';
@@ -121,6 +123,26 @@ export class StorageModel {
             { $set: { lastUsage: new Date() } },
         );
         return await storage.signDownloadLink(res?.link || res?._id || target, filename, noExpire, useAlternativeEndpointFor);
+    }
+
+    static async getAvatarDownloadLink(path: string) {
+        if (!avatarPath.test(path)) throw new NotFoundError(path);
+        const file = await StorageModel.coll.findOne({ path, autoDelete: null });
+        if (!file) throw new NotFoundError(path);
+        return await storage.getAvatarDownloadLink(file.link || file._id);
+    }
+
+    static async getAvatar(target: string) {
+        if (!avatarStorageId.test(target)) throw new NotFoundError(target);
+        // Only blobs referenced by active uploaded avatars are public. A copied
+        // avatar may reference another blob through `link`.
+        const file = await StorageModel.coll.findOne({
+            path: avatarPath,
+            autoDelete: null,
+            $or: [{ _id: target, link: null }, { link: target }],
+        });
+        if (!file) throw new NotFoundError(target);
+        return await storage.get(target);
     }
 
     static async move(src: string, dst: string) {

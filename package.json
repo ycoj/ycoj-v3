@@ -23,7 +23,7 @@
         "test:plagiarism": "node -r @hydrooj/register --test packages/hydrooj/tests/plagiarism/*.spec.ts",
         "test:contest-analysis": "node -r @hydrooj/register --test packages/hydrooj/tests/ai-contest-analysis/*.spec.ts",
         "test:contest-rejudge": "node -r @hydrooj/register --test packages/hydrooj/tests/contestRejudge.spec.ts",
-        "test:user-files": "node -r @hydrooj/register --test packages/hydrooj/tests/userFileDownload.spec.ts",
+        "test:user-files": "node -r @hydrooj/register --test packages/hydrooj/tests/userFileDownload.spec.ts packages/hydrooj/tests/avatarStorage.spec.ts",
         "test:solution-review": "node -r @hydrooj/register --test packages/hydrooj/tests/solutionReview*.spec.ts",
         "test:account-expiration": "node -r @hydrooj/register --test packages/hydrooj/tests/accountExpiration.spec.ts",
         "test:ai-generation": "node -r @hydrooj/register --test packages/hydrooj/tests/ai-generation/*.spec.ts",

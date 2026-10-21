@@ -18,9 +18,23 @@ Use multipart upload. `type UploadFields={operation:"uploadFile";filename:string
 
 ## `/file/:uid/:filename`
 
-### GET — signed download redirect
+### GET — file download redirect
 
-`type FilePath={uid:number;filename:string}; type FileQuery={noDisposition?:boolean}`; examples `GET /file/12/notes.txt?noDisposition=false` and `GET /file/7/.avatar.jpeg`. Response is `302` to signed object storage with `Cache-Control: public`, or logical `Redirect` example `{"url":"https://storage.example/…"}`. The reserved uploaded-avatar filenames `.avatar.jpg`, `.avatar.jpeg`, and `.avatar.png` are public, require neither authentication nor real-name access, and are signed without an attachment disposition. Other files require an authenticated user who owns `uid`, has `filename` in their file list, and has real-name access (approved, exempt, or inside the seven-day grace period); otherwise access is denied. Filename validation, download operation logging, and missing/invalid storage-path handling also apply to avatars.
+`type FilePath={uid:number;filename:string}; type FileQuery={noDisposition?:boolean}`; examples `GET /file/12/notes.txt?noDisposition=false` and `GET /file/7/.avatar.jpeg`. Response is `302`, or HTTP 200 logical `type Redirect={url:string}` with `Accept: application/json`.
+
+The reserved uploaded-avatar filenames `.avatar.jpg`, `.avatar.jpeg`, and `.avatar.png` are public, require neither authentication nor real-name access, and have no attachment disposition. With local storage, avatars redirect to a stable, query-free object URL through `endPointForUser`; example `{"url":"/fs/storage/avatar/abc/0123456789abcdefghijk.jpeg"}`. The object ID changes when the same avatar path is overwritten. S3 storage continues to return a signed download URL. Avatar redirects use `Cache-Control: public, max-age=0, must-revalidate` so the stable `/file/:uid/:filename` entry point follows replacements; a missing active avatar returns 404.
+
+Other files require an authenticated user who owns `uid`, has `filename` in their file list, and has real-name access (approved, exempt, or inside the seven-day grace period); otherwise access is denied. They redirect to signed storage with `Cache-Control: public`, example `{"url":"https://storage.example/…"}`. Filename validation, download operation logging, and missing/invalid storage-path handling also apply to avatars.
+
+## `/storage/avatar/:prefix/:filename`
+
+### GET — public uploaded-avatar stream
+
+Use the object URL returned by the local-storage avatar redirect, usually `/fs/storage/avatar/:prefix/:filename` through the `/fs/` storage prefix, or the configured CDN base URL. Request `type AvatarPath={prefix:string;filename:string}`; example `GET /storage/avatar/abc/0123456789abcdefghijk.png`. No query parameters, signature, expiry, session, or real-name approval are required. Query parameters cannot override the route's object ID.
+
+The combined object ID must match `^[a-z0-9]+/[a-z0-9]+\.(?:jpe?g|png)$` and be referenced by active storage metadata whose logical path matches `user/<integer-uid>/.avatar.jpg`, `.avatar.jpeg`, or `.avatar.png`. Both direct objects and linked avatar references are supported. Private images, alias IDs that do not identify the physical blob, deleted avatars, unknown objects, and IDs that fail this pattern return 404. The prefix first undergoes `Types.Key` validation and the filename undergoes `Types.Filename` validation; invalid route parameters return a validation error (400). No public cache header is added on authorization failure.
+
+Response `type AvatarBody=ReadableStream`, example PNG bytes, with `Content-Type: image/png` or `image/jpeg`, inline without attachment disposition, and `Cache-Control: public, max-age=86400, immutable`. The origin checks current metadata on each request; a previously cached response may remain available for its one-day cache lifetime after deletion or replacement. New uploads get new object URLs, and existing `/file/:uid/:filename` avatar references keep working without migration.
 
 ## `/storage`
 

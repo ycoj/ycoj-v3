@@ -6,13 +6,14 @@ import {
     AccessDeniedError, FileExistsError, FileLimitExceededError, FileUploadError, NotFoundError,
     ValidationError,
 } from '../error';
+import { avatarFilenames } from '../lib/userFile';
 import { PRIV } from '../model/builtin';
 import * as oplog from '../model/oplog';
 import storage from '../model/storage';
 import system from '../model/system';
 import user, { User } from '../model/user';
 import {
-    Handler, param, post, requireSudo, Types,
+    Handler, param, post, requireSudo, route, Types,
 } from '../service/server';
 import { encodeRFC5987ValueChars } from '../service/storage';
 import { sortFiles } from '../utils';
@@ -87,8 +88,6 @@ export class FilesHandler extends Handler {
     }
 }
 
-const avatarFilenames = ['.avatar.jpg', '.avatar.jpeg', '.avatar.png'];
-
 export class FSDownloadHandler extends Handler {
     noCheckPermView = true;
     skipRealnameCheck = avatarFilenames.includes(this.args.filename);
@@ -108,14 +107,28 @@ export class FSDownloadHandler extends Handler {
             size: file?.size || 0,
         });
         try {
-            this.response.redirect = await storage.signDownloadLink(
-                target, noDisposition || isAvatar ? undefined : filename, false, 'user',
-            );
-            this.response.addHeader('Cache-Control', 'public');
+            this.response.redirect = isAvatar
+                ? await storage.getAvatarDownloadLink(target)
+                : await storage.signDownloadLink(target, noDisposition ? undefined : filename, false, 'user');
+            this.response.addHeader('Cache-Control', isAvatar ? 'public, max-age=0, must-revalidate' : 'public');
         } catch (e) {
             if (e.message.includes('Invalid path')) throw new NotFoundError(filename);
             throw e;
         }
+    }
+}
+
+export class AvatarStorageHandler extends Handler {
+    noCheckPermView = true;
+    skipRealnameCheck = true;
+    notUsage = true;
+
+    @route('prefix', Types.Key)
+    @route('filename', Types.Filename)
+    async get({ }, prefix: string, filename: string) {
+        this.response.body = await storage.getAvatar(`${prefix}/${filename}`);
+        this.response.type = lookup(filename) || 'application/octet-stream';
+        this.response.addHeader('Cache-Control', 'public, max-age=86400, immutable');
     }
 }
 
@@ -169,6 +182,7 @@ export async function apply(ctx: Context) {
     ctx.Route('home_files', '/file', FilesHandler);
     ctx.Route('fs_download', '/file/:uid/:filename', FSDownloadHandler);
     ctx.Route('storage', '/storage', StorageHandler);
+    ctx.Route('storage_avatar', '/storage/avatar/:prefix/:filename', AvatarStorageHandler);
     ctx.Route('switch_account', '/account/:uid', SwitchAccountHandler, PRIV.PRIV_EDIT_SYSTEM);
     if (process.argv.includes('--enable-heap-snapshot')) {
         ctx.Route('heap_snapshot', '/heap-snapshot', HeapSnapshotHandler, PRIV.PRIV_EDIT_SYSTEM);
