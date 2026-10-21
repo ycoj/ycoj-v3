@@ -1,4 +1,4 @@
-import ContestRejudge from './contest-rejudge';
+import ContestManagementNav from './contest-management-nav';
 import messages from '@/messages/en';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -23,13 +23,14 @@ vi.mock('@/api/client/method', () => ({
 }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mocks.refresh }),
+  usePathname: () => '/contest/contest/management',
 }));
 vi.mock('sonner', () => ({ toast: { success: mocks.success } }));
 
 function mount() {
   render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <ContestRejudge tid="contest" />
+      <ContestManagementNav tid="contest" />
     </NextIntlClientProvider>
   );
 }
@@ -41,13 +42,13 @@ describe('contest rejudge', () => {
     mocks.send.mockResolvedValue({ count: 3 });
     mount();
     await userEvent.click(
-      screen.getByRole('button', { name: 'Rejudge all submissions' })
+      screen.getByRole('button', { name: 'Rejudge contest' })
     );
     expect(mocks.request).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(mocks.request).not.toHaveBeenCalled();
     await userEvent.click(
-      screen.getByRole('button', { name: 'Rejudge all submissions' })
+      screen.getByRole('button', { name: 'Rejudge contest' })
     );
     await userEvent.click(
       screen.getByRole('button', { name: 'Confirm rejudge' })
@@ -65,7 +66,7 @@ describe('contest rejudge', () => {
     mocks.send.mockResolvedValue({ error: { message: 'Permission denied' } });
     mount();
     await userEvent.click(
-      screen.getByRole('button', { name: 'Rejudge all submissions' })
+      screen.getByRole('button', { name: 'Rejudge contest' })
     );
     await userEvent.click(
       screen.getByRole('button', { name: 'Confirm rejudge' })
@@ -89,7 +90,7 @@ describe('contest rejudge', () => {
     );
     mount();
     await userEvent.click(
-      screen.getByRole('button', { name: 'Rejudge all submissions' })
+      screen.getByRole('button', { name: 'Rejudge contest' })
     );
     await userEvent.click(
       screen.getByRole('button', { name: 'Confirm rejudge' })

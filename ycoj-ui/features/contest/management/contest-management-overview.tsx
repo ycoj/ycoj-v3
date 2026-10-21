@@ -3,7 +3,6 @@
 import ClientApis from '@/api/client/method';
 import type { ContestManagementResponse } from '@/api/server/method/contests/management';
 import ContestFilesManager from '@/features/contest/management/contest-files-manager';
-import ContestRejudge from '@/features/contest/management/contest-rejudge';
 import { validateContestScore } from '@/features/contest/management/management-utils';
 import ProblemTitle from '@/features/problem/detail/problem-title';
 import { Button } from '@/shared/components/ui/button';
@@ -56,7 +55,6 @@ export default function ContestManagementOverview({ tid, data }: Props) {
 
   return (
     <div className="space-y-8" data-llm-visible="true">
-      <ContestRejudge tid={tid} />
       <section className="space-y-3">
         <h1 className="text-xl font-semibold" data-llm-text={t('scores')}>
           {t('scores')}

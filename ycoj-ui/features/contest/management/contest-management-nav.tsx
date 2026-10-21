@@ -1,5 +1,6 @@
 'use client';
 
+import ContestRejudge from '@/features/contest/management/contest-rejudge';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/lib/utils';
 import {
@@ -119,6 +120,7 @@ export default function ContestManagementNav({
         icon={Pencil}
         label={t('edit')}
       />
+      <ContestRejudge tid={tid} />
     </nav>
   );
 }

@@ -3,6 +3,7 @@
 import ClientApis from '@/api/client/method';
 import parseErrorMessage from '@/shared/components/errored/parse-message';
 import { Button } from '@/shared/components/ui/button';
+import { RotateCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { AlertDialog } from 'radix-ui';
@@ -39,60 +40,55 @@ export default function ContestRejudge({ tid }: Props) {
   };
 
   return (
-    <section className="space-y-3" data-llm-visible="true">
-      <h2 className="text-xl font-semibold" data-llm-text={t('rejudgeTitle')}>
-        {t('rejudgeTitle')}
-      </h2>
-      <p
-        className="text-sm text-muted-foreground"
-        data-llm-text={t('rejudgeDescription')}
-      >
-        {t('rejudgeDescription')}
-      </p>
-      <AlertDialog.Root
-        open={open}
-        onOpenChange={(value) => {
-          if (pending) return;
-          setOpen(value);
-          setError('');
-        }}
-      >
-        <AlertDialog.Trigger asChild>
-          <Button type="button" variant="outline" disabled={pending}>
+    <AlertDialog.Root
+      open={open}
+      onOpenChange={(value) => {
+        if (pending) return;
+        setOpen(value);
+        setError('');
+      }}
+    >
+      <AlertDialog.Trigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-10 w-full justify-start gap-3 px-4"
+          disabled={pending}
+        >
+          <RotateCw strokeWidth={2} />
+          <span data-llm-text={t('rejudgeTitle')}>{t('rejudgeTitle')}</span>
+        </Button>
+      </AlertDialog.Trigger>
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
+        <AlertDialog.Content className="bg-background fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border p-5 outline-none">
+          <AlertDialog.Title className="text-lg font-semibold">
             {t('rejudgeAll')}
-          </Button>
-        </AlertDialog.Trigger>
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
-          <AlertDialog.Content className="bg-background fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border p-5 outline-none">
-            <AlertDialog.Title className="text-lg font-semibold">
-              {t('rejudgeAll')}
-            </AlertDialog.Title>
-            <AlertDialog.Description className="mt-2 text-sm text-muted-foreground">
-              {t('confirmRejudge')}
-            </AlertDialog.Description>
-            {error && (
-              <p role="alert" className="mt-3 text-sm text-destructive">
-                {error}
-              </p>
-            )}
-            <div className="mt-5 flex justify-end gap-2">
-              <AlertDialog.Cancel asChild>
-                <Button type="button" variant="outline" disabled={pending}>
-                  {t('cancel')}
-                </Button>
-              </AlertDialog.Cancel>
-              <Button
-                type="button"
-                disabled={pending}
-                onClick={() => void rejudge()}
-              >
-                {pending ? t('rejudgePending') : t('confirmRejudgeAction')}
+          </AlertDialog.Title>
+          <AlertDialog.Description className="mt-2 text-sm text-muted-foreground">
+            {t('confirmRejudge')}
+          </AlertDialog.Description>
+          {error && (
+            <p role="alert" className="mt-3 text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          <div className="mt-5 flex justify-end gap-2">
+            <AlertDialog.Cancel asChild>
+              <Button type="button" variant="outline" disabled={pending}>
+                {t('cancel')}
               </Button>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
-    </section>
+            </AlertDialog.Cancel>
+            <Button
+              type="button"
+              disabled={pending}
+              onClick={() => void rejudge()}
+            >
+              {pending ? t('rejudgePending') : t('confirmRejudgeAction')}
+            </Button>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
   );
 }
