@@ -4,6 +4,8 @@ All routes are domain-aware. `PERM_VIEW_CONTEST` gates public reads; management 
 
 ## Routes
 
+Existing contest create/edit fields, default scoreboard Rating results, profile history and automatic replay: [rating.md](rating.md).
+
 `GET /contest?rule?:RULE&group?:Name&page?:PositiveInt&q?:string` -> `contest_main.html`, `{ tdocs,page,tpcount,groups,q }`.
 
 `GET /contest/:tid` -> `contest_detail.html`, `{ tdoc,tsdoc,pids,pdict,psdict,rdict,rdocs,udoc,... }`. Authorized viewers also receive a compact contest-solution table (title, author, time) under the introduction; see [contest-solutions.md](contest-solutions.md). POST operations: `attend` (`code?:string`), `subscribe` (`subscribe:boolean`), `earlyEnd` (manager). They return back/redirect responses. `GET /contest/:tid/problems` -> problem list/PJAX; after the contest starts and before it ends, an unattended contest owner or user with contest-edit/hidden-contest-view permission may inspect this list only. Not-started contests are rejected with `ContestNotLiveError`, including for those authorized users. The exception does not extend to contest problem details or mutations. POST `clarification` uses `{ content:Content, subject:Int }` and still requires attendance.

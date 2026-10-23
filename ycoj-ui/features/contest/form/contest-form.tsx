@@ -38,6 +38,7 @@ import {
 import { useCloneFlow } from '@/shared/hooks/use-clone-flow';
 import { datePattern, timePattern } from '@/shared/lib/date-patterns';
 import { cn } from '@/shared/lib/utils';
+import { RATING_POPULATIONS } from '@/shared/types/rating';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Copy, Plus, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -60,6 +61,7 @@ type Props = {
   mode: ContestFormMode;
   defaultValues: ContestFormValues;
   canAutoHide: boolean;
+  ratingPopulationLocked?: boolean;
   domainId: string;
   cancelHref: string;
   onSubmit: (values: ContestFormValues) => Promise<string>;
@@ -71,6 +73,7 @@ export default function ContestForm({
   mode,
   defaultValues,
   canAutoHide,
+  ratingPopulationLocked = false,
   domainId,
   cancelHref,
   onSubmit,
@@ -116,6 +119,7 @@ export default function ContestForm({
       code: z.string(),
       langs: z.array(z.string()),
       rated: z.boolean(),
+      ratingPopulation: z.enum(RATING_POPULATIONS).optional(),
       autoHide: z.boolean(),
       allowViewCode: z.boolean(),
       allowPrint: z.boolean(),
@@ -384,6 +388,39 @@ export default function ContestForm({
       </div>
 
       <div className="space-y-4">
+        <Controller
+          control={control}
+          name="ratingPopulation"
+          render={({ field }) => (
+            <Field className="max-w-sm">
+              <FieldLabel htmlFor="rating-population">
+                {t('ratingPopulation')}
+              </FieldLabel>
+              <Select
+                value={field.value ?? 'open'}
+                onValueChange={field.onChange}
+                disabled={isSubmitting || ratingPopulationLocked}
+              >
+                <SelectTrigger
+                  id="rating-population"
+                  aria-label={t('ratingPopulation')}
+                  onBlur={field.onBlur}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RATING_POPULATIONS.map((population) => (
+                    <SelectItem key={population} value={population}>
+                      {t(`ratingPopulations.${population}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldDescription>{t('ratingPopulationHelp')}</FieldDescription>
+              <FieldError errors={[errors.ratingPopulation]} />
+            </Field>
+          )}
+        />
         <div
           className={cn(
             'grid items-start gap-4 sm:grid-cols-2',

@@ -2,6 +2,8 @@
 
 This is the implementation-backed route index; operation names are request-body dispatch names.
 
+Existing create/edit routes accept `ratingPopulation`; default scoreboards add Rating results. See [rating.md](rating.md).
+
 | Route | Handler result |
 |---|---|
 | `GET /contest` | HTML `contest_main.html`; filters `rule`, `group`, `page`, `q`. |

@@ -1,7 +1,7 @@
 import { generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import moment from 'moment-timezone';
-import { Binary } from 'mongodb';
+import { Binary, ObjectId } from 'mongodb';
 import Schema from 'schemastery';
 import { randomstring } from '@hydrooj/utils';
 import type { Context } from '../context';
@@ -24,6 +24,7 @@ import BlackListModel from '../model/blacklist';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import * as checkin from '../model/checkin';
 import * as ContestModel from '../model/contest';
+import { getUserRating } from '../model/contestRating';
 import domain from '../model/domain';
 import * as oier from '../model/oier';
 import * as oplog from '../model/oplog';
@@ -464,8 +465,21 @@ class UserDetailHandler extends Handler {
         const tdocs = await ContestModel.getMulti(domainId, { docId: { $in: tsdocs.map((i) => i.docId) } })
             .project({ docId: 1, title: 1, rule: 1 }).sort({ _id: -1 }).toArray();
         this.response.template = 'user_detail.html';
+        const contestRating = this.user.hasPerm(PERM.PERM_VIEW_CONTEST_SCOREBOARD) ? await getUserRating(domainId, uid) : null;
+        if (contestRating) {
+            const historyContests = await ContestModel.getMulti(domainId, {
+                docId: { $in: contestRating.history.map((entry) => new ObjectId(entry.tid)) },
+            }).toArray();
+            const visible = new Set(historyContests.filter((tdoc) =>
+                ContestModel.canShowScoreboard.call(this, tdoc, true)
+                && ((!tdoc.assign?.length && !tdoc._code) || isSelfProfile || this.user.own(tdoc)
+                    || this.user.hasPerm(PERM.PERM_EDIT_CONTEST)))
+                .map((tdoc) => tdoc.docId.toHexString()));
+            contestRating.history = contestRating.history.filter((entry) => visible.has(entry.tid)).slice(0, 30);
+        }
         this.response.body = {
             isSelfProfile, udoc, sdoc, pdocs, tags, tdocs,
+            contestRating,
             accountExpireDate: isSelfProfile || this.user.hasPriv(PRIV.PRIV_EDIT_SYSTEM)
                 ? (udoc._udoc.accountExpireAt ? accountExpireDate(udoc._udoc.accountExpireAt, this.user.timeZone) : '')
                 : null,

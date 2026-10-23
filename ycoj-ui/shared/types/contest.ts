@@ -1,6 +1,7 @@
 import type { FileInfo } from './file';
 import type { Homework } from './homework';
 import type { ProblemDict } from './problem';
+import type { ContestRating, RatingPopulation } from './rating';
 import type { BaseUserDict } from './user';
 
 export type ContestRule =
@@ -22,6 +23,7 @@ export type BaseContest = {
   rule: ContestRule;
   pids: number[];
   rated?: boolean;
+  ratingPopulation?: RatingPopulation;
   assign?: string[];
   langs?: string[];
   /** Public attachments available to `file://` references in the contest content. */
@@ -152,6 +154,7 @@ export type GDoc = {
 };
 
 export type ScoreboardResponse = {
+  rating?: ContestRating;
   tdoc: Contest | Homework;
   tsdoc: ContestStatus | null;
   rows: ScoreboardRow[];

@@ -23,8 +23,8 @@
   "languages": "提交语言限制",
   "languagesPlaceholder": "搜索语言",
   "languagesHelp": "留空表示允许所有可用语言。",
-  "rated": "Rated",
-  "ratedHelp": "将本场比赛计入 Rating。",
+  "rated": "计入 Rating",
+  "ratedHelp": "比赛结束且成绩公开后更新参赛者的 Rating。",
   "autoHide": "自动隐藏题目",
   "autoHideHelp": "比赛期间隐藏所选题目，比赛结束后自动恢复显示。",
   "autoHideUnavailable": "你没有修改题目可见性的权限。",
@@ -51,5 +51,13 @@
   "submitFailed": "创建比赛失败，请稍后重试。",
   "creating": "创建中...",
   "create": "创建比赛",
-  "cancel": "返回比赛列表"
+  "cancel": "返回比赛列表",
+  "ratingPopulation": "参赛人群",
+  "ratingPopulationHelp": "按实际训练人群选择，开赛后不可更改。",
+  "ratingPopulations": {
+    "open": "不限学段",
+    "primary": "小学训练组",
+    "junior": "初中训练组",
+    "senior": "高中训练组"
+  }
 }

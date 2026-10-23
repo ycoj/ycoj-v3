@@ -11,6 +11,7 @@ import type {
     RecordDoc, ScoreboardConfig, ScoreboardRow, SubtaskResult, Tdoc,
 } from '../../interface';
 import avatar from '../../lib/avatar';
+import { isRatingPopulation } from '../../lib/contestRating';
 import bus from '../../service/bus';
 import db from '../../service/db';
 import type { Handler } from '../../service/server';
@@ -37,6 +38,7 @@ export async function add(
     rated = false, data: Partial<Tdoc> = {},
 ) {
     if (!RULES[rule]) throw new ValidationError('rule');
+    if (data.ratingPopulation && !isRatingPopulation(data.ratingPopulation)) throw new ValidationError('ratingPopulation');
     if (beginAt >= endAt) throw new ValidationError('beginAt', 'endAt');
     Object.assign(data, {
         content, owner, title, rule, beginAt, endAt, pids, attend: 0,
@@ -54,6 +56,10 @@ export async function edit(domainId: string, tid: ObjectId, $set: Partial<Tdoc>)
     if ($set.rule && !RULES[$set.rule]) throw new ValidationError('rule');
     const tdoc = await document.get(domainId, document.TYPE_CONTEST, tid);
     if (!tdoc) throw new ContestNotFoundError(domainId, tid);
+    if ($set.ratingPopulation !== undefined && (!isRatingPopulation($set.ratingPopulation)
+        || (tdoc.beginAt <= new Date() && $set.ratingPopulation !== (tdoc.ratingPopulation || 'open')))) {
+        throw new ValidationError('ratingPopulation');
+    }
     await bus.parallel('contest/before-edit', tdoc, $set);
     RULES[$set.rule || tdoc.rule].check(Object.assign(tdoc, $set));
     const res = await document.set(domainId, document.TYPE_CONTEST, tid, $set);

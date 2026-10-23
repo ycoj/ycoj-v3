@@ -7,6 +7,7 @@ import type {
   ProblemDoc,
   SolutionDoc,
 } from '@/shared/types/problem';
+import type { UserContestRating } from '@/shared/types/rating';
 import type { User } from '@/shared/types/user';
 
 export type AwardRecord = {
@@ -42,6 +43,7 @@ export type SolutionDocumentDoc = Pick<
 >;
 
 export type UserDetailResponse = {
+  contestRating?: UserContestRating | null;
   checkinHistory: CheckinHistory;
   /** Whether this is the current logged-in user's own profile. */
   isSelfProfile: boolean;

@@ -3,6 +3,7 @@ import {
   getProblemBalloonColors,
 } from './scoreboard-presentation';
 import ScoreboardCell from '@/features/contest/scoreboard/scoreboard-cell';
+import RatingChange from '@/features/user/rating/rating-change';
 import {
   Table,
   TableBody,
@@ -14,7 +15,9 @@ import {
 import { cn } from '@/shared/lib/utils';
 import type { ScoreboardRow } from '@/shared/types/contest';
 import type { ProblemDict } from '@/shared/types/problem';
+import type { ContestRating } from '@/shared/types/rating';
 import type { BaseUserDict } from '@/shared/types/user';
+import { useFormatter, useTranslations } from 'next-intl';
 
 type Props = {
   rows: ScoreboardRow[];
@@ -23,6 +26,7 @@ type Props = {
   tid: string;
   pageType: 'contest' | 'homework';
   currentUid?: number;
+  rating?: ContestRating;
 };
 
 export default function ScoreboardTable({
@@ -32,7 +36,15 @@ export default function ScoreboardTable({
   tid,
   pageType,
   currentUid,
+  rating,
 }: Props) {
+  const t = useTranslations('scoreboard');
+  const userT = useTranslations('user');
+  const format = useFormatter();
+  const ratings = new Map(
+    rating?.changes.map((change) => [change.uid, change])
+  );
+  const showRating = rating?.status === 'settled';
   const headerRow = rows[0];
   const dataRows = rows.slice(1);
   const problemColors = getProblemBalloonColors(headerRow);
@@ -58,6 +70,9 @@ export default function ScoreboardTable({
               />
             </TableHead>
           ))}
+          {showRating && (
+            <TableHead className="text-right">{t('rating')}</TableHead>
+          )}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -66,6 +81,7 @@ export default function ScoreboardTable({
           const ownedBalloonColors = getOwnedBalloonColors(row, problemColors);
           const isCurrentUser =
             currentUid != null && userNode?.raw === currentUid;
+          const change = ratings.get(Number(userNode?.raw));
           return (
             <TableRow key={i} className={cn(isCurrentUser && 'bg-primary/5')}>
               {row.map((node, j) => (
@@ -86,6 +102,28 @@ export default function ScoreboardTable({
                   />
                 </TableCell>
               ))}
+              {showRating && (
+                <TableCell className="text-right">
+                  {change ? (
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="tabular-nums">
+                        {format.number(change.after)}{' '}
+                        <RatingChange
+                          delta={change.delta}
+                          className="ml-1 text-xs"
+                        />
+                      </span>
+                      {change.provisional && (
+                        <span className="text-muted-foreground text-xs">
+                          {userT('ratingProvisional')}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+              )}
             </TableRow>
           );
         })}

@@ -32,5 +32,8 @@
   "exportFailed": "Export failed. Please try again.",
   "exportLimitExceeded": "This export is too large for the server to generate. Try again without submission details or for a smaller event.",
   "exportBusy": "The server is already generating another export. Please try again shortly.",
-  "submissionDetails": "Submission details"
+  "submissionDetails": "Submission details",
+  "rating": "Rating / change",
+  "ratingPending": "Rating is awaiting confirmed results.",
+  "ratingSkipped": "This contest produced no rating changes."
 }

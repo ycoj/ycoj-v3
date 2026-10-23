@@ -39,5 +39,14 @@
   "awardRank": "排名",
   "awardSchool": "学校",
   "awardProvince": "省份",
-  "awardGrade": "年级"
+  "awardGrade": "年级",
+  "contestRating": "比赛 Rating",
+  "noRating": "暂无 Rating，参加计入 Rating 的比赛后将显示结果。",
+  "ratingProvisional": "暂定评分",
+  "ratingPeak": "最高 {value}",
+  "ratedContests": "{count} 场计分比赛",
+  "ratingContest": "比赛",
+  "ratingDate": "日期",
+  "ratingChange": "变化",
+  "ratingChangeValue": "Rating 变化 {value}"
 }

@@ -1,6 +1,7 @@
 import AwardSection from './components/award-section';
 import BioSection from './components/bio-section';
 import CheckinHeatmap from './components/checkin-heatmap';
+import ContestRating from './components/contest-rating';
 import CoreStats from './components/core-stats';
 import HeaderSection from './components/header-section';
 import ParticipationSummary from './components/participation-summary';
@@ -19,6 +20,7 @@ export default function UserProfilePage({ data }: Props) {
       <AwardSection data={data} />
       <BioSection data={data} />
       <CoreStats data={data} />
+      <ContestRating rating={data.contestRating} />
       <CheckinHeatmap history={data.checkinHistory} />
       <ProblemSummary data={data} />
       <ParticipationSummary data={data} />

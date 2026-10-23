@@ -2,6 +2,7 @@ import type { CreateContestRequest } from '@/api/client/method/contest/create';
 import type { ProblemAutoCompleteItem } from '@/api/client/method/problem/auto-complete';
 import type { ContestEditData } from '@/api/server/method/contests/edit';
 import { serializeProblemIds } from '@/features/problem/problem-list-editor-utils';
+import type { RatingPopulation } from '@/shared/types/rating';
 import dayjs, { type Dayjs } from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
@@ -37,6 +38,7 @@ export type ContestFormValues = {
   code: string;
   langs: string[];
   rated: boolean;
+  ratingPopulation?: RatingPopulation;
   autoHide: boolean;
   allowViewCode: boolean;
   allowPrint: boolean;
@@ -82,6 +84,7 @@ export function getContestCreateDefaults(
     code: '',
     langs: [],
     rated: true,
+    ratingPopulation: 'open',
     autoHide: false,
     allowViewCode: true,
     allowPrint: false,
@@ -104,6 +107,7 @@ export function buildCreateContestPayload(
     rule: values.rule,
     pids: serializeProblemIds(values.pids),
     rated: values.rated,
+    ratingPopulation: values.ratingPopulation ?? 'open',
     code: values.permission === 'invite' ? values.code.trim() : '',
     autoHide: values.autoHide,
     assign: values.permission === 'assign' ? values.assign : [],
@@ -194,6 +198,7 @@ export function mapContestEditToFormValues(
     code: data.code ?? '',
     langs: tdoc.langs ?? [],
     rated: Boolean(tdoc.rated),
+    ratingPopulation: tdoc.ratingPopulation ?? 'open',
     autoHide: Boolean(tdoc.autoHide),
     allowViewCode: Boolean(tdoc.allowViewCode),
     allowPrint: Boolean(tdoc.allowPrint),

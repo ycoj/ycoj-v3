@@ -8,6 +8,7 @@ export type ContestEditData = {
   tdoc: ContestEditTdoc;
   /** Invitation code; `tdoc._code` is stripped by backend serialization. */
   code?: string;
+  ratingPopulationLocked?: boolean;
   duration: number;
   pids: string;
   page_name: string;

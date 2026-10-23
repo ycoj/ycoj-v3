@@ -68,6 +68,8 @@ Use to remove the signed-in account. `type DeleteInput={password:string}`, examp
 
 ### `GET /user/:uid`
 
+Additional body field: `contestRating:UserContestRating|null`; example `{"contestRating":{"rating":1652,"peak":1670,"contests":4,"provisional":true,"history":[]}}`. Viewers need `PERM_VIEW_CONTEST_SCOREBOARD` for a non-null result. Reading may publish a replayed generation. Full schema, history filtering and examples: [Contest Rating](../contest/rating.md#user-profile-result).
+
 Use to display a profile. `type UserPath={uid:number}`, example `GET /user/12`. Response `HTML` (`user_detail.html`), example `…alice…`; domain visibility is checked. The JSON body includes `accountExpireDate` (`type AccountExpireDate = string | null`): when the viewer is the profile owner or holds `PRIV_EDIT_SYSTEM` it is the account's last valid day `YYYY-MM-DD` in the viewer's timezone, or `''` when the account never expires; it is `null` for other viewers. When the viewed user has bound CCF/NOI awards, the page includes an Awards tab of those records; the owner also sees the tab while unbound. Usernames include a CCF hook when `ccfLevel` is 3–10. See [Award certification](../award/user.md).
 
 ### `GET /oauth/:type/login`

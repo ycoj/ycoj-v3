@@ -1,6 +1,7 @@
 # Identity and user routes
 
 - [Authentication, registration, recovery, OAuth, and account routes](auth.md)
+- [Contest Rating summaries and permitted profile history](../contest/rating.md#user-profile-result)
 
 All browser-authenticated endpoints accept either `Cookie: sid=<session-token>` or `Authorization: Bearer <session-token>`. `Accept: application/json` converts handler redirects to the logical response `{url:string}`; a normal browser receives HTTP 302.
 

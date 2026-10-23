@@ -23,8 +23,8 @@
   "languages": "Submission language limit",
   "languagesPlaceholder": "Search languages",
   "languagesHelp": "Leave empty to allow every available language.",
-  "rated": "Rated",
-  "ratedHelp": "Include this contest in rating calculations.",
+  "rated": "Rated contest",
+  "ratedHelp": "Update participant ratings after the contest ends and results are public.",
   "autoHide": "Auto-hide problems",
   "autoHideHelp": "Hide selected problems until the contest ends, then show them again.",
   "autoHideCloneHelp": "The new contest hides its problems during the contest, then shows them again when it ends.",
@@ -61,5 +61,13 @@
   "deleting": "Deleting...",
   "deleteConfirm": "Confirm deleting this contest? Its files and status will be deleted as well.",
   "deleteFailed": "Deletion failed. Please try again later.",
-  "cancel": "Back to contest"
+  "cancel": "Back to contest",
+  "ratingPopulation": "Participant group",
+  "ratingPopulationHelp": "Choose the intended training group. This cannot change after the contest starts.",
+  "ratingPopulations": {
+    "open": "Open",
+    "primary": "Primary school training",
+    "junior": "Junior secondary training",
+    "senior": "Senior secondary training"
+  }
 }

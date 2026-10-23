@@ -39,6 +39,13 @@ export default function ContestScoreboard({
 
   return (
     <div className="space-y-6" data-llm-visible="true">
+      {data.rating && data.rating.status !== 'settled' && (
+        <p role="status" className="text-muted-foreground text-sm">
+          {t(
+            data.rating.status === 'pending' ? 'ratingPending' : 'ratingSkipped'
+          )}
+        </p>
+      )}
       {rows.length > 1 ? (
         <ScoreboardTableFilter
           key={filter}
@@ -48,6 +55,7 @@ export default function ContestScoreboard({
           tid={tid}
           pageType={pageType}
           currentUid={currentUid}
+          rating={data.rating}
           groups={groups}
           filter={filter}
         >

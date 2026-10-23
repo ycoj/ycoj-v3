@@ -15,9 +15,11 @@ import {
     InvalidTokenError, MethodNotAllowedError, NotAssignedError, NotFoundError, PermissionError, ValidationError,
 } from '../error';
 import { FileInfo, ScoreboardConfig, Tdoc } from '../interface';
+import { isRatingPopulation } from '../lib/contestRating';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import * as contest from '../model/contest';
 import { rejudgeContest } from '../model/contest/rejudge';
+import { getContestRating } from '../model/contestRating';
 import * as discussion from '../model/discussion';
 import * as document from '../model/document';
 import message from '../model/message';
@@ -335,6 +337,7 @@ export class ContestEditHandler extends Handler {
             rules,
             tdoc: this.tdoc,
             code: this.tdoc?._code,
+            ratingPopulationLocked: !!this.tdoc && this.tdoc.beginAt <= new Date(),
             duration: tid ? -beginAt.diff(this.tdoc.endAt, 'hour', true) : 2,
             pids: tid ? this.tdoc.pids.join(',') : '',
             beginAt,
@@ -363,13 +366,18 @@ export class ContestEditHandler extends Handler {
     @param('allowPrint', Types.Boolean)
     @param('keepScoreboardHidden', Types.Boolean)
     @param('langs', Types.CommaSeperatedArray, true)
+    @param('ratingPopulation', Types.String, true)
     async postUpdate(
         domainId: string, tid: ObjectId, beginAtDate: string, beginAtTime: string, duration: number,
         title: string, content: string, rule: string, _pids: string, rated = false,
         _code = '', autoHide = false, assign: string[] = [], lock: number = null,
         contestDuration: number = null, maintainer: number[] = [], allowViewCode = false, allowPrint = false,
-        keepScoreboardHidden = false, langs: string[] = [],
+        keepScoreboardHidden = false, langs: string[] = [], ratingPopulation?: string,
     ) {
+        ratingPopulation ||= this.tdoc?.ratingPopulation || 'open';
+        if (!isRatingPopulation(ratingPopulation)) throw new ValidationError('ratingPopulation');
+        if (this.tdoc && this.tdoc.beginAt <= new Date()
+            && ratingPopulation !== (this.tdoc.ratingPopulation || 'open')) throw new ValidationError('ratingPopulation');
         if (!Object.keys(contest.RULES).includes(rule) || contest.RULES[rule].hidden) throw new ValidationError('rule');
         if (autoHide) this.checkPerm(PERM.PERM_EDIT_PROBLEM);
         const pids = _pids.replace(/，/g, ',').split(',').map((i) => +i).filter((i) => i);
@@ -383,7 +391,7 @@ export class ContestEditHandler extends Handler {
         await problem.getList(domainId, pids, this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN) || this.user._id, true);
         if (tid) {
             await contest.edit(domainId, tid, {
-                title, content, rule, beginAt, endAt, pids, rated, duration: contestDuration,
+                title, content, rule, beginAt, endAt, pids, rated, ratingPopulation, duration: contestDuration,
             });
             if (this.tdoc.beginAt !== beginAt || this.tdoc.endAt !== endAt
                 || diffArray(this.tdoc.pids, pids) || this.tdoc.rule !== rule
@@ -391,7 +399,9 @@ export class ContestEditHandler extends Handler {
                 await contest.recalcStatus(domainId, this.tdoc.docId);
             }
         } else {
-            tid = await contest.add(domainId, title, content, this.user._id, rule, beginAt, endAt, pids, rated, { duration: contestDuration });
+            tid = await contest.add(domainId, title, content, this.user._id, rule, beginAt, endAt, pids, rated, {
+                duration: contestDuration, ratingPopulation,
+            });
         }
         const task = {
             type: 'schedule', subType: 'contest', domainId, tid,
@@ -931,6 +941,8 @@ export async function apply(ctx: Context) {
                 const availableViews = scoreboard.getAvailableViews(tdoc.rule, this);
                 this.response.body = {
                     tdoc: this.tdoc, tsdoc: this.tsdocAsPublic(), rows, udict, pdict, page_name, groups, availableViews,
+                    ...tdoc.rated && tdoc.rule !== 'homework' && contest.isDone(tdoc)
+                        ? { rating: await getContestRating(tdoc.domainId, tdoc.docId.toHexString()) } : {},
                 };
                 this.response.pjax = 'partials/scoreboard.html';
                 this.response.template = 'contest_scoreboard.html';

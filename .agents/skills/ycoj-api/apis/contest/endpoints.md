@@ -20,6 +20,7 @@ Description: attend with optional code, toggle subscription, or end early. Reque
 ## Create/edit
 
 ### POST `/contest/create` or `/contest/:tid/edit`
+Additional request: `ratingPopulation?:"open"|"primary"|"junior"|"senior"`; example `{"rated":true,"ratingPopulation":"junior"}` alongside the required fields below. Omission preserves existing population or defaults to `open`; changes after the stored start time and unknown values are rejected. Contest responses include `tdoc.ratingPopulation`. Full schemas: [rating.md](rating.md).
 Description: create or update a contest; `pids` is validated content and all decorated date/time/title/rule fields are validated. Request: `type B={tid?:ObjectId;beginAtDate:string;beginAtTime:string;duration:number;title:string;content:string;rule:string;pids:string;rated:boolean;code?:string;autoHide:boolean;assign?:string[];lock?:number;contestDuration?:number;maintainer?:number[];allowViewCode:boolean;allowPrint:boolean;keepScoreboardHidden:boolean;langs?:string[]}`; `POST /contest/create` body `{ "beginAtDate":"2026-09-01","beginAtTime":"10:00","duration":120,"title":"Weekly","content":"...","rule":"oi","pids":"1001\n1002","rated":false,"autoHide":false,"allowViewCode":false,"allowPrint":false,"keepScoreboardHidden":false }`. Response: `type R={tid:ObjectId;url?:string}`; `{ "tid":"665f00000000000000000001" }` plus redirect/JSON URL. Create permission is required; edit additionally checks ownership/edit permission.
 
 ### POST `/contest/:tid/edit` (`delete`)
@@ -73,6 +74,7 @@ Description: set balloon color. Request: `type B={operation:"setColor";color:str
 Description: mark one balloon delivered. Request: `type B={operation:"done";balloon:ObjectId}`; `{ "operation":"done","balloon":"665f00000000000000000003" }`. Response: `type R=BackResponse`; handler calls `back()`; browser redirect/JSON URL depends on referrer.
 
 ### GET/POST `/contest/:tid/scoreboard[/:view]`
+The default finished/rated contest response additionally contains `rating:{status:"pending"|"settled"|"skipped",changes:RatingChange[]}`; example `{"rating":{"status":"pending","changes":[]}}`. Reading may publish a replayed Rating generation. Full fields, visibility and judging stopping conditions: [rating.md](rating.md).
 Description: render a selected scoreboard view or unlock a hidden scoreboard. Only status documents with `attend > 0` are included as contestants; status documents created for users who only inspect a contest are excluded in all scoreboard views and exports. Request: `type Q={tid:ObjectId;view?:string}`; `GET /contest/665f.../scoreboard/default`; unlock body `type B={operation:"unlock"}`. Response: `type R={tdoc:Tdoc;rows:unknown[]}|{url:string}`; `{ "tdoc":{"docId":"665f..."},"rows":[] }` HTML or `{ "url":"/contest/665f.../scoreboard" }` JSON.
 
 ## Exact alternate print route: `GET/POST /contest/:tid/api/printing/team`

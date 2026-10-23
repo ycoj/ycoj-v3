@@ -359,6 +359,7 @@ export interface Tdoc extends Document {
     rule: string;
     pids: number[];
     rated?: boolean;
+    ratingPopulation?: import('./lib/contestRating').RatingPopulation;
     _code?: string;
     assign?: string[];
     files?: FileInfo[];

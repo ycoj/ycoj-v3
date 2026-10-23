@@ -16,6 +16,7 @@ type Props = {
   canAutoHide: boolean;
   domainId: string;
   canClone: boolean;
+  ratingPopulationLocked?: boolean;
 };
 
 export default function ContestEditForm({
@@ -24,6 +25,7 @@ export default function ContestEditForm({
   canAutoHide,
   domainId,
   canClone,
+  ratingPopulationLocked,
 }: Props) {
   const t = useTranslations('contestEdit');
 
@@ -39,6 +41,7 @@ export default function ContestEditForm({
       mode="edit"
       defaultValues={defaultValues}
       canAutoHide={canAutoHide}
+      ratingPopulationLocked={ratingPopulationLocked}
       domainId={domainId}
       cancelHref={`/contest/${tid}`}
       onSubmit={async (values) => {

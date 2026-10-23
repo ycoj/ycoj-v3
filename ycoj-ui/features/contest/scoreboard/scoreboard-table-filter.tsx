@@ -17,6 +17,7 @@ import {
 } from '@/shared/components/ui/select';
 import type { GDoc, ScoreboardRow } from '@/shared/types/contest';
 import type { ProblemDict } from '@/shared/types/problem';
+import type { ContestRating } from '@/shared/types/rating';
 import type { BaseUserDict } from '@/shared/types/user';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
@@ -28,6 +29,7 @@ type Props = {
   tid: string;
   pageType: 'contest' | 'homework';
   currentUid?: number;
+  rating?: ContestRating;
   groups: GDoc[];
   filter?: string;
   children?: ReactNode;
@@ -44,6 +46,7 @@ export default function ScoreboardTableFilter({
   tid,
   pageType,
   currentUid,
+  rating,
   groups,
   filter: initialFilter,
   children: toolbar,
@@ -148,6 +151,7 @@ export default function ScoreboardTableFilter({
           tid={tid}
           pageType={pageType}
           currentUid={currentUid}
+          rating={rating}
         />
       ) : (
         <p

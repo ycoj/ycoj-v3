@@ -25,4 +25,6 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 
 Within a group, use its `README.md` only as an index and open the linked endpoint document. A registered path can expose GET, POST, multiple POST `operation` values, or a connection; follow the contract for the exact variant being called.
 
+Contest Rating fields, scoreboard results, profile summaries/history and automatic replay: [Contest Rating](contest/rating.md).
+
 Image export: `GET /contest/:tid/scoreboard/export-data?details=true` and `/homework/:tid/scoreboard/export-data?details=true` provide page-format scoreboard rows with score/first-solve metadata, authorized real names and per-participant submission journals. Detail image ZIPs include the complete standings and individual participant images. See [the export contract](contest/endpoints.md#image-export-data).

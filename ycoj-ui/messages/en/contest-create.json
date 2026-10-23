@@ -23,8 +23,8 @@
   "languages": "Submission language limit",
   "languagesPlaceholder": "Search languages",
   "languagesHelp": "Leave empty to allow every available language.",
-  "rated": "Rated",
-  "ratedHelp": "Include this contest in rating calculations.",
+  "rated": "Rated contest",
+  "ratedHelp": "Update participant ratings after the contest ends and results are public.",
   "autoHide": "Auto-hide problems",
   "autoHideHelp": "Hide selected problems until the contest ends, then show them again.",
   "autoHideUnavailable": "You do not have permission to change problem visibility.",
@@ -51,5 +51,13 @@
   "submitFailed": "Failed to create the contest. Please try again later.",
   "creating": "Creating...",
   "create": "Create contest",
-  "cancel": "Back to contests"
+  "cancel": "Back to contests",
+  "ratingPopulation": "Participant group",
+  "ratingPopulationHelp": "Choose the intended training group. This cannot change after the contest starts.",
+  "ratingPopulations": {
+    "open": "Open",
+    "primary": "Primary school training",
+    "junior": "Junior secondary training",
+    "senior": "Senior secondary training"
+  }
 }

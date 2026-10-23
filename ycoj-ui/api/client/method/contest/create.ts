@@ -1,6 +1,7 @@
 import { clientRequest } from '@/api/client';
 import type { ContestRule } from '@/shared/types/contest';
 import type { Errorable } from '@/shared/types/error';
+import type { RatingPopulation } from '@/shared/types/rating';
 import type { ObjectId } from '@/shared/types/shared';
 
 export type CreateContestRequest = {
@@ -13,6 +14,7 @@ export type CreateContestRequest = {
   rule: Exclude<ContestRule, 'homework'>;
   pids: string;
   rated: boolean;
+  ratingPopulation?: RatingPopulation;
   code?: string;
   autoHide: boolean;
   assign?: string[];

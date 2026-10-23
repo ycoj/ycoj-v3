@@ -39,5 +39,14 @@
   "awardRank": "Rank",
   "awardSchool": "School",
   "awardProvince": "Province",
-  "awardGrade": "Grade"
+  "awardGrade": "Grade",
+  "contestRating": "Contest rating",
+  "noRating": "No rating yet. Results appear after participating in a rated contest.",
+  "ratingProvisional": "Provisional",
+  "ratingPeak": "Peak {value}",
+  "ratedContests": "{count} rated contests",
+  "ratingContest": "Contest",
+  "ratingDate": "Date",
+  "ratingChange": "Change",
+  "ratingChangeValue": "Rating change {value}"
 }

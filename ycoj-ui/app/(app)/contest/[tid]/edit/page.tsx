@@ -63,6 +63,7 @@ export default async function ContestEditPage({
       canAutoHide={canAutoHide}
       domainId={homepage.domain._id}
       canClone={canClone}
+      ratingPopulationLocked={data.ratingPopulationLocked}
     />
   );
 }
