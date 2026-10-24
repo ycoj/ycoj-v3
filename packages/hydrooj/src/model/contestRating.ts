@@ -6,11 +6,13 @@ import {
     ContestRatingEngine, isRatingPopulation, RATING_PARAMETERS, RATING_POPULATIONS, RATING_VERSION,
     type RatingChange, type RatingParticipant, type RatingPopulation, type RatingSummary,
 } from '../lib/contestRating';
+import { leaderboardUidClause } from '../lib/rankVisibility';
 import db from '../service/db';
 import { STATUS } from './builtin';
 import * as contest from './contest';
 import RecordModel from './record';
 import ScheduleModel from './schedule';
+import { deleteUserCache } from './user';
 
 export type RatingHistory = RatingChange & { tid: string, title: string, endAt: string };
 export interface ContestRatingResult { status: 'settled' | 'skipped', changes: RatingChange[] }
@@ -98,6 +100,7 @@ async function rebuild(domainId: string) {
             domainId, generation, fingerprint, updatedAt: new Date(),
         }, { upsert: !existing });
         if (!result.matchedCount && !result.upsertedCount) return (await coll.findOne({ _id: domainId })).generation;
+        deleteUserCache(domainId);
     } catch (error) {
         if (error.code !== 11000) throw error;
         return (await coll.findOne({ _id: domainId })).generation;
@@ -120,7 +123,58 @@ export async function getUserRating(domainId: string, uid: number) {
     return (await coll.findOne({ _id: `${generation}:user:${uid}`, domainId }))?.user || null;
 }
 
+export async function getPublishedUserRating(domainId: string, uid: number): Promise<RatingSummary | null> {
+    const active = await coll.findOne({ _id: domainId });
+    if (!active?.generation) return null;
+    const summary = (await coll.findOne({ _id: `${active.generation}:user:${uid}`, domainId }, { projection: { 'user.history': 0 } }))?.user;
+    if (!summary) return null;
+    return { rating: summary.rating, peak: summary.peak, contests: summary.contests, provisional: summary.provisional };
+}
+
+export async function getRatingLeaderboard(domainId: string, page: number, pageSize: number, hiddenUids: number[], viewerUid?: number) {
+    const generation = await settleContestRatings(domainId);
+    const current = viewerUid ? await coll.findOne({ _id: `${generation}:user:${viewerUid}`, domainId }, { projection: { 'user.rating': 1 } }) : null;
+    const [result] = await coll.aggregate<{
+        entries: { uid: number, contestRating: RatingSummary }[]; total: { count: number }[]; ahead: { count: number }[]; self: { uid: number }[];
+    }>([
+        { $match: { domainId, generation, 'user.contests': { $gt: 0 } } },
+        { $project: { 'user.rating': 1, 'user.peak': 1, 'user.contests': 1, 'user.provisional': 1 } },
+        // The generation key also identifies summaries written before leaderboard support.
+        { $set: { uid: { $toInt: { $arrayElemAt: [{ $split: ['$_id', ':'] }, -1] } } } },
+        { $match: leaderboardUidClause(hiddenUids) },
+        { $lookup: {
+            from: db.collection('domain.user').collectionName, localField: 'uid', foreignField: 'uid',
+            pipeline: [{ $match: { domainId, join: true } }, { $project: { _id: 1 } }], as: 'membership',
+        } },
+        { $match: { 'membership.0': { $exists: true } } },
+        { $sort: { 'user.rating': -1, uid: 1 } },
+        { $facet: {
+            entries: [
+                { $skip: (page - 1) * pageSize }, { $limit: pageSize },
+                { $project: { _id: 0, uid: 1, contestRating: {
+                    rating: '$user.rating', peak: '$user.peak', contests: '$user.contests', provisional: '$user.provisional',
+                } } },
+            ],
+            total: [{ $count: 'count' }],
+            self: [{ $match: { uid: viewerUid ?? -1 } }, { $project: { _id: 0, uid: 1 } }],
+            ahead: [{ $match: { $or: [
+                { 'user.rating': { $gt: current?.user?.rating ?? Infinity } },
+                { 'user.rating': current?.user?.rating ?? Infinity, uid: { $lt: viewerUid ?? -1 } },
+            ] } }, { $count: 'count' }],
+        } },
+    ]).toArray();
+    const ucount = result.total[0]?.count || 0;
+    return {
+        entries: result.entries, ucount, upcount: Math.ceil(ucount / pageSize),
+        selfRank: result.self.length ? 1 + (result.ahead[0]?.count || 0) : null,
+    };
+}
+
 export async function apply(ctx: Context) {
+    ctx.on('user/get', async (udoc) => {
+        udoc.contestRating = udoc._id > 0 && udoc._dudoc.domainId
+            ? await getPublishedUserRating(udoc._dudoc.domainId, udoc._id) : null;
+    });
     await db.ensureIndexes(coll, { name: 'domain_generation', key: { domainId: 1, generation: 1 } });
     ctx.on('domain/delete', (domainId) => coll.deleteMany({ domainId }));
     const refresh = async () => {

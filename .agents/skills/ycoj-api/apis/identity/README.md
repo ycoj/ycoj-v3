@@ -2,6 +2,7 @@
 
 - [Authentication, registration, recovery, OAuth, and account routes](auth.md)
 - [Contest Rating summaries and permitted profile history](../contest/rating.md#user-profile-result)
+- [Public user Rating field used for username colors](../contest/rating.md#public-user-summary)
 
 All browser-authenticated endpoints accept either `Cookie: sid=<session-token>` or `Authorization: Bearer <session-token>`. `Accept: application/json` converts handler redirects to the logical response `{url:string}`; a normal browser receives HTTP 302.
 

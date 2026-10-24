@@ -475,7 +475,7 @@ class UserDetailHandler extends Handler {
                 && ((!tdoc.assign?.length && !tdoc._code) || isSelfProfile || this.user.own(tdoc)
                     || this.user.hasPerm(PERM.PERM_EDIT_CONTEST)))
                 .map((tdoc) => tdoc.docId.toHexString()));
-            contestRating.history = contestRating.history.filter((entry) => visible.has(entry.tid)).slice(0, 30);
+            contestRating.history = contestRating.history.filter((entry) => visible.has(entry.tid));
         }
         this.response.body = {
             isSelfProfile, udoc, sdoc, pdocs, tags, tdocs,

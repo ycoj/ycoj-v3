@@ -164,20 +164,25 @@ export class User {
     }
 
     getFields(type: 'public' | 'private' = 'public') {
-        const fields = ['_id', 'uname', 'mail', 'perm', 'role', 'priv', 'regat', 'loginat', 'avatar', 'avatarUrl'].concat(this._publicFields);
+        const fields = ['_id', 'uname', 'mail', 'perm', 'role', 'priv', 'regat', 'loginat', 'avatar', 'avatarUrl']
+            .concat(this._publicFields);
         return type === 'public' ? fields : fields.concat(this._privateFields);
     }
 
     serialize(h?) {
+        // contestRating is attached after loading, so it is not a stored projection field.
+        const canViewRating = h?.user?.hasPerm(PERM.PERM_VIEW_CONTEST_SCOREBOARD);
         if (this._isPrivate) {
             const result: any = {};
             for (const key of Object.keys(this)) {
                 if (key.startsWith('_') && key !== '_id') continue;
+                if (key === 'contestRating' && !canViewRating) continue;
                 result[key] = this[key];
             }
             return result;
         }
-        return pick(this, this.getFields(h?.user?.hasPerm(PERM.PERM_VIEW_USER_PRIVATE_INFO) ? 'private' : 'public'));
+        const fields = this.getFields(h?.user?.hasPerm(PERM.PERM_VIEW_USER_PRIVATE_INFO) ? 'private' : 'public');
+        return pick(this, canViewRating ? fields.concat('contestRating') : fields);
     }
 }
 

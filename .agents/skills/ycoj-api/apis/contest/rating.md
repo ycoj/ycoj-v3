@@ -42,11 +42,17 @@ type Response = ExistingUserDetailResponse & { contestRating: UserContestRating 
 
 Example addition: `{"contestRating":{"rating":1652,"peak":1670,"contests":4,"provisional":true,"history":[{"tid":"665f00000000000000000001","title":"Weekly practice","endAt":"2026-10-20T10:00:00.000Z","uid":12,"rank":2,"before":1670,"after":1652,"delta":-18,"provisional":true}]}}`.
 
-The field is null for unrated users and viewers without `PERM_VIEW_CONTEST_SCOREBOARD`. History contains up to 30 newest permitted entries. Assigned/invitation contest history is limited to the profile owner, contest owner/maintainer or `PERM_EDIT_CONTEST` holders; scoreboard visibility also applies. The summary can aggregate these contests without exposing their names or per-contest changes to other viewers. No inference parameters, uncertainty or covariance matrices are returned.
+The field is null for unrated users and viewers without `PERM_VIEW_CONTEST_SCOREBOARD`. History contains all permitted entries, newest first, so clients can show the latest three and expand the full list without truncating older contests. Assigned/invitation contest history is limited to the profile owner, contest owner/maintainer or `PERM_EDIT_CONTEST` holders; scoreboard visibility also applies. The summary can aggregate these contests without exposing their names or per-contest changes to other viewers. No inference parameters, uncertainty or covariance matrices are returned.
+
+## Public user summary
+
+Serialized user objects returned by existing endpoints (including `udoc`, `udocs`, user dictionaries and the private current-user object) may add `contestRating:{rating:number;peak:number;contests:number;provisional:boolean}|null`. Example user addition: `{"_id":12,"uname":"alice","contestRating":{"rating":1652,"peak":1670,"contests":4,"provisional":true}}`. This field contains no history, contest names or private user data. It is read from the active domain's last published Rating generation when the user is loaded; unrated users use `null`, and viewers without `PERM_VIEW_CONTEST_SCOREBOARD` receive no field. User loading does not trigger settlement. Publishing a new generation invalidates domain user caches so subsequent requests use the new summaries. The frontend uses the numeric Rating for Codeforces-style username colors; this has no effect on RP or account permissions.
 
 ## Settlement and replay side effects
 
 Reading either result triggers deterministic replay when the source fingerprint changes. A worker refreshes domains with rated contests every five minutes and during the daily task. All eligible history is processed, ordered by global `endAt` and `docId`; the old last-ten-contests restriction does not apply. Homework, ongoing contests, hidden scoreboards and locked scoreboards are excluded. Outstanding judging/rejudging pauses processing at that contest; later contests wait. Rank changes, rejudge, contest deletion and disabling `rated` are reflected by the next refresh/read.
+
+`GET /ranking?sort=rating` also triggers this refresh and publishes paginated summary-only standings from one complete generation. It respects domain membership and leaderboard opt-out settings and requires both ranking and scoreboard permissions. See [ranking request/response contracts](../domain/domain.md#get-ranking).
 
 `contest.rating` stores complete generations: source ranks, population definitions, model parameters/version, per-contest changes and user summaries. A single compare-and-swap pointer publishes a complete generation; unchanged input does not duplicate counts. All prior generations are retained. MongoDB transactions/replica sets are not required. If another process publishes first, readers use the active generation. Existing combined `rp` is unaffected.
 

@@ -1,10 +1,10 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
+import path from 'path';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import nunjucks from 'nunjucks';
-import path from 'path';
 
 let mongod: MongoMemoryServer;
 let client: MongoClient;
@@ -56,11 +56,19 @@ before(async () => {
             getRankHiddenUids: () => userModel.getRankHiddenUids(),
             getList: async (domainId: string, uids: number[]) => {
                 const docs = await dudocs.find({ domainId, uid: { $in: uids } }).toArray();
-                return Object.fromEntries(docs.map((doc: any) => [doc.uid, { ...doc, _id: doc.uid }]));
+                return Object.fromEntries(docs.map((doc: any) => [doc.uid, {
+                    ...doc, _id: doc.uid, _hash: 'private', serialize: () => ({ ...doc, _id: doc.uid }),
+                }]));
             },
         },
     });
     mock('../src/service/server', require('@hydrooj/framework'));
+    mock('../src/model/contestRating', {
+        getRatingLeaderboard: async () => ({
+            entries: [{ uid: 4, contestRating: { rating: 1500, peak: 1550, contests: 4, provisional: false } }],
+            ucount: 1, upcount: 1, selfRank: 1,
+        }),
+    });
     for (const name of ['discussion', 'message', 'oplog']) mock(`../src/model/${name}`, {});
     await require('../src/handler/domain').apply({
         Route: (name: string, _url: string, HandlerClass: any) => { if (name === 'ranking') RankHandler = HandlerClass; },
@@ -74,6 +82,21 @@ after(async () => {
 });
 
 describe('current-user displayed rank', () => {
+    it('serializes only summary Rating data for viewers with scoreboard permission', () => {
+        const displayed = Object.assign(Object.create(userModel.User.prototype), {
+            _id: 2, uname: 'alice', _udoc: { hash: 'private' }, _hash: 'private', _publicFields: [], _privateFields: [],
+        });
+        displayed.contestRating = { rating: 1652, peak: 1670, contests: 4, provisional: true };
+        const { PERM } = require('../src/model/builtin');
+        const allowed = displayed.serialize({ user: { hasPerm: (perm: bigint) => perm === PERM.PERM_VIEW_CONTEST_SCOREBOARD } });
+        assert.deepEqual(allowed.contestRating, displayed.contestRating);
+        assert.equal(allowed._udoc, undefined);
+        assert.equal(allowed._hash, undefined);
+        assert.equal(displayed.serialize({ user: { hasPerm: () => false } }).contestRating, undefined);
+        displayed._isPrivate = true;
+        assert.equal(displayed.serialize({ user: { hasPerm: () => false } }).contestRating, undefined);
+    });
+
     beforeEach(async () => {
         await colls.user.deleteMany({});
         await colls['domain.user'].deleteMany({});
@@ -94,18 +117,19 @@ describe('current-user displayed rank', () => {
         ]);
     });
 
-    async function ranking(uid = 4, page = 1, pageSize = 2, hasProfile = true, hideRank = false) {
+    async function ranking(uid = 4, page = 1, pageSize = 2, hasProfile = true, hideRank = false, sort = 'rp', canViewScoreboard = true) {
         const handler = Object.assign(Object.create(RankHandler.prototype), {
             user: { _id: uid, rank: 3, rp: 300, hideRank, hasPriv: () => hasProfile },
             ctx: { setting: { get: () => pageSize } },
             response: {},
+            checkPerm: () => { if (!canViewScoreboard) throw new Error('scoreboard permission required'); },
             paginate: async (cursor: any, currentPage: number) => {
                 const count = await colls['domain.user'].countDocuments(cursor.cursorFilter);
                 return [await cursor.skip((currentPage - 1) * (pageSize || 20)).limit(pageSize || 20).toArray(),
                     Math.ceil(count / (pageSize || 20)), count];
             },
         });
-        await handler.get('system', page);
+        await handler.get('system', page, sort);
         return handler;
     }
 
@@ -128,6 +152,16 @@ describe('current-user displayed rank', () => {
         });
         return [...html.matchAll(/<td class="col--rank">(.*?)<\/td>/g)].map((match) => match[1]);
     }
+
+    it('returns Rating summaries through public serialization and enforces scoreboard permission', async () => {
+        const handler = await ranking(4, 1, 2, true, false, 'rating');
+        assert.equal(handler.response.body.sort, 'rating');
+        assert.equal(handler.response.body.udocs[0]._id, 4);
+        assert.equal(handler.response.body.udocs[0].contestRating.rating, 1500);
+        assert.equal(handler.response.body.udocs[0]._hash, undefined);
+        await assert.rejects(ranking(4, 1, 2, true, false, 'rating', false), /scoreboard permission/);
+        await assert.rejects(ranking(4, 1, 2, true, false, 'unknown'));
+    });
 
     it('matches the on-page list position and leaves all stored ranks unchanged', async () => {
         const beforeDocs = await colls['domain.user'].find({}).toArray();

@@ -24,6 +24,7 @@ const collection = {
 };
 mock('../src/service/db', { __esModule: true, default: { collection: () => collection } });
 mock('../src/model/schedule', { __esModule: true, default: {} });
+mock('../src/model/user', { deleteUserCache: () => {} });
 mock('../src/model/builtin', { STATUS: { STATUS_WAITING: 0, STATUS_FETCHED: 1, STATUS_COMPILING: 2, STATUS_JUDGING: 3 } });
 mock('../src/model/record', { __esModule: true, default: {
     getMulti: (_domainId: string, query: { contest: ObjectId }) => ({

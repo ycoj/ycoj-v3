@@ -11,6 +11,7 @@ import type { DomainDoc } from '../interface';
 import avatar from '../lib/avatar';
 import { leaderboardUidClause } from '../lib/rankVisibility';
 import { PERM, PERMS_BY_FAMILY, PRIV } from '../model/builtin';
+import { getRatingLeaderboard } from '../model/contestRating';
 import * as discussion from '../model/discussion';
 import domain from '../model/domain';
 import MessageModel from '../model/message';
@@ -25,10 +26,24 @@ import { log2 } from '../utils';
 
 class DomainRankHandler extends Handler {
     @query('page', Types.PositiveInt, true)
-    async get(domainId: string, page = 1) {
+    @query('sort', Types.String, true)
+    async get(domainId: string, page = 1, sort = 'rp') {
+        if (!['rp', 'rating'].includes(sort)) throw new ValidationError('sort');
         const hiddenUids = await user.getRankHiddenUids();
-        const rankingQuery = { ...leaderboardUidClause(hiddenUids), rp: { $gt: 0 }, join: true };
         const pageSize = this.ctx.setting.get('pagination.ranking') || 20;
+        if (sort === 'rating') {
+            this.checkPerm(PERM.PERM_VIEW_CONTEST_SCOREBOARD);
+            const viewerUid = this.user.hasPriv(PRIV.PRIV_USER_PROFILE) ? this.user._id : undefined;
+            const { entries, ...pagination } = await getRatingLeaderboard(domainId, page, pageSize, hiddenUids, viewerUid);
+            const udict = await user.getList(domainId, entries.map((entry) => entry.uid));
+            const udocs = entries.map(({ uid, contestRating }) => ({
+                ...udict[uid].serialize(this), nAccept: udict[uid].nAccept ?? 0, contestRating,
+            }));
+            this.response.template = 'ranking.html';
+            this.response.body = { udocs, ...pagination, page, pageSize, sort };
+            return;
+        }
+        const rankingQuery = { ...leaderboardUidClause(hiddenUids), rp: { $gt: 0 }, join: true };
         const [dudocs, upcount, ucount] = await this.paginate(
             domain.getMultiUserInDomain(domainId, rankingQuery).sort({ rp: -1, uid: 1 }),
             page,
@@ -59,7 +74,7 @@ class DomainRankHandler extends Handler {
         }
         this.response.template = 'ranking.html';
         this.response.body = {
-            udocs, upcount, ucount, page, pageSize, selfRank,
+            udocs, upcount, ucount, page, pageSize, selfRank, sort,
         };
     }
 }
