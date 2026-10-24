@@ -1,82 +1,31 @@
-import { BaseUser } from '../../../shared/types/user';
+import type { BaseUser } from '@/shared/types/user';
 
-type RGB = {
-  r: number;
-  g: number;
-  b: number;
-};
-
-type HSV = {
-  h: number;
-  s: number;
-  v: number;
-};
-
-function HSV2RGB(hsv: HSV): RGB {
-  let { h, s, v } = hsv;
-  h = ((h % 360) + 360) % 360;
-  s = Math.max(0, Math.min(100, s)) / 100;
-  v = Math.max(0, Math.min(100, v)) / 100;
-
-  const c = v * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = v - c;
-
-  let r = 0,
-    g = 0,
-    b = 0;
-  if (h < 60) {
-    [r, g, b] = [c, x, 0];
-  } else if (h < 120) {
-    [r, g, b] = [x, c, 0];
-  } else if (h < 180) {
-    [r, g, b] = [0, c, x];
-  } else if (h < 240) {
-    [r, g, b] = [0, x, c];
-  } else if (h < 300) {
-    [r, g, b] = [x, 0, c];
-  } else {
-    [r, g, b] = [c, 0, x];
-  }
-
-  return {
-    r: Math.round((r + m) * 255),
-    g: Math.round((g + m) * 255),
-    b: Math.round((b + m) * 255),
-  };
+export function getRatingTier(rating?: number | null) {
+  if (rating == null || !Number.isFinite(rating)) return 'unrated';
+  if (rating < 1200) return 'newbie';
+  if (rating < 1400) return 'pupil';
+  if (rating < 1600) return 'specialist';
+  if (rating < 1900) return 'expert';
+  if (rating < 2100) return 'candidateMaster';
+  if (rating < 2400) return 'master';
+  if (rating < 3000) return 'grandmaster';
+  return 'legendaryGrandmaster';
 }
 
-function RGB2STR(rgb: RGB): string {
-  return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-}
+const RATING_COLORS = {
+  unrated: 'text-foreground',
+  newbie: 'text-zinc-600 dark:text-zinc-400',
+  pupil: 'text-green-700 dark:text-green-400',
+  specialist: 'text-teal-700 dark:text-teal-400',
+  expert: 'text-blue-700 dark:text-blue-400',
+  candidateMaster: 'text-purple-700 dark:text-purple-400',
+  master: 'text-orange-700 dark:text-orange-400',
+  grandmaster: 'text-red-700 dark:text-red-400',
+  legendaryGrandmaster: 'text-red-700 dark:text-red-400',
+} as const;
 
-function getUOJColOfRating(rating: number): string {
-  if (rating < 1500) {
-    const H = 300 - ((1500 - 850) * 300) / 1650,
-      S = 30 + ((1500 - 850) * 70) / 1650,
-      V = 50 + ((1500 - 850) * 50) / 1650;
-    if (rating < 300) rating = 300;
-    const k = (rating - 300) / 1200;
-    return RGB2STR(
-      HSV2RGB({
-        h: H + (300 - H) * (1 - k),
-        s: 30 + (S - 30) * k,
-        v: 50 + (V - 50) * k,
-      })
-    );
-  }
-  if (rating > 2500) {
-    rating = 2500;
-  }
-  return RGB2STR(
-    HSV2RGB({
-      h: 300 - ((rating - 850) * 300) / 1650,
-      s: 30 + ((rating - 850) * 70) / 1650,
-      v: 50 + ((rating - 850) * 50) / 1650,
-    })
-  );
-}
-
-export default function getUsernameColor(user: BaseUser) {
-  return getUOJColOfRating((user.uojRating as number | null) ?? 1500);
+export default function getUsernameColor(
+  user: Pick<BaseUser, 'contestRating'>
+) {
+  return RATING_COLORS[getRatingTier(user.contestRating?.rating)];
 }

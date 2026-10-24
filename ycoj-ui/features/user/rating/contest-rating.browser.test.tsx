@@ -3,7 +3,7 @@ import ScoreboardTable from '@/features/contest/scoreboard/scoreboard-table';
 import ContestRating from '@/features/user/profile/components/contest-rating';
 import messages from '@/messages/en';
 import type { UserContestRating } from '@/shared/types/rating';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import { page } from 'vitest/browser';
@@ -63,18 +63,82 @@ describe('contest rating results', () => {
       expect(
         screen.getByRole('heading', { name: 'Contest rating' })
       ).toBeVisible();
-      expect(screen.getByText(/Peak 1,670/)).toBeVisible();
+      expect(screen.getByText('Peak rating')).toBeVisible();
+      expect(screen.getAllByText('1,670')[0]).toBeVisible();
       expect(screen.getByText('Provisional')).toBeVisible();
-      expect(
-        screen.getByRole('link', { name: 'Weekly practice' })
-      ).toHaveAttribute('href', '/contest/one/scoreboard');
-      expect(screen.getByLabelText('Rating change -18')).toBeVisible();
-      expect(screen.getByLabelText('Rating change +70')).toBeVisible();
       await page.screenshot({
         path: `../../../test-results/rating-profile-${width}.png`,
       });
+      const table = within(screen.getByRole('table'));
+      expect(
+        table.getByRole('link', { name: 'Weekly practice' })
+      ).toHaveAttribute('href', '/contest/one/scoreboard');
+      expect(table.getByLabelText('Rating change -18')).toBeVisible();
+      expect(table.getByLabelText('Rating change +70')).toBeVisible();
+      expect(
+        screen.getByRole('group', { name: 'Rating history' })
+      ).toBeVisible();
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
+      expect(
+        screen.queryByRole('button', { name: /Show all/ })
+      ).not.toBeInTheDocument();
     });
   }
+
+  it('shows the latest three contests and expands the entire history on demand', async () => {
+    const history = Array.from({ length: 35 }, (_, index) => ({
+      ...rating.history[0],
+      tid: `contest-${index}`,
+      title: `Practice ${35 - index}`,
+      endAt: new Date(Date.UTC(2026, 8, 35 - index)).toISOString(),
+    }));
+    profile({ ...rating, contests: 35, history });
+    const table = within(screen.getByRole('table'));
+    expect(table.getAllByRole('row')).toHaveLength(4);
+    expect(table.getByRole('link', { name: 'Practice 35' })).toBeVisible();
+    expect(
+      table.queryByRole('link', { name: 'Practice 32' })
+    ).not.toBeInTheDocument();
+    for (const width of [390, 1280]) {
+      await act(async () => {
+        await page.viewport(width, 900);
+      });
+      await page.screenshot({
+        path: `../../../test-results/rating-recent-${width}.png`,
+      });
+    }
+    await page.getByRole('button', { name: 'Show all 35 contests' }).click();
+    expect(table.getAllByRole('row')).toHaveLength(36);
+    expect(table.getByRole('link', { name: 'Practice 1' })).toBeVisible();
+    await page.getByRole('button', { name: 'Show latest 3 contests' }).click();
+    expect(table.getAllByRole('row')).toHaveLength(4);
+  });
+
+  it('lets keyboard users inspect a contest on the chart and open its scoreboard', async () => {
+    profile(rating);
+    const point = screen.getByRole('link', {
+      name: 'Autumn contest: Rating 1,670, change +70',
+    });
+    await act(async () => point.focus());
+    await expect
+      .element(
+        page.getByRole('link', { name: 'Autumn contest', exact: true }).first()
+      )
+      .toBeVisible();
+    const details = screen.getByRole('figure');
+    expect(within(details).getByLabelText('Rating change +70')).toBeVisible();
+    expect(point).toHaveAttribute('href', '/contest/two/scoreboard');
+  });
+
+  it('shows a single contest as a change from its starting rating', () => {
+    profile({ ...rating, contests: 1, history: [rating.history[0]] });
+    expect(screen.getByText('Starting at 1,670')).toBeVisible();
+    expect(
+      screen.getByRole('link', {
+        name: 'Weekly practice: Rating 1,652, change -18',
+      })
+    ).toBeVisible();
+  });
 
   it('associates rating changes with the correct participant and leaves unranked users unrated', () => {
     render(

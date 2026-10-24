@@ -56,7 +56,7 @@ Description: show the caller’s latest verification status and remaining grace,
 Description: bind imported CCF/NOI awards to the caller after real-name approval. GET `type Query={others?:boolean;page?:number}`, example `GET /home/award?others=1`. Response `HTML`. POST `type Input={oierId:number}`, example `{"oierId":12}`, response `Redirect`, example `{"url":"/home/award"}`. Requires profile privilege and an approved real name. See [Award certification](../award/user.md).
 
 ## `GET|POST /home/messages`
-Description: view/manage private messages. GET `type Query={}`, response `HTML`. POST `type Input={operation?:string;messageId?:string;content?:string}`, example `{"operation":"delete","messageId":"66aa66aa66aa66aa66aa66aa"}`, response `Redirect`, example `{"url":"/home/messages"}`. Requires profile privilege.
+Description: view/manage private messages. GET `type Query={}`, response `HTML`. POST `type Input={operation?:string;messageId?:string;content?:string}`, example `{"operation":"delete","messageId":"66aa66aa66aa66aa66aa66aa"}`, response `Redirect`, example `{"url":"/home/messages"}`. Requires profile privilege. Each dialogue's `udoc` is the counterpart's public user object plus `avatarUrl`, so it also carries the caller-visible `contestRating` summary described in [Public user summary](../contest/rating.md#public-user-summary).
 
 ### POST `deleteMessage`
 Description: delete a sent message. Request `type DeleteMessage={operation:"deleteMessage";messageId:string}`, example `{"operation":"deleteMessage","messageId":"66aa66aa66aa66aa66aa66aa"}`. Response `Redirect`, example `{"url":"/home/messages"}`. Only the message sender may delete it.

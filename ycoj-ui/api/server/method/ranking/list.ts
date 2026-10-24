@@ -1,6 +1,8 @@
 import { alova } from '@/api/server';
 import type { BaseUser, RpInfo } from '@/shared/types/user';
 
+export type RankingSort = 'rp' | 'rating';
+
 export type RankingUser = BaseUser & {
   /** Rating Points */
   rp: number;
@@ -25,9 +27,11 @@ export type RankingListResponse = {
   ucount: number;
   /** Page size */
   pageSize: number;
+  sort: RankingSort;
+  selfRank: number | null;
 };
 
-export const getRankingList = (page?: number) =>
+export const getRankingList = (page?: number, sort: RankingSort = 'rp') =>
   alova.Get<RankingListResponse>('/ranking', {
-    params: { page },
+    params: { page, sort },
   });

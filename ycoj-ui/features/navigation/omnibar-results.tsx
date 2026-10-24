@@ -4,6 +4,7 @@ import type { SearchResults, SearchStatus } from './omnibar-search';
 import { lookupProblemStatus, type OmnibarHit } from './omnibar-utils';
 import { formatProblemPid } from '@/features/problem/lib/format-problem-pid';
 import ProblemStatus from '@/features/problem/problem-status';
+import Username from '@/features/user/username';
 import {
   Avatar,
   AvatarFallback,
@@ -188,7 +189,8 @@ export default function OmnibarResults({
                         className="truncate font-medium"
                         data-llm-text={label}
                       >
-                        {label}
+                        <Username user={hit.user} />
+                        {hit.user.displayName && ` (${hit.user.displayName})`}
                       </div>
                       <div
                         className="text-muted-foreground text-xs"

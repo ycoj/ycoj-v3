@@ -1,5 +1,10 @@
 {
   "noUsers": "No users",
+  "noRatedUsers": "No rated participants yet",
+  "sortBy": "Rank by",
+  "rp": "RP",
+  "rating": "Rating",
+  "provisional": "Provisional",
   "bio": "Bio",
   "accepted": "Accepted",
   "category": {

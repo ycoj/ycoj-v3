@@ -1,3 +1,5 @@
+import type { BaseUser } from './user';
+
 export const MessageFlag = {
   unread: 1,
   alert: 2,
@@ -14,7 +16,7 @@ export type MessageDoc = {
   flag: number;
 };
 
-export type MessageUser = {
+export type MessageUser = Pick<BaseUser, 'contestRating'> & {
   _id: number;
   uname: string;
   displayName?: string;

@@ -12,6 +12,7 @@ import {
 import ClientApis from '@/api/client/method';
 import type { UserAutoCompleteItem } from '@/api/client/method/user/auto-complete';
 import SingleUserAutoComplete from '@/features/user/user-auto-complete';
+import Username from '@/features/user/username';
 import {
   Avatar,
   AvatarFallback,
@@ -246,7 +247,7 @@ export default function MessagePage({
                       className="block truncate text-sm font-medium"
                       data-llm-text={dialogue.udoc.uname}
                     >
-                      {dialogue.udoc.uname}
+                      <Username user={dialogue.udoc} />
                     </span>
                     <span
                       className="block truncate text-xs text-muted-foreground"
@@ -269,7 +270,7 @@ export default function MessagePage({
                 href={`/user/${activeDialogue.udoc._id}`}
                 className="min-w-0 truncate text-sm font-medium hover:underline"
               >
-                {activeDialogue.udoc.uname} (
+                <Username user={activeDialogue.udoc} /> (
                 {t('userId', { id: activeDialogue.udoc._id })})
               </Link>
               <Button asChild variant="ghost" size="icon-sm">

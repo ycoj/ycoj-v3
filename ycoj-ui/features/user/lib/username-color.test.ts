@@ -1,41 +1,48 @@
-import getUsernameColor from './username-color';
+import getUsernameColor, { getRatingTier } from './username-color';
 import type { BaseUser } from '@/shared/types/user';
 import { describe, expect, it } from 'vitest';
 
-function makeUser(uojRating?: number | null): BaseUser {
+function makeUser(rating?: number | null): BaseUser {
   return {
     _id: 1,
     uname: 'alice',
     mail: 'a@example.com',
     avatar: '',
-    uojRating: uojRating as number | undefined,
+    contestRating:
+      rating == null
+        ? null
+        : { rating, peak: rating, contests: 1, provisional: true },
   };
 }
 
 describe('getUsernameColor', () => {
-  it('defaults null/undefined rating to 1500 color', () => {
-    const defaultColor = getUsernameColor(makeUser(1500));
-    expect(getUsernameColor(makeUser(null))).toBe(defaultColor);
-    expect(getUsernameColor(makeUser(undefined))).toBe(defaultColor);
+  it.each([
+    [undefined, 'unrated'],
+    [null, 'unrated'],
+    [NaN, 'unrated'],
+    [-20, 'newbie'],
+    [1199, 'newbie'],
+    [1200, 'pupil'],
+    [1399, 'pupil'],
+    [1400, 'specialist'],
+    [1599, 'specialist'],
+    [1600, 'expert'],
+    [1899, 'expert'],
+    [1900, 'candidateMaster'],
+    [2099, 'candidateMaster'],
+    [2100, 'master'],
+    [2399, 'master'],
+    [2400, 'grandmaster'],
+    [2999, 'grandmaster'],
+    [3000, 'legendaryGrandmaster'],
+    [4000, 'legendaryGrandmaster'],
+  ] as const)('uses the Codeforces tier for rating %s', (rating, expected) => {
+    expect(getRatingTier(rating)).toBe(expected);
   });
 
-  it('returns rgb() colors for low, mid, and high ratings', () => {
-    expect(getUsernameColor(makeUser(800))).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
-    expect(getUsernameColor(makeUser(1500))).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
-    expect(getUsernameColor(makeUser(2200))).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
-  });
-
-  it('clamps very low and very high ratings deterministically', () => {
-    expect(getUsernameColor(makeUser(0))).toBe(getUsernameColor(makeUser(300)));
-    expect(getUsernameColor(makeUser(3000))).toBe(
-      getUsernameColor(makeUser(2500))
-    );
-  });
-
-  it('produces different colors across rating tiers', () => {
-    const low = getUsernameColor(makeUser(1000));
-    const mid = getUsernameColor(makeUser(1800));
-    const high = getUsernameColor(makeUser(2400));
-    expect(new Set([low, mid, high]).size).toBe(3);
+  it('uses contest rating rather than legacy UOJ rating for username colors', () => {
+    const user = { ...makeUser(1652), uojRating: 2500 };
+    expect(getUsernameColor(user)).toBe(getUsernameColor(makeUser(1652)));
+    expect(getUsernameColor(makeUser())).not.toBe(getUsernameColor(user));
   });
 });

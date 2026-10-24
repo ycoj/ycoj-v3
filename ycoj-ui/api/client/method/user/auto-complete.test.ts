@@ -8,7 +8,7 @@ describe('searchUsers', () => {
     expect(request.url).toBe('/d/system/api/users');
     expect(request.data).toEqual({
       args: { search: 'alice' },
-      projection: ['_id', 'uname', 'displayName', 'avatarUrl'],
+      projection: ['_id', 'uname', 'displayName', 'avatarUrl', 'contestRating'],
     });
   });
 
@@ -18,7 +18,7 @@ describe('searchUsers', () => {
     expect(request.url).toBe('/d/school%2Fa/api/users');
     expect(request.data).toEqual({
       args: { auto: ['7', '12'] },
-      projection: ['_id', 'uname', 'displayName', 'avatarUrl'],
+      projection: ['_id', 'uname', 'displayName', 'avatarUrl', 'contestRating'],
     });
   });
 });

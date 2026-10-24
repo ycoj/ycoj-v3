@@ -1,9 +1,12 @@
+import type { UserContestRating } from './rating';
+
 export type BaseUser = {
   _id: number;
   uname: string;
   mail: string;
   avatar: string;
   ccfLevel?: number;
+  contestRating?: Omit<UserContestRating, 'history'> | null;
   /** Optional fields that may be present depending on settings/context */
   school?: string;
   displayName?: string;

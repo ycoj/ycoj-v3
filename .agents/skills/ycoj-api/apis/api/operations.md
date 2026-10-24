@@ -12,7 +12,7 @@ Description: find one user by id, login name, email, or default to caller. `type
 
 ## `users`
 
-Description: autocomplete/resolve multiple users. `type UsersArgs={ids?:number[];auto?:string[];search?:string;limit?:number;exact?:boolean;domainId?:string}`; `domainId` is injected from the active request domain rather than required by the operation schema. Example `{"auto":["12","alice"]}`. Response `type UserDocWithAvatar=UserDoc & {avatarUrl:string}; type UsersResult=UserDocWithAvatar[]`; example `[{"_id":12,"uname":"alice","avatarUrl":"/avatar/…"}]`. `auto` resolves numeric ids then names/emails; more than 50 unresolved names is curtailed. Prefix results are capped at 10.
+Description: autocomplete/resolve multiple users. `type UsersArgs={ids?:number[];auto?:string[];search?:string;limit?:number;exact?:boolean;domainId?:string}`; `domainId` is injected from the active request domain rather than required by the operation schema. Example `{"auto":["12","alice"]}`. Response `type UserDocWithAvatar=UserDoc & {avatarUrl:string}; type UsersResult=UserDocWithAvatar[]`; example `[{"_id":12,"uname":"alice","avatarUrl":"/avatar/…"}]`. `auto` resolves numeric ids then names/emails; more than 50 unresolved names is curtailed. Prefix results are capped at 10. Results are ordinary `User` objects, so they also carry the caller-visible `contestRating` summary described in [Public user summary](../contest/rating.md#public-user-summary); a `projection` passed to `/api/users` selects from the serialized object.
 
 ## `domain`
 

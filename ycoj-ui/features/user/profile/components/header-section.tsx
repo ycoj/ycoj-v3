@@ -6,6 +6,7 @@ import {
 } from './shared';
 import CcfHook from '@/features/user/ccf-hook';
 import UserAvatar from '@/features/user/user-avatar';
+import Username from '@/features/user/username';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -36,7 +37,7 @@ export default function HeaderSection({ data }: UserProfileProps) {
                   className="flex min-w-0 items-center gap-0.5 text-2xl leading-snug font-medium"
                   data-llm-text={data.udoc.uname}
                 >
-                  <span className="truncate">{data.udoc.uname}</span>
+                  <Username user={profileUser} className="truncate" />
                   <CcfHook level={profileUser.ccfLevel} />
                 </h1>
                 <p

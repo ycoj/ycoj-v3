@@ -1,6 +1,6 @@
 import CcfHook from '@/features/user/ccf-hook';
-import getUsernameColor from '@/features/user/lib/username-color';
 import UserAvatar from '@/features/user/user-avatar';
+import Username from '@/features/user/username';
 import { BaseUser } from '@/shared/types/user';
 import Link from 'next/link';
 
@@ -15,12 +15,7 @@ export default function UserSpan({ user, showAvatar = true }: Props) {
       <span className="inline-flex items-center gap-2 align-middle text-sm text-gray-500">
         {showAvatar && <UserAvatar user={user} size="sm" />}
         <span className="inline-flex min-w-0 items-center gap-0.5">
-          <span
-            className="text-foreground font-medium"
-            style={{ color: getUsernameColor(user) }}
-          >
-            {user.uname}
-          </span>
+          <Username user={user} />
           <CcfHook level={user.ccfLevel} />
         </span>
       </span>

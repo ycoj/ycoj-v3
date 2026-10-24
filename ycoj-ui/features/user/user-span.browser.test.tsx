@@ -1,8 +1,35 @@
+import '@/app/globals.css';
 import UserSpan from './user-span';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 describe('UserSpan', () => {
+  it('colors usernames by contest rating and gives legendary users a contrasting first letter', () => {
+    const user = {
+      _id: 2,
+      uname: 'alice',
+      mail: '',
+      avatar: '',
+      contestRating: {
+        rating: 3100,
+        peak: 3100,
+        contests: 8,
+        provisional: false,
+      },
+    };
+    render(<UserSpan user={user} showAvatar={false} />);
+    expect(screen.getByRole('link', { name: 'alice' })).toBeVisible();
+    const initial = screen.getByText('a', { exact: true });
+    const rest = screen.getByText('lice', { exact: true });
+    expect(getComputedStyle(initial).color).not.toBe(
+      getComputedStyle(rest).color
+    );
+    expect(screen.getByRole('link', { name: 'alice' })).toHaveAttribute(
+      'href',
+      '/user/2'
+    );
+  });
+
   it('renders the CCF hook after the username', () => {
     render(
       <UserSpan

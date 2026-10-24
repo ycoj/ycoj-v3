@@ -2,6 +2,7 @@
 
 import ClientApis from '@/api/client/method';
 import CcfHook from '@/features/user/ccf-hook';
+import Username from '@/features/user/username';
 import { locales, type Locale } from '@/i18n/config';
 import {
   Avatar,
@@ -38,7 +39,7 @@ import { useState, useSyncExternalStore } from 'react';
 export type SidebarRoleKey = 'user' | 'superAdmin' | 'coach';
 
 type Props = {
-  user: Pick<User, '_id' | 'uname' | 'ccfLevel'>;
+  user: Pick<User, '_id' | 'uname' | 'ccfLevel' | 'contestRating'>;
   roleKey: SidebarRoleKey;
   avatarSrc: string;
   canUsePaste?: boolean;
@@ -115,7 +116,7 @@ export default function SidebarUserMenu({
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="flex min-w-0 items-center gap-0.5 font-semibold">
-              <span className="truncate">{user.uname}</span>
+              <Username user={user} className="truncate font-semibold" />
               <CcfHook level={user.ccfLevel} />
             </span>
             <span

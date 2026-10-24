@@ -1,15 +1,8 @@
-import RatingChange from '@/features/user/rating/rating-change';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/shared/components/ui/table';
+import RatingHistoryChart from '@/features/user/rating/rating-history-chart';
+import RatingHistoryTable from '@/features/user/rating/rating-history-table';
 import type { UserContestRating } from '@/shared/types/rating';
+import { TrendingUp } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import Link from 'next/link';
 
 type Props = { rating?: UserContestRating | null };
 
@@ -18,69 +11,50 @@ export default function ContestRating({ rating }: Props) {
   const format = useFormatter();
   return (
     <section className="space-y-3" data-llm-visible="true">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-base font-medium">{t('contestRating')}</h2>
-        {rating && (
-          <p className="text-muted-foreground text-sm">
-            {t('ratingPeak', { value: format.number(rating.peak) })} ·{' '}
-            {t('ratedContests', { count: rating.contests })}
-          </p>
-        )}
-      </div>
+      <h2 className="inline-flex items-center gap-2 text-base font-medium">
+        <TrendingUp className="size-4 text-muted-foreground" />
+        <span data-llm-text={t('contestRating')}>{t('contestRating')}</span>
+      </h2>
       {!rating ? (
         <p className="text-muted-foreground text-sm">{t('noRating')}</p>
       ) : (
         <>
-          <div className="flex flex-wrap items-baseline gap-3">
-            <span className="text-2xl font-semibold tabular-nums">
-              {format.number(rating.rating)}
-            </span>
-            {rating.provisional && (
-              <span className="text-muted-foreground text-sm">
-                {t('ratingProvisional')}
-              </span>
-            )}
+          <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border bg-border">
+            {[
+              {
+                label: t('ratingCurrent'),
+                value: format.number(rating.rating),
+              },
+              {
+                label: t('ratingPeakLabel'),
+                value: format.number(rating.peak),
+              },
+              {
+                label: t('ratingContestsLabel'),
+                value: format.number(rating.contests),
+              },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-background px-3 py-3">
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p
+                  className="text-sm font-medium tabular-nums"
+                  data-llm-text={value}
+                >
+                  {value}
+                </p>
+              </div>
+            ))}
           </div>
+          {rating.provisional && (
+            <p className="text-sm text-muted-foreground">
+              {t('ratingProvisional')}
+            </p>
+          )}
           {rating.history.length > 0 && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('ratingContest')}</TableHead>
-                  <TableHead>{t('ratingDate')}</TableHead>
-                  <TableHead className="text-right">Rating</TableHead>
-                  <TableHead className="text-right">
-                    {t('ratingChange')}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rating.history.map((entry) => (
-                  <TableRow key={entry.tid}>
-                    <TableCell className="max-w-56 whitespace-normal">
-                      <Link
-                        href={`/contest/${entry.tid}/scoreboard`}
-                        className="hover:underline"
-                      >
-                        {entry.title}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {format.dateTime(new Date(entry.endAt), {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {format.number(entry.after)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <RatingChange delta={entry.delta} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <>
+              <RatingHistoryChart history={rating.history} />
+              <RatingHistoryTable history={rating.history} />
+            </>
           )}
         </>
       )}

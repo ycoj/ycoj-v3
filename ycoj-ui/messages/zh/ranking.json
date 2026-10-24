@@ -1,5 +1,10 @@
 {
   "noUsers": "暂无用户",
+  "noRatedUsers": "暂无已获得 Rating 的参赛者",
+  "sortBy": "排名依据",
+  "rp": "RP",
+  "rating": "Rating",
+  "provisional": "暂定评分",
   "bio": "自我介绍",
   "accepted": "通过",
   "category": {
