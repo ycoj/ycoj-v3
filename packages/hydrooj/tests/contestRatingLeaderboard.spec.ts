@@ -98,4 +98,12 @@ describe('contest rating leaderboard', () => {
         await ratings.settleContestRatings('school');
         assert.equal(invalidated.length, count);
     });
+
+    it('loads scoreboard username ratings from one published domain generation without histories', async () => {
+        const summary = { rating: 2000, peak: 2100, contests: 3, provisional: false };
+        assert.deepEqual(await ratings.getPublishedUserRatings('school', [2, 3, 8, 10, -1]), {
+            2: summary, 3: summary, 8: null, 10: null, '-1': null,
+        });
+        assert.deepEqual(await ratings.getPublishedUserRatings('other', [2]), { 2: null });
+    });
 });

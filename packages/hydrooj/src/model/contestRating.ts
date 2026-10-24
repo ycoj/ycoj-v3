@@ -131,6 +131,20 @@ export async function getPublishedUserRating(domainId: string, uid: number): Pro
     return { rating: summary.rating, peak: summary.peak, contests: summary.contests, provisional: summary.provisional };
 }
 
+export async function getPublishedUserRatings(domainId: string, uids: number[]): Promise<Record<number, RatingSummary | null>> {
+    const result: Record<number, RatingSummary | null> = Object.fromEntries(uids.map((uid) => [uid, null]));
+    const active = await coll.findOne({ _id: domainId });
+    if (!active?.generation) return result;
+    const ids = uids.filter((uid) => uid > 0).map((uid) => `${active.generation}:user:${uid}`);
+    const summaries = await coll.find({ domainId, _id: { $in: ids } }, { projection: { 'user.history': 0 } }).toArray();
+    const byId = new Map(summaries.map((row) => [row._id, row.user]));
+    for (const uid of uids) {
+        const summary = uid > 0 ? byId.get(`${active.generation}:user:${uid}`) : null;
+        if (summary) result[uid] = { rating: summary.rating, peak: summary.peak, contests: summary.contests, provisional: summary.provisional };
+    }
+    return result;
+}
+
 export async function getRatingLeaderboard(domainId: string, page: number, pageSize: number, hiddenUids: number[], viewerUid?: number) {
     const generation = await settleContestRatings(domainId);
     const current = viewerUid ? await coll.findOne({ _id: `${generation}:user:${viewerUid}`, domainId }, { projection: { 'user.rating': 1 } }) : null;

@@ -27,6 +27,10 @@ Illustrative response addition: `{"rating":{"status":"settled","changes":[{"uid"
 
 `pending` means no publishable result yet, including locked/hidden results or unfinished judging. `skipped` means fewer than two eligible participants or no observed ordering (all tied). Only positive-UID, attended, ranked users with a journal submission for a contest problem participate; spectators, registration-only users and unranked users do not.
 
+The default scoreboard also includes `udict:Record<number,ScoreboardUser>`, where `type ScoreboardUser = ExistingBaseUser & { contestRating?: { rating:number; peak:number; contests:number; provisional:boolean } | null }`. For viewers with `PERM_VIEW_CONTEST_SCOREBOARD`, every user receives a summary from the current domain's last published generation; missing, unrated and virtual users receive `null`. Without that permission the field is omitted. This applies to ongoing and unrated contests and to the shared default homework scoreboard too. For finished rated contests, settlement runs before loading the summaries, so username colors reflect the newly published generation. Summaries contain no history or contest names and do not themselves trigger settlement. Named views other than `default`, including `export-data`, retain their existing contracts.
+
+Example: `GET /contest/665f00000000000000000001/scoreboard/default` with JSON negotiation returns the existing scoreboard fields plus `{"udict":{"12":{"_id":12,"uname":"alice","priv":0,"contestRating":{"rating":1652,"peak":1670,"contests":4,"provisional":true}},"13":{"_id":13,"uname":"bob","contestRating":null}}}`. Existing `priv` values remain available for administrator username styling, independently of Rating.
+
 ## User profile result
 
 `GET /user/:uid` adds this field to its existing response:
@@ -63,5 +67,6 @@ Population means are initial training-group priors, not verified age-group measu
 1. Create a future rated contest with the intended population and verify it through the edit GET.
 2. Finish judging and release/unlock the scoreboard when applicable.
 3. Fetch the default scoreboard: continue waiting while `pending`, finish at `settled` or intentionally `skipped`.
+   Verify `udict[uid].contestRating` contains the latest domain summary (or `null` for an unrated/virtual user); it must not contain history. A homework-only viewer without `PERM_VIEW_CONTEST_SCOREBOARD` receives no summary field.
 4. Fetch an affected `/user/:uid` and verify Rating and permitted history. Repeat reads must not increase the contest count.
 5. After a rejudge/eligibility correction, verify the replayed result. Do not change population after the stored contest start.

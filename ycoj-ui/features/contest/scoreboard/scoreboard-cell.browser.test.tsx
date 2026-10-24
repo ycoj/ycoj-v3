@@ -1,6 +1,8 @@
+import '@/app/globals.css';
 import ScoreboardCell, {
   getScoreColorClass,
 } from '@/features/contest/scoreboard/scoreboard-cell';
+import { PRIV } from '@/features/user/lib/priv';
 import messages from '@/messages/en';
 import type { ScoreboardNode } from '@/shared/types/contest';
 import type { ProblemDict, ProblemDoc } from '@/shared/types/problem';
@@ -306,5 +308,47 @@ describe('ScoreboardCell participant balloons', () => {
     expect(screen.getAllByTestId('first-solve-balloon')[1]).toHaveStyle({
       color: '#2563eb',
     });
+  });
+});
+
+describe('ScoreboardCell username colors', () => {
+  it.each([
+    [1652, 0, 'var(--color-blue-700)'],
+    [1950, 0, 'var(--color-purple-700)'],
+    [2216, 0, 'var(--color-orange-700)'],
+    [3100, PRIV.PRIV_MOD_BADGE, '#8e44ad'],
+    [1652, PRIV.PRIV_EDIT_SYSTEM, '#8e44ad'],
+  ])('colors rating %s and privileges %s', (rating, priv, color) => {
+    render(
+      <>
+        <span data-testid="expected-color" style={{ color }}>
+          Reference
+        </span>
+        <ScoreboardCell
+          node={{ type: 'user', value: 'alice', raw: 1 }}
+          udict={{
+            1: {
+              _id: 1,
+              uname: 'alice',
+              mail: '',
+              avatar: '',
+              priv,
+              contestRating: {
+                rating,
+                peak: rating,
+                contests: 1,
+                provisional: true,
+              },
+            },
+          }}
+        />
+      </>
+    );
+
+    const username = screen.getByText('alice');
+    expect(username).toBeVisible();
+    expect(getComputedStyle(username).color).toBe(
+      getComputedStyle(screen.getByTestId('expected-color')).color
+    );
   });
 });

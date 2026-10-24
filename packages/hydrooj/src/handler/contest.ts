@@ -19,7 +19,7 @@ import { isRatingPopulation } from '../lib/contestRating';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import * as contest from '../model/contest';
 import { rejudgeContest } from '../model/contest/rejudge';
-import { getContestRating } from '../model/contestRating';
+import { getContestRating, getPublishedUserRatings } from '../model/contestRating';
 import * as discussion from '../model/discussion';
 import * as document from '../model/document';
 import message from '../model/message';
@@ -934,6 +934,12 @@ export async function apply(ctx: Context) {
                     config.lockAt = this.tdoc.lockAt;
                 }
                 const [, rows, udict, pdict] = await contest.getScoreboard.call(this, tdoc.domainId, tdoc._id, config);
+                const rating = tdoc.rated && tdoc.rule !== 'homework' && contest.isDone(tdoc)
+                    ? await getContestRating(tdoc.domainId, tdoc.docId.toHexString()) : undefined;
+                if (this.user.hasPerm(PERM.PERM_VIEW_CONTEST_SCOREBOARD)) {
+                    const summaries = await getPublishedUserRatings(tdoc.domainId, Object.keys(udict).map(Number));
+                    for (const uid in udict) udict[uid].contestRating = summaries[uid];
+                }
                 // eslint-disable-next-line ts/naming-convention
                 const page_name = tdoc.rule === 'homework'
                     ? 'homework_scoreboard'
@@ -941,8 +947,7 @@ export async function apply(ctx: Context) {
                 const availableViews = scoreboard.getAvailableViews(tdoc.rule, this);
                 this.response.body = {
                     tdoc: this.tdoc, tsdoc: this.tsdocAsPublic(), rows, udict, pdict, page_name, groups, availableViews,
-                    ...tdoc.rated && tdoc.rule !== 'homework' && contest.isDone(tdoc)
-                        ? { rating: await getContestRating(tdoc.domainId, tdoc.docId.toHexString()) } : {},
+                    ...rating ? { rating } : {},
                 };
                 this.response.pjax = 'partials/scoreboard.html';
                 this.response.template = 'contest_scoreboard.html';

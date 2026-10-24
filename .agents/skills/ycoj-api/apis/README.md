@@ -27,4 +27,6 @@ Within a group, use its `README.md` only as an index and open the linked endpoin
 
 Contest Rating fields, scoreboard results, profile summaries/history and automatic replay: [Contest Rating](contest/rating.md).
 
+Default contest/homework scoreboard dictionaries include published domain Rating summaries for username coloring, gated by `PERM_VIEW_CONTEST_SCOREBOARD`; global administrator styling uses existing `priv` fields. See [the scoreboard summary contract](contest/rating.md#scoreboard-result).
+
 Image export: `GET /contest/:tid/scoreboard/export-data?details=true` and `/homework/:tid/scoreboard/export-data?details=true` provide page-format scoreboard rows with score/first-solve metadata, authorized real names and per-participant submission journals. Detail image ZIPs include the complete standings and individual participant images. See [the export contract](contest/endpoints.md#image-export-data).

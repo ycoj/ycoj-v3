@@ -39,6 +39,8 @@ Description: remove selected homework files. Request: `type Request={operation:"
 Description: sign public/private homework file download. Request: `type Query={tid:ObjectId;type:"public"|"private";filename:string;noDisposition?:boolean}`; `GET /homework/665f.../file/public/statement.pdf`. Response: `type Response=Redirect|JsonRedirect`; browser `302 Location: https://storage/signed?...`; JSON negotiation HTTP 200 `{ "url":"https://storage/signed?..." }`.
 
 ## `GET /homework/:tid/scoreboard`
+
+The default view (including explicit `/scoreboard/default`) also returns `udict:Record<number,BaseUser & {contestRating?:{rating:number;peak:number;contests:number;provisional:boolean}|null}>`. Summaries come from the current domain's published generation without settlement and only appear for viewers with `PERM_VIEW_CONTEST_SCOREBOARD`; homework scoreboard permission alone does not expose them. Unrated/virtual users use `null`. Example response addition to `GET /homework/665f00000000000000000001/scoreboard`: `{"udict":{"12":{"_id":12,"uname":"alice","priv":0,"contestRating":{"rating":1652,"peak":1670,"contests":4,"provisional":true}}}}`. Other named views and export DTOs are unchanged. See [shared Rating contracts](../contest/rating.md#scoreboard-result).
 Description: render the default homework scoreboard. Request: `type Query={tid:ObjectId}`; `GET /homework/665f.../scoreboard`. Response: `type Response={tdoc:ContestDoc;rows:unknown[]}`; `{ "tdoc":{"docId":"665f..."},"rows":[] }`, rendered scoreboard HTML; requires `PERM_VIEW_HOMEWORK_SCOREBOARD`.
 
 ## `GET /homework/:tid/scoreboard/:view`

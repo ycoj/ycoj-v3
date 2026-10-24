@@ -6,6 +6,7 @@ export type BaseUser = {
   mail: string;
   avatar: string;
   ccfLevel?: number;
+  priv?: number;
   contestRating?: Omit<UserContestRating, 'history'> | null;
   /** Optional fields that may be present depending on settings/context */
   school?: string;

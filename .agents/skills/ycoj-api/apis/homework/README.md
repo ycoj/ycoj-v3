@@ -1,5 +1,7 @@
 # Homework routes
 
+The default scoreboard includes published domain Rating summaries in `udict` when the viewer also has `PERM_VIEW_CONTEST_SCOREBOARD`; see [the default scoreboard contract](endpoints.md#get-homeworktidscoreboard).
+
 Detailed per-route contracts: [endpoints.md](./endpoints.md). This file is the scope index and compatibility summary.
 
 Routes are domain-scoped and use contest-style permissions. `PERM_VIEW_HOMEWORK` gates reads; edit/create/delete and scoreboard permissions are checked by handlers. GETs render HTML/PJAX; POSTs dispatch by request body operation (not a suffix).

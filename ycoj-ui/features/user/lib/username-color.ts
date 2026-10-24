@@ -1,4 +1,9 @@
+import { PRIV } from './priv';
 import type { BaseUser } from '@/shared/types/user';
+
+export function isUsernameAdmin(user: Pick<BaseUser, 'priv'>) {
+  return !!((user.priv ?? 0) & (PRIV.PRIV_MOD_BADGE | PRIV.PRIV_EDIT_SYSTEM));
+}
 
 export function getRatingTier(rating?: number | null) {
   if (rating == null || !Number.isFinite(rating)) return 'unrated';
@@ -25,7 +30,8 @@ const RATING_COLORS = {
 } as const;
 
 export default function getUsernameColor(
-  user: Pick<BaseUser, 'contestRating'>
+  user: Pick<BaseUser, 'contestRating' | 'priv'>
 ) {
+  if (isUsernameAdmin(user)) return 'text-[#8e44ad] dark:text-[#c084d8]';
   return RATING_COLORS[getRatingTier(user.contestRating?.rating)];
 }

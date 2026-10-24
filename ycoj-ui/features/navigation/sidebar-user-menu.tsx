@@ -11,7 +11,7 @@ import {
 } from '@/shared/components/ui/avatar';
 import { SidebarMenuButton } from '@/shared/components/ui/sidebar';
 import { cn } from '@/shared/lib/utils';
-import type { User } from '@/shared/types/user';
+import type { BaseUser } from '@/shared/types/user';
 import {
   Check,
   Code2,
@@ -39,7 +39,7 @@ import { useState, useSyncExternalStore } from 'react';
 export type SidebarRoleKey = 'user' | 'superAdmin' | 'coach';
 
 type Props = {
-  user: Pick<User, '_id' | 'uname' | 'ccfLevel' | 'contestRating'>;
+  user: Pick<BaseUser, '_id' | 'uname' | 'ccfLevel' | 'contestRating' | 'priv'>;
   roleKey: SidebarRoleKey;
   avatarSrc: string;
   canUsePaste?: boolean;

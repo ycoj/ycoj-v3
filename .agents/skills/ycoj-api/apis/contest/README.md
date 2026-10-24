@@ -1,5 +1,7 @@
 # Contest routes and operations
 
+Default scoreboard user dictionaries include permission-gated, domain-scoped `contestRating` summaries for username coloring; existing `priv` values identify global administrators. See [Rating scoreboard contracts](rating.md#scoreboard-result).
+
 All routes are domain-aware. `PERM_VIEW_CONTEST` gates public reads; management handlers enforce the endpoint-specific ownership and edit permissions documented below. Operation-specific permissions (print, user, scoreboard, etc.) are checked in the implementation. Ordinary browser GETs render HTML/PJAX; plagiarism endpoints and scoreboard export data return JSON directly. Named POST operations are selected by the body `operation` field; endpoints with a plain POST method, such as plagiarism admission, use the body documented for that endpoint. Do not invent `/postXxx` URL suffixes.
 
 ## Routes
