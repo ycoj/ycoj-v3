@@ -1,0 +1,11 @@
+[data-math-display='true'] {
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+[data-math-state='pending'],
+[data-math-state='error'] {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

@@ -19,13 +19,11 @@ async function renderTree(element: Element) {
   return unified().use(rehypeLatex).run(tree);
 }
 
-function annotations(tree: Root) {
+function formulaSources(tree: Root) {
   const values: string[] = [];
   visit(tree, 'element', (node) => {
-    if (node.tagName !== 'annotation') return;
-    for (const child of node.children) {
-      if (child.type === 'text') values.push(child.value);
-    }
+    const source = node.properties['data-math-source'];
+    if (typeof source === 'string') values.push(source);
   });
   return values;
 }
@@ -38,12 +36,12 @@ describe('rehypeLatex', () => {
         String.raw`**Before** $x_1$ / $$y^2$$ / \(z\) **after**`
       )
     );
-    expect(annotations(tree)).toEqual(['x_1', 'y^2', 'z']);
+    expect(formulaSources(tree)).toEqual(['x_1', 'y^2', 'z']);
     const html = toHtml(tree);
     expect(html).toContain('**Before** ');
     expect(html).toContain(' **after**');
     expect(html.match(/ \/ /g)).toHaveLength(2);
-    expect(html.match(/class="katex-display"/g)).toHaveLength(1);
+    expect(html.match(/data-math-display="true"/g)).toHaveLength(1);
   });
 
   it.each(['code', 'pre', 'script', 'noscript', 'style', 'textarea'])(
@@ -52,7 +50,7 @@ describe('rehypeLatex', () => {
       const element = textElement(tagName, String.raw`$x$ $$y$$ \(z\)`);
       element.children.push(textElement('span', '$nested$'));
       const tree = await renderTree(element);
-      expect(annotations(tree)).toEqual([]);
+      expect(formulaSources(tree)).toEqual([]);
       expect(toHtml(tree)).toContain('$nested$');
       expect(element.children[0]).toMatchObject({
         type: 'text',
@@ -74,8 +72,8 @@ describe('rehypeLatex', () => {
       const element = textElement('code', String.raw`\frac{a}{b}`);
       element.properties.className = [className];
       const tree = await renderTree(element);
-      expect(annotations(tree)).toEqual([String.raw`\frac{a}{b}`]);
-      expect(toHtml(tree).includes('class="katex-display"')).toBe(
+      expect(formulaSources(tree)).toEqual([String.raw`\frac{a}{b}`]);
+      expect(toHtml(tree).includes('data-math-display="true"')).toBe(
         className === 'math-display'
       );
       expect(toHtml(tree)).not.toContain('<code');
@@ -96,7 +94,7 @@ describe('rehypeLatex', () => {
 
   it('does not interpret Markdown entities as formula delimiters in HTML text', async () => {
     const tree = await renderTree(textElement('div', '&#36;x&#36; $y$'));
-    expect(annotations(tree)).toEqual(['y']);
+    expect(formulaSources(tree)).toEqual(['y']);
     expect(toHtml(tree)).toContain('&#x26;#36;x&#x26;#36; ');
   });
 
@@ -107,9 +105,9 @@ describe('rehypeLatex', () => {
     const title = element.properties['data-title-html'];
     expect(typeof title).toBe('string');
     expect(title).toContain('&#x3C;img src=x onerror=alert(1)> **Label** ');
-    expect(title).toContain('class="katex"');
+    expect(title).toContain('data-math-source=');
     expect(title).not.toContain('<img');
-    expect(annotations(tree)).toEqual(['y']);
+    expect(formulaSources(tree)).toEqual(['y']);
   });
 
   it.each([
@@ -117,15 +115,18 @@ describe('rehypeLatex', () => {
     String.raw`\htmlClass{injected}{x}`,
     String.raw`\htmlStyle{background:red}{x}`,
     String.raw`\includegraphics{https://example.com/tracker.png}`,
-  ])('disables trusted TeX commands: %s', async (formula) => {
-    const tree = await renderTree(textElement('div', `$${formula}$`));
-    expect(annotations(tree)).toEqual([formula]);
-    const html = toHtml(tree);
-    expect(html).not.toContain('<a ');
-    expect(html).not.toContain('<img ');
-    expect(html).not.toContain('class="injected"');
-    expect(html).not.toContain('style="background:red');
-  });
+  ])(
+    'keeps TeX commands inert until browser typesetting: %s',
+    async (formula) => {
+      const tree = await renderTree(textElement('div', `$${formula}$`));
+      expect(formulaSources(tree)).toEqual([formula]);
+      const html = toHtml(tree);
+      expect(html).not.toContain('<a ');
+      expect(html).not.toContain('<img ');
+      expect(html).not.toContain('class="injected"');
+      expect(html).not.toContain('style="background:red');
+    }
+  );
 
   it('keeps rendered formulas intact on a subsequent transform', async () => {
     const tree = await renderTree(
@@ -134,6 +135,6 @@ describe('rehypeLatex', () => {
     const html = toHtml(tree);
     await unified().use(rehypeLatex).run(tree);
     expect(toHtml(tree)).toBe(html);
-    expect(annotations(tree)).toEqual([String.raw`\text{cost \$5}`]);
+    expect(formulaSources(tree)).toEqual([String.raw`\text{cost \$5}`]);
   });
 });

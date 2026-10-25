@@ -44,7 +44,7 @@ describe('Markdown engine', () => {
       '<td colSpan="2" rowSpan="3" style="text-align:left">Group</td>'
     );
     expect(rendered).toContain('<td rowSpan="2" style="text-align:right">');
-    expect(rendered).toContain('class="katex"');
+    expect(rendered).toContain('data-math-source=');
     expect(rendered).toContain('<td style="text-align:right">End</td>');
     expect(rendered).toContain('<td style="text-align:right">Last</td>');
     expect(rendered).not.toMatch(/<td[^>]*>(?:\^|&lt;)<\/td>/);
@@ -112,11 +112,13 @@ describe('Markdown engine', () => {
     expect(rendered).not.toContain('::cute-table');
   });
 
-  it('renders math on the server without JavaScript or DOM observers', async () => {
+  it('preserves readable formula sources on the server for browser typesetting', async () => {
     const rendered = await html(String.raw`Text $x_1^2$ and $$\frac{a}{b}$$`);
-    expect(rendered).toContain('class="katex"');
-    expect(rendered).toContain('class="katex-display"');
-    expect(rendered).toContain('<math');
+    expect(rendered).toContain('data-math-source=');
+    expect(rendered).toContain('data-math-display="true"');
+    expect(rendered).not.toContain('<math');
+    expect(rendered).toContain('>x_1^2</span>');
+    expect(rendered).toContain(String.raw`>\frac{a}{b}</span>`);
     expect(rendered).not.toContain('$$');
     expect(rendered).not.toContain('katex-error');
   });
@@ -129,8 +131,8 @@ describe('Markdown engine', () => {
   ])('keeps escaped formula examples literal: %s', async (source, literal) => {
     const rendered = await html(source);
     expect(rendered).toContain(literal);
-    expect(rendered.match(/class="katex"/g)).toHaveLength(1);
-    expect(rendered).toContain('>y</mi>');
+    expect(rendered.match(/data-math-source=/g)).toHaveLength(1);
+    expect(rendered).toContain('>y</span>');
   });
 
   it.each(
@@ -145,7 +147,7 @@ describe('Markdown engine', () => {
       const rendered = await html(
         `Before ${open}${value}${close} after`.replaceAll('\n', ending)
       );
-      expect(rendered.match(/class="katex"/g)).toHaveLength(1);
+      expect(rendered.match(/data-math-source=/g)).toHaveLength(1);
       expect(rendered).not.toContain('<md-alert');
       expect(rendered).toContain('Before ');
       expect(rendered).toContain(' after');
@@ -156,9 +158,9 @@ describe('Markdown engine', () => {
     'renders adjacent formulas separately: %s',
     async (source) => {
       const rendered = await html(source);
-      expect(rendered.match(/class="katex"/g)).toHaveLength(2);
-      expect(rendered).toContain('>x</mi>');
-      expect(rendered).toContain('>y</mi>');
+      expect(rendered.match(/data-math-source=/g)).toHaveLength(2);
+      expect(rendered).toContain('>x</span>');
+      expect(rendered).toContain('>y</span>');
     }
   );
 
@@ -173,9 +175,9 @@ describe('Markdown engine', () => {
       expect(rendered).toContain('Tail');
       if (open === '`') {
         expect(rendered).toContain('<code>');
-        expect(rendered).not.toContain('class="katex"');
+        expect(rendered).not.toContain('data-math-source=');
       } else {
-        expect(rendered.match(/class="katex"/g)).toHaveLength(1);
+        expect(rendered.match(/data-math-source=/g)).toHaveLength(1);
       }
     }
   );
@@ -184,7 +186,7 @@ describe('Markdown engine', () => {
     const rendered = await html(
       '<div>**Literal** &amp; <span>$x$$y$</span><br>$$z^2$$<code>$example$</code></div>'
     );
-    expect(rendered.match(/class="katex"/g)).toHaveLength(3);
+    expect(rendered.match(/data-math-source=/g)).toHaveLength(3);
     expect(rendered).toContain('**Literal** &amp; ');
     expect(rendered).toContain('<code>$example$</code>');
     expect(rendered).toContain('<br/>');
@@ -195,9 +197,9 @@ describe('Markdown engine', () => {
 Literal \$x\$ and $y$
 :::`);
     expect(rendered).toContain('Literal $x$ and ');
-    expect(rendered).toContain('>y</mi>');
+    expect(rendered).toContain('>y</span>');
     expect(rendered).toContain('data-title-html=');
-    expect(rendered).toContain('&lt;mi&gt;t&lt;/mi&gt;');
+    expect(rendered).toContain('&gt;t&lt;/span&gt;');
   });
 
   it('sanitizes source HTML and disallows trusted TeX commands', async () => {
@@ -231,14 +233,15 @@ $\href{javascript:alert(1)}{click}$`);
     expect(rendered).not.toContain('<script');
   });
 
-  it('keeps source styles out while retaining generated formula layout', async () => {
+  it('keeps source styles out while retaining the original formula', async () => {
     const rendered = await html(
       '<span style="background:red" onclick="alert(1)">$x_1$</span>'
     );
     expect(rendered).not.toContain('background:red');
     expect(rendered).not.toContain('onclick=');
-    expect(rendered).toContain('class="katex"');
-    expect(rendered).toContain('style="');
+    expect(rendered).toContain('data-math-source=');
+    expect(rendered).not.toContain('style="');
+    expect(rendered).toContain('>x_1</span>');
   });
 
   it('supports an async extension, its sanitize schema, and a custom renderer', async () => {
@@ -284,7 +287,7 @@ $\href{javascript:alert(1)}{click}$`);
     );
     expect(rendered).toContain('<p>Original</p>');
     expect(rendered).toContain('<aside aria-label="Extra">Formula ');
-    expect(rendered).toContain('class="katex"');
+    expect(rendered).toContain('data-math-source=');
     expect(rendered).not.toContain('onclick=');
   });
 
@@ -337,7 +340,7 @@ $\href{javascript:alert(1)}{click}$`);
     );
     expect(rendered).toContain('Key');
     expect(rendered).not.toContain('<kbd');
-    expect(rendered).toContain('class="katex"');
+    expect(rendered).toContain('data-math-source=');
   });
 
   it('preserves objective controls and keeps directive-like TeX inside the formula', async () => {
@@ -353,7 +356,7 @@ $\href{javascript:alert(1)}{click}$`);
     );
     expect(rendered.match(/<objective-input/g)).toHaveLength(1);
     expect(rendered).toContain('data-id="2"');
-    expect(rendered).toContain('class="katex"');
+    expect(rendered).toContain('data-math-source=');
     expect(rendered).not.toContain('katex-error');
   });
 
@@ -373,7 +376,7 @@ $\href{javascript:alert(1)}{click}$`);
       expect(rendered).toContain(`<objective-${kind}`);
       expect(rendered).toContain('Literal $x$ ');
       expect(rendered).toContain(' then $z$ and ');
-      expect(rendered.match(/class="katex"/g)).toHaveLength(1);
+      expect(rendered.match(/data-math-source=/g)).toHaveLength(1);
     }
   );
 

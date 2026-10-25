@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     'build/**',
     'next-env.d.ts',
     'public/clangd/v2/**',
+    'public/velocitex/**',
     '.pnpm-store/**',
   ]),
   prettier,

@@ -19,6 +19,7 @@ __traces__/
 
 # next.js
 /.next/
+/public/velocitex/
 /out/
 
 # production

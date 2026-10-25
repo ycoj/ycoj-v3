@@ -1,11 +1,10 @@
+import { createFormulaHost } from '../formula-host';
 import { parseLatexText } from './remark-latex';
 import type { ElementContent, Root } from 'hast';
 import { toHtml } from 'hast-util-to-html';
-import rehypeKatex from 'rehype-katex';
 import type { Plugin } from 'unified';
 import { SKIP, visit } from 'unist-util-visit';
 
-const renderLatex = rehypeKatex({ trust: false });
 const ignoredTags = new Set([
   'script',
   'noscript',
@@ -15,29 +14,13 @@ const ignoredTags = new Set([
   'code',
 ]);
 
-function renderFormula(
-  value: string,
-  display: boolean,
-  file: Parameters<typeof renderLatex>[1]
-) {
-  const formula: Root = {
-    type: 'root',
-    children: [
-      {
-        type: 'element',
-        tagName: 'code',
-        properties: { className: [display ? 'math-display' : 'math-inline'] },
-        children: [{ type: 'text', value }],
-      },
-    ],
-  };
-  renderLatex(formula, file);
-  return formula.children as ElementContent[];
+function renderFormula(value: string, display: boolean): ElementContent[] {
+  return [createFormulaHost(value, display)];
 }
 
 // Render only parsed formulas. Fenced code (including ```math) remains code,
-// and caller-supplied HTML is sanitized before KaTeX creates its markup.
-function transformLatex(tree: Root, file: Parameters<typeof renderLatex>[1]) {
+// and caller-supplied HTML is sanitized before formula hosts are created.
+function transformLatex(tree: Root) {
   visit(tree, (node, index, parent) => {
     if (!parent || index === undefined) return;
     if (node.type === 'element') {
@@ -51,9 +34,9 @@ function transformLatex(tree: Root, file: Parameters<typeof renderLatex>[1]) {
           type: 'root',
           children: [{ type: 'text', value: title }],
         };
-        transformLatex(label, file);
+        transformLatex(label);
         // This property is created after sanitization. Its HTML contains only
-        // escaped label text and KaTeX output with trust disabled.
+        // escaped label text and formula hosts generated from parsed TeX.
         node.properties['data-title-html'] = toHtml(label);
       }
       const classes = node.properties.className;
@@ -64,11 +47,18 @@ function transformLatex(tree: Root, file: Parameters<typeof renderLatex>[1]) {
           (name) => name === 'math-inline' || name === 'math-display'
         )
       ) {
-        const formula: Root = { type: 'root', children: [node] };
-        renderLatex(formula, file);
-        parent.children.splice(index, 1, ...formula.children);
-        return [SKIP, index + formula.children.length];
+        const value = node.children
+          .filter((child) => child.type === 'text')
+          .map((child) => child.value)
+          .join('');
+        parent.children.splice(
+          index,
+          1,
+          ...renderFormula(value, classes.includes('math-display'))
+        );
+        return [SKIP, index + 1];
       }
+      if (node.properties['data-math-source'] !== undefined) return SKIP;
       if (ignoredTags.has(node.tagName)) return SKIP;
       return;
     }
@@ -92,7 +82,7 @@ function transformLatex(tree: Root, file: Parameters<typeof renderLatex>[1]) {
         });
       const display =
         formula.data?.hProperties?.className?.includes('math-display') === true;
-      replacement.push(...renderFormula(formula.value, display, file));
+      replacement.push(...renderFormula(formula.value, display));
       cursor = end;
     }
     if (cursor === 0) return;

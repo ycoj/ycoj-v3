@@ -3,6 +3,7 @@ import '@/shared/components/code/style/line-numbers.css';
 import MarkdownAlert from '@/shared/components/markdown/components/markdown-alert';
 import MarkdownAlign from '@/shared/components/markdown/components/markdown-align';
 import MarkdownCodeBlock from '@/shared/components/markdown/components/markdown-code-block';
+import MarkdownMath from '@/shared/components/markdown/components/markdown-math';
 import MarkdownPdf from '@/shared/components/markdown/components/markdown-pdf';
 import MarkdownUserSpan from '@/shared/components/markdown/components/markdown-user-span';
 import ProblemSample from '@/shared/components/markdown/components/problem-sample';
@@ -12,7 +13,6 @@ import {
 } from '@/shared/components/markdown/engine';
 import '@/shared/components/markdown/markdown.css';
 import { markdownSanitizeSchema } from '@/shared/components/markdown/sanitize-schema';
-import 'katex/dist/katex.min.css';
 import { MarkdownAsync } from 'react-markdown';
 import type { Components } from 'react-markdown';
 import type { Options as Schema } from 'rehype-sanitize';
@@ -35,7 +35,7 @@ export default function Markdown({
   components = {},
 }: Props) {
   return (
-    <div className="markdown">
+    <MarkdownMath>
       <MarkdownAsync
         remarkPlugins={markdownRemarkPlugins}
         rehypePlugins={markdownRehypePlugins(rehypePlugins, sanitizeSchema)}
@@ -52,6 +52,6 @@ export default function Markdown({
       >
         {children}
       </MarkdownAsync>
-    </div>
+    </MarkdownMath>
   );
 }
