@@ -11,8 +11,9 @@ The pipeline is defined in `engine.ts`:
 3. Convert to HAST, merge table cells, parse raw HTML, and run the caller's
    rehype extensions.
 4. Sanitize the source and extension output with the supplied schema.
-5. Render LaTeX, enrich user links, and highlight/number code blocks.
+5. Prepare LaTeX hosts, enrich user links, and highlight/number code blocks.
 6. Render React elements with the default or caller-supplied components.
+7. Typeset formula hosts in the browser with VelociTex's C++ WebAssembly core.
 
 ## Formulas
 
@@ -24,20 +25,36 @@ indentation, and quoting; the formula plugin does not duplicate those rules.
 Adjacent formulas such as `$x$$y$` are parsed independently. Container markers
 inside formulas or multiline code spans remain literal content.
 
-`rehype-latex.ts` renders the parsed formulas after sanitization, with KaTeX
-trust disabled. The `rehype-katex>katex` override in `pnpm-workspace.yaml` keeps
-the renderer on the same KaTeX version as the directly imported CSS and fonts.
-Keep this override when upgrading KaTeX: its internal markup and CSS must match.
+`rehype-latex.ts` creates formula hosts after sanitization, preserving TeX as
+escaped text for the initial server response and when JavaScript is unavailable.
+`components/markdown-math.tsx` renders those hosts with VelociTex 1.0.0 after
+hydration. The browser package does not support Node.js SSR. Initialization is
+shared across Markdown blocks and deferred until a formula is present; runtime
+failures leave readable original TeX, and parse errors show escaped source.
+VelociTex does not enable trusted HTML, links, or images from TeX commands.
+
+`scripts/prepare-velocitex.mjs` copies the package's modules, complete runtime,
+matching stylesheet/fonts, and license notices to `public/velocitex/<version>/`.
+It runs on installation, development, builds, and browser tests. These generated
+files are ignored by Git and served locally; no runtime CDN is needed. VelociTex
+retains KaTeX-compatible HTML and semantic MathML, so `.katex` selectors still
+describe the rendered output even though the parser is the VelociTex WASM core.
 It uses the same syntax to locate formulas in sanitized HTML
 text, preserving surrounding literal HTML text and skipping code/pre elements.
 `rehype-markdown-html.ts` preserves text already parsed by Markdown through raw
 HTML parsing, so escaped delimiters and character references in Markdown prose
 are not interpreted again as formulas. Raw HTML text and extension-generated
 text still receive formula rendering after sanitization.
-Fenced `math` examples remain code. All formulas are included in server output;
-opening a collapsed alert reveals already-rendered content without a DOM scan.
-Alert titles retain literal text and may include formulas; their trusted title
-markup is generated after source sanitization, using the same formula parser.
+Fenced `math` examples remain code. A scoped observer renders newly mounted
+formula hosts when a collapsed alert opens or preview content changes. It never
+rescans ordinary prose for delimiters, and disconnects when Markdown unmounts.
+Alert titles retain literal text and may include formulas; their escaped title
+HTML and formula hosts are generated after sanitization with the same parser.
+
+The Markdown editor preview uses the same formula hosts and browser boundary.
+Its synchronous `md-editor-rt` adapter only escapes the source into a host;
+VelociTex performs the typesetting. Providing that adapter also prevents the
+editor from loading a separate KaTeX renderer and stylesheet from a CDN.
 
 ## Containers and extensions
 
@@ -69,7 +86,7 @@ compact and expanded bodies share the same pipeline.
 
 Caller rehype extensions run **before** sanitization. Extend the exported
 `markdownSanitizeSchema` for new elements/attributes and provide React renderers
-through `components`. Generated KaTeX and highlighter markup is added after the
+through `components`. Generated VelociTex and highlighter markup is added after the
 source has been sanitized; do not broadly allow their inline styles in the
 source schema.
 Text-splitting extensions should preserve the original text node's `data`,

@@ -4,4 +4,5 @@ node_modules/
 pnpm-lock.yaml
 public/clangd/v2/
 public/typst/
+public/velocitex/
 public/fonts/typst/

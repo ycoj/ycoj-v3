@@ -3,6 +3,7 @@
 // image layout must load it too.
 import '../../../app/globals.css';
 import Markdown from '.';
+import MarkdownMath from './components/markdown-math';
 import messages from '@/messages/en';
 import { resolveFileUrls } from '@/shared/lib/resolve-file-urls';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -44,19 +45,34 @@ async function markdownElement(source: string) {
   const children = (markdown.props as { children: ReactNode }).children;
   const asyncMarkdown = Children.toArray(children)[0] as ReactElement<Options>;
 
-  return MarkdownAsync(asyncMarkdown.props);
+  return (
+    <MarkdownMath>{await MarkdownAsync(asyncMarkdown.props)}</MarkdownMath>
+  );
+}
+
+async function waitForFormulas(container: HTMLElement) {
+  await waitFor(() => {
+    expect(container.querySelector('[data-math-state="pending"]')).toBeNull();
+    expect(container.querySelector('[data-math-state="error"]')).toBeNull();
+  });
 }
 
 async function renderMarkdown(source: string) {
-  return render(await markdownElement(source), { wrapper: markdownWrapper });
+  const result = render(await markdownElement(source), {
+    wrapper: markdownWrapper,
+  });
+  await waitForFormulas(result.container);
+  return result;
 }
 
 async function renderMarkdownDocument(source: string) {
   const rendered = await markdownElement(source);
 
-  return render(<div className="markdown">{rendered}</div>, {
+  const result = render(rendered, {
     wrapper: markdownWrapper,
   });
+  await waitForFormulas(result.container);
+  return result;
 }
 
 describe('Markdown tables', () => {
@@ -660,10 +676,12 @@ describe('Markdown containers', () => {
     const outer = screen.getByRole('button');
     expect(outer.querySelector('.katex-html')).toHaveTextContent('a');
     await user.click(outer);
+    await waitForFormulas(container);
     const inner = screen.getAllByRole('button')[1];
     expect(inner.querySelector('.katex-html')).toHaveTextContent('b');
     expect(screen.queryByText(/Literal/)).not.toBeInTheDocument();
     await user.click(inner);
+    await waitForFormulas(container);
     expect(screen.getByText(/Literal/)).toBeVisible();
     expect(screen.getByText(/Literal/)).toHaveTextContent('Literal $x$ and');
     expect(container.querySelectorAll('.katex-html')).toHaveLength(3);
@@ -671,6 +689,7 @@ describe('Markdown containers', () => {
     expect(container.querySelectorAll('.katex-html')).toHaveLength(1);
     await user.click(outer);
     await user.click(screen.getAllByRole('button')[1]);
+    await waitForFormulas(container);
     const formulas = container.querySelectorAll('.katex-html');
     expect(formulas).toHaveLength(3);
     expect(formulas[2]).toBeVisible();

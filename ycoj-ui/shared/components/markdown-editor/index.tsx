@@ -2,6 +2,7 @@
 
 import './style.css';
 import './editor-config';
+import MarkdownMath from '@/shared/components/markdown/components/markdown-math';
 import { cn } from '@/shared/lib/utils';
 import { MdEditor } from 'md-editor-rt';
 import 'md-editor-rt/lib/style.css';
@@ -93,7 +94,7 @@ const MarkdownEditor = forwardRef<HTMLTextAreaElement, MarkdownEditorProps>(
     }, [name, onBlur]);
 
     return (
-      <>
+      <MarkdownMath className="">
         {mounted ? (
           <MdEditor
             value={value}
@@ -135,7 +136,7 @@ const MarkdownEditor = forwardRef<HTMLTextAreaElement, MarkdownEditorProps>(
           readOnly
           tabIndex={-1}
         />
-      </>
+      </MarkdownMath>
     );
   }
 );

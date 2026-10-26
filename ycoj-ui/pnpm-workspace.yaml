@@ -9,9 +9,9 @@ allowBuilds:
 
 overrides:
   md-editor-rt>markdown-it: 14.3.1
-  # Keep generated math markup aligned with the directly imported KaTeX CSS.
-  rehype-katex>katex: $katex
 
-# Reviewed security release: https://github.com/nodejs/undici/releases/tag/v7.30.1
 minimumReleaseAgeExclude:
+  # Reviewed security release: https://github.com/nodejs/undici/releases/tag/v7.30.1
   - undici@7.30.1
+  # Explicitly selected and pinned renderer: https://github.com/TaiRuiQu/VelociTex
+  - velocitex@1.0.0
