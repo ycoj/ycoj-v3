@@ -67,7 +67,7 @@ export default function MarkdownMath({
       active = false;
       observer.disconnect();
     };
-  }, [children]);
+  }, []);
 
   return (
     <div ref={rootRef} className={className}>

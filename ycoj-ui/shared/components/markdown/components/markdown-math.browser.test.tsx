@@ -47,6 +47,30 @@ describe('Markdown math lifecycle', () => {
     expect(screen.getByText(String.raw`\frac{a}{b}`)).toBeVisible();
   });
 
+  it('keeps a typeset formula intact when surrounding prose is edited', async () => {
+    const renderToString = vi
+      .fn()
+      .mockResolvedValue('<span>Typeset formula</span>');
+    load.mockResolvedValue({ renderToString } as unknown as Awaited<
+      ReturnType<typeof loadVelocitex>
+    >);
+    const content = (text: string) => (
+      <MarkdownMath>
+        <p>{text}</p>
+        {formula('x^2')}
+      </MarkdownMath>
+    );
+    const { rerender } = render(content('Original prose'));
+    await waitFor(() =>
+      expect(screen.getByText('Typeset formula')).toBeVisible()
+    );
+
+    await act(async () => rerender(content('Edited prose')));
+    expect(screen.getByText('Edited prose')).toBeVisible();
+    expect(screen.getByText('Typeset formula')).toBeVisible();
+    expect(renderToString).toHaveBeenCalledTimes(1);
+  });
+
   it('does not let a delayed formula replace newer preview content', async () => {
     let resolveOld: (html: string) => void = () => {};
     const renderToString = vi.fn((source: string) =>
