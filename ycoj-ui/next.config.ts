@@ -6,6 +6,7 @@ import type { NextConfig } from 'next';
 // imported here to keep the build-time config dependency-free)
 const CLANGD_ISOLATION_PARAM = 'clangd';
 
+const standalone = process.env.YCOJ_STANDALONE === '1';
 const backendBaseUrl = process.env.BACKEND_BASEURL?.replace(/\/+$/, '');
 const uploadBaseUrl =
   process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ?? '';
@@ -14,6 +15,8 @@ const staticAssetPrefix =
   (process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '');
 
 const nextConfig: NextConfig = {
+  output: standalone ? 'standalone' : undefined,
+  outputFileTracingRoot: standalone ? __dirname : undefined,
   serverExternalPackages: ['@resvg/resvg-js'],
   // LAN dev access: requests to dev-only resources (HMR socket, _next assets)
   // from other devices carry the machine's private address as their origin.
