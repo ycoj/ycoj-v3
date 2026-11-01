@@ -2,8 +2,8 @@ import assert from 'assert';
 import { Context } from 'cordis';
 import Koa from 'koa';
 import { describe, it } from 'node:test';
+import { WebService } from '@hydrooj/framework';
 import { isCorsOriginAllowed } from '../../../framework/framework/cors';
-import { WebService } from '../../../framework/framework/server';
 import { getBrandingConfig, normalizeBrandingConfig, resolveBrand } from '../src/lib/branding';
 
 const brand = { origin: 'https://oj.school.edu', name: 'School OJ', logo: 'https://cdn.school.edu/logo.png' };
