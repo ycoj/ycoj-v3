@@ -1,6 +1,10 @@
 {
   "navigation": "Settings",
   "title": "Account settings",
+  "securityTitle": "Security",
+  "preferenceTitle": "Preferences",
+  "domainTitle": "Domain settings",
+  "settingsTitle": "Account settings",
   "description": "Update your avatar and personal information.",
   "profileTitle": "Profile information",
   "save": "Save changes",

@@ -1,39 +1,33 @@
-import rehypeCodeBlocks from './plugins/rehype-code-blocks';
-import rehypeLatex from './plugins/rehype-latex';
-import rehypeMarkdownHtml from './plugins/rehype-markdown-html';
-import rehypeTableMerge from './plugins/rehype-table-merge';
+import {
+  markdownRehypeBasePlugins,
+  markdownRemarkPlugins,
+} from './engine-base';
 import rehypeUserSpan from './plugins/rehype-user-span';
-import remarkContainers from './plugins/remark-containers';
-import remarkCuteTable from './plugins/remark-cute-table';
-import remarkLatex from './plugins/remark-latex';
-import remarkPdf from './plugins/remark-pdf';
-import remarkProblemSamples from './plugins/remark-problem-samples';
 import { markdownSanitizeSchema } from './sanitize-schema';
-import rehypeSanitize from 'rehype-sanitize';
 import type { Options as Schema } from 'rehype-sanitize';
-import remarkGfm from 'remark-gfm';
 import type { PluggableList } from 'unified';
 
-export const markdownRemarkPlugins: PluggableList = [
-  remarkGfm,
-  remarkLatex,
-  remarkContainers,
-  remarkCuteTable,
-  remarkPdf,
-  remarkProblemSamples,
-];
+/**
+ * Server-side Markdown pipeline.
+ *
+ * Adds `rehype-user-span`, which resolves `/user/:uid` links into user cards by
+ * calling the backend. Browser renderers must use `engine-base.ts` directly so
+ * this server-only dependency never reaches the client bundle.
+ */
+
+export { markdownRemarkPlugins };
 
 export function markdownRehypePlugins(
   extensions: PluggableList = [],
   schema: Schema = markdownSanitizeSchema
 ): PluggableList {
+  const plugins = markdownRehypeBasePlugins(extensions, schema);
+  // Place user resolution after sanitization but before code highlighting, the
+  // same position it occupied in the original combined list.
+  const codeBlockIndex = plugins.length - 1;
   return [
-    rehypeTableMerge,
-    rehypeMarkdownHtml,
-    ...extensions,
-    [rehypeSanitize, schema],
-    rehypeLatex,
+    ...plugins.slice(0, codeBlockIndex),
     rehypeUserSpan,
-    rehypeCodeBlocks,
+    plugins[codeBlockIndex]!,
   ];
 }

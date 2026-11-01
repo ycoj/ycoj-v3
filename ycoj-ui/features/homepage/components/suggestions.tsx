@@ -9,15 +9,57 @@ import { Globe } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
-export default function Suggestions({
-  sections,
-}: {
-  sections: SuggestionSection[];
-}) {
+/**
+ * Sites from the legacy `partials/homepage/suggestion.html` card, grouped the
+ * same way. The backend has no getter for `suggestion`, so a bare
+ * `suggestion: true` in the homepage config means "render this static list".
+ * Deployment add-ons that return a real section array override it.
+ */
+const DEFAULT_SECTIONS: {
+  group: 'chinese' | 'english' | 'tools';
+  sites: SuggestionSection['sites'];
+}[] = [
+  {
+    group: 'chinese',
+    sites: [
+      { title: 'LibreOJ', link: 'https://loj.ac/' },
+      { title: 'Luogu', link: 'https://www.luogu.com.cn/' },
+      { title: 'UOJ', link: 'https://uoj.ac/' },
+      { title: 'CometOJ', link: 'https://www.cometoj.com/' },
+      { title: 'Vijos', link: 'https://vijos.org/' },
+    ],
+  },
+  {
+    group: 'english',
+    sites: [
+      { title: 'Codeforces', link: 'https://codeforces.com/' },
+      { title: 'AtCoder', link: 'https://atcoder.jp/' },
+      { title: 'CodeChef', link: 'https://www.codechef.com/' },
+      { title: 'SPOJ', link: 'https://www.spoj.com/' },
+      { title: 'TopCoder', link: 'https://www.topcoder.com/' },
+      { title: 'OnlineJudge', link: 'https://onlinejudge.org/' },
+    ],
+  },
+  {
+    group: 'tools',
+    sites: [{ title: 'OIerDb', link: 'https://oier.baoshuo.dev/' }],
+  },
+];
+
+type Props = {
+  sections?: SuggestionSection[];
+  /** Render the built-in legacy list instead of configured sections. */
+  useDefaults?: boolean;
+};
+
+export default function Suggestions({ sections, useDefaults }: Props) {
   const t = useTranslations('homepage');
-  const visibleSections = sections.filter(
-    (section) => section.sites.length > 0
-  );
+  const visibleSections = useDefaults
+    ? DEFAULT_SECTIONS.map(({ group, sites }) => ({
+        title: t(`suggestionGroups.${group}`),
+        sites,
+      }))
+    : (sections ?? []).filter((section) => section.sites.length > 0);
   if (!visibleSections.length) return null;
 
   return (

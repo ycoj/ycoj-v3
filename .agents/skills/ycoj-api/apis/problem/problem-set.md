@@ -41,7 +41,7 @@ type BackResponse = unknown; // framework “back” response/redirect
 
 The example is a reviewer's `GET /p?q=category:basic`; the same request without review permission omits `pendingSolutionCount`. A reviewer with no pending solutions receives `pendingSolutionCount: 0`.
 
-With `redirect:true`, copy returns `{ "url": "/p/{first-id}" }` under JSON accept (or redirects without it). Delete/hide/unhide use `back()` rather than a stable documented body.
+With `redirect:true`, copy returns `{ "url": "/p/{first-id}" }` under JSON accept (or redirects without it); without `redirect`, it returns the new document IDs as `number[]`. Delete/hide/unhide use `back()`, which under JSON accept answers `{ "url": "<referer>" }`; treat that URL as an acknowledgement only, because it is the browser's backend referer path and must be remapped rather than navigated to directly.
 
 # GET `/problem/random` — random matching problem
 

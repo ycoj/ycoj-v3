@@ -1,0 +1,47 @@
+{
+  "title": "Preferences",
+  "description": "Choose the defaults used across the site, such as your time zone and code settings.",
+  "domainTitle": "Domain settings",
+  "domainDescription": "Personal settings that apply only within the current domain.",
+  "settingsTitle": "Settings",
+  "save": "Save changes",
+  "saving": "Saving...",
+  "saved": "Settings saved.",
+  "saveFailed": "Could not save your changes. Please try again.",
+  "selectPlaceholder": "Select an option",
+  "unchanged": "Leave blank to keep unchanged",
+  "empty": "No preferences are available",
+  "emptyDescription": "This server has not registered any preference settings.",
+  "domainEmpty": "No domain settings are available",
+  "domainEmptyDescription": "This server has not registered any personal domain settings.",
+  "families": {
+    "setting_display": "Display",
+    "setting_usage": "Code defaults",
+    "setting_markdown": "Markdown editor",
+    "setting_highlight": "Code highlighting",
+    "setting_info": "Personal information",
+    "setting_basic": "General"
+  },
+  "fields": {
+    "timeZone": "Time zone",
+    "viewLang": "Interface language",
+    "codeLang": "Default code language",
+    "codeTemplate": "Default code template",
+    "preferredEditorType": "Preferred editor",
+    "showInvisibleChar": "Show invisible characters",
+    "formatCode": "Auto format code",
+    "displayName": "Display name"
+  },
+  "help": {
+    "timeZone": "Times are shown in this time zone.",
+    "codeLang": "Preselected language when you submit code.",
+    "codeTemplate": "Inserted into the editor for new submissions. Leave blank to use the built-in template for the language.",
+    "displayName": "Shown instead of your username inside this domain."
+  },
+  "options": {
+    "preferredEditorType": {
+      "sv": "Split view",
+      "monaco": "Monaco editor"
+    }
+  }
+}

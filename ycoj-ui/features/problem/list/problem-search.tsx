@@ -1,12 +1,17 @@
 'use client';
 
 import ProblemCreateOrImportDialog from './problem-create-or-import-dialog';
+import {
+  applyProblemSearchInput,
+  problemFilterHref,
+  type ProblemFilters,
+} from '@/features/problem/list/problem-filter-utils';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { ListChecks, MessageSquareWarning, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 
 type Props = {
@@ -14,6 +19,7 @@ type Props = {
   canReview?: boolean;
   pendingSolutionCount?: number;
   canManageFeedback?: boolean;
+  filters: ProblemFilters;
 };
 
 export default function ProblemSearch({
@@ -21,12 +27,13 @@ export default function ProblemSearch({
   canReview = false,
   pendingSolutionCount = 0,
   canManageFeedback = false,
+  filters,
 }: Props) {
   const t = useTranslations('problem');
   const reviewT = useTranslations('solution.review');
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [query, setQuery] = useState(filters.q);
+
   const reviewLabel =
     pendingSolutionCount > 0
       ? reviewT('pendingCount', { count: pendingSolutionCount })
@@ -34,13 +41,9 @@ export default function ProblemSearch({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams(searchParams.toString());
-    if (query) {
-      params.set('q', query);
-    } else {
-      params.delete('q');
-    }
-    router.push(`?${params.toString()}`);
+    router.push(
+      problemFilterHref('/problem', applyProblemSearchInput(filters, query))
+    );
   };
 
   return (

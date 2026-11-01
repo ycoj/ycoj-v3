@@ -10,6 +10,7 @@ export const canImportUsers = canEditSystem;
 
 export function manageLanding(user: Pick<User, 'priv'>) {
   if (user.priv === PRIV.PRIV_ALL) return '/manage/realname';
+  if (canEditSystem(user)) return '/manage/dashboard';
   if (canImportUsers(user)) return '/manage/user-import';
   return canManageExpiration(user) ? '/manage/user-expiration' : '/home';
 }

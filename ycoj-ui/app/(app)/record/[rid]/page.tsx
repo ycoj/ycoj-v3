@@ -1,4 +1,5 @@
 import ServerApis from '@/api/server/method';
+import { resolveHackHref } from '@/features/problem/hack/hack-entry';
 import RecordDetailLive from '@/features/record/detail/record-detail-live';
 import { getUser } from '@/features/user/lib/get-user';
 import { hasPerm, PERM } from '@/features/user/lib/priv';
@@ -36,6 +37,18 @@ export default async function RecordDetailPage({
   const selectedRev = rev && data.allRevs?.[rev] ? rev : undefined;
 
   const allowRejudge = hasPerm(user, PERM.PERM_REJUDGE);
+  const hackHref = resolveHackHref({
+    canHack: hasPerm(user, PERM.PERM_SUBMIT_PROBLEM),
+    isSignedIn: Boolean(user?._id),
+    problemHackable: Boolean(pdoc.config?.hackable),
+    recordUid: rdoc.uid,
+    recordStatus: rdoc.status,
+    viewerUid: user?._id,
+    problemPath: `/problem/${pdoc.pid ?? pdoc.docId}`,
+    recordId: rdoc._id,
+    contest: rdoc.contest,
+  });
+
   return (
     // key 保证在记录或评测版本之间导航时重置实时状态与连接。
     <RecordDetailLive
@@ -47,6 +60,7 @@ export default async function RecordDetailPage({
       allowRejudge={allowRejudge}
       allRevs={data.allRevs}
       selectedRev={selectedRev}
+      hackHref={hackHref}
     />
   );
 }

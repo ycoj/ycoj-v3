@@ -1,15 +1,32 @@
+import { resolveLegacyRoute } from '@/shared/lib/legacy-routes';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/next-intl.config', () => ({ default: (config: unknown) => config }));
 
 describe('problem short route', () => {
-  it('permanently redirects every nested path to the problem route', async () => {
+  it('redirects every legacy problem page to the problem route', () => {
+    expect(resolveLegacyRoute('/p/1000')?.destination).toBe('/problem/1000');
+    expect(resolveLegacyRoute('/p/1000/submit', '?tid=c1')?.destination).toBe(
+      '/problem/1000/submit?tid=c1'
+    );
+    expect(resolveLegacyRoute('/p/1000/solution/2')?.destination).toBe(
+      '/problem/1000/solution/2'
+    );
+  });
+
+  it('leaves problem downloads and raw bodies on the backend', () => {
+    expect(resolveLegacyRoute('/p/1000/file/a.in')).toBeNull();
+    expect(resolveLegacyRoute('/p/1000/solution/2/raw')).toBeNull();
+    expect(resolveLegacyRoute('/p/1000/feedback')).toBeNull();
+  });
+
+  it('is emitted by the next.config redirects', async () => {
     const { default: config } = await import('@/next.config');
-    const redirects = await config.redirects?.();
+    const redirects = (await config.redirects?.()) ?? [];
 
     expect(redirects).toContainEqual({
-      source: '/p/:path*',
-      destination: '/problem/:path*',
+      source: '/p',
+      destination: '/problem',
       permanent: true,
     });
   });

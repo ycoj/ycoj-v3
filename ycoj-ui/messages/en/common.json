@@ -4,6 +4,7 @@
   "draw": "Whiteboard",
   "accountSettings": "Account settings",
   "profile": "Profile",
+  "myDomains": "My domains",
   "messages": "Messages",
   "realname": "Real-name verification",
   "award": "Award certification",
@@ -64,5 +65,6 @@
   "problems": "{count, plural, one {# problem} other {# problems}}",
   "people": "{count, plural, one {# person} other {# people}}",
   "percent": "{value}%",
-  "preliminary": "Preliminary"
+  "preliminary": "Preliminary",
+  "help": "Help"
 }

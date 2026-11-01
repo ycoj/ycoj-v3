@@ -28,47 +28,52 @@ import {
 import { useTranslations } from 'next-intl';
 import { Controller, type Control } from 'react-hook-form';
 
+export type SettingsNamespace = 'accountSettings' | 'preference';
+
 type Props = {
   setting: AccountSetting;
   index: number;
   control: Control<SettingsFormValues>;
   saving: boolean;
+  namespace: SettingsNamespace;
 };
 
-const builtinFields = new Set([
-  'qq',
-  'gender',
-  'bio',
-  'school',
-  'studentId',
-  'phone',
-  'hideRank',
-  'backgroundImage',
-]);
+const fullWidthTypes = new Set(['markdown', 'textarea', 'json', 'yaml']);
+
+function optionLabel(
+  t: ReturnType<typeof useTranslations>,
+  setting: AccountSetting,
+  value: string,
+  fallback: string
+) {
+  if (setting.key === 'gender' && t.has(`gender.${value}`))
+    return t(`gender.${value}`);
+  if (t.has(`options.${setting.key}.${value}`))
+    return t(`options.${setting.key}.${value}`);
+  return fallback;
+}
 
 export default function SettingField({
   setting,
   index,
   control,
   saving,
+  namespace,
 }: Props) {
-  const t = useTranslations('accountSettings');
-  const builtin = builtinFields.has(setting.key);
-  const label = builtin
+  const t = useTranslations(namespace);
+  const label = t.has(`fields.${setting.key}`)
     ? t(`fields.${setting.key}`)
     : setting.name || setting.key;
-  const description =
-    builtin && t.has(`help.${setting.key}`)
-      ? t(`help.${setting.key}`)
-      : setting.desc;
+  const description = t.has(`help.${setting.key}`)
+    ? t(`help.${setting.key}`)
+    : setting.desc;
   const disabled = saving || Boolean(setting.flag & SETTING_FLAG.DISABLED);
   const secret = Boolean(setting.flag & SETTING_FLAG.SECRET);
-  const id = `account-field-${index}`;
+  const id = `setting-field-${index}`;
   const isBoolean = setting.type === 'boolean';
   const options = getSettingOptions(setting);
   const fullWidth =
-    ['markdown', 'textarea', 'json', 'yaml'].includes(setting.type) ||
-    setting.key === 'backgroundImage';
+    fullWidthTypes.has(setting.type) || setting.key === 'backgroundImage';
   const schoolField = setting.key === 'school' || setting.key === 'studentId';
 
   return (
@@ -128,9 +133,7 @@ export default function SettingField({
                 <SelectContent>
                   {options.map(([value, text], optionIndex) => (
                     <SelectItem key={value} value={String(optionIndex)}>
-                      {setting.key === 'gender' && t.has(`gender.${value}`)
-                        ? t(`gender.${value}`)
-                        : text}
+                      {optionLabel(t, setting, value, text)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -155,7 +158,7 @@ export default function SettingField({
             value: String(field.value),
             placeholder: secret ? t('unchanged') : undefined,
           };
-          if (['textarea', 'json', 'yaml'].includes(setting.type))
+          if (fullWidthTypes.has(setting.type))
             return (
               <Textarea
                 {...textProps}

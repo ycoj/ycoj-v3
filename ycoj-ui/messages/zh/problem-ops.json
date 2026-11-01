@@ -1,0 +1,76 @@
+{
+  "statistics": "统计",
+  "star": {
+    "star": "收藏题目",
+    "unstar": "取消收藏",
+    "failed": "收藏状态更新失败，请重试。"
+  },
+  "rejudge": {
+    "title": "重测全部提交",
+    "confirm": "本题所有普通提交将重新排队评测，已取消的提交和 Hack 不在范围内。",
+    "confirmAction": "全部重测",
+    "cancel": "取消",
+    "rejudging": "正在加入队列……",
+    "queued": "提交已加入重测队列。",
+    "failed": "无法发起重测，请重试。"
+  },
+  "stats": {
+    "title": "统计",
+    "distribution": "状态与分数分布",
+    "distributionUnavailable": "本题暂无统计数据。",
+    "statusChart": "提交状态分布",
+    "scoreChart": "分数分布",
+    "performance": "AC 提交性能",
+    "description": "通过评测的提交，按所选指标排序。",
+    "empty": "暂无通过评测的提交。",
+    "sort": "排序指标",
+    "direction": "方向",
+    "ascending": "升序",
+    "descending": "降序",
+    "language": "语言",
+    "allLanguages": "全部语言",
+    "apply": "搜索",
+    "sortOptions": {
+      "time": "运行时间",
+      "memory": "内存占用",
+      "length": "代码长度",
+      "date": "提交时间"
+    },
+    "columns": {
+      "status": "状态",
+      "submitter": "提交者",
+      "time": "时间",
+      "memory": "内存",
+      "language": "语言",
+      "length": "长度",
+      "submittedAt": "提交时间"
+    },
+    "totalAccepted": "共 {count} 条通过记录",
+    "statusValues": {
+      "AC": "AC",
+      "WA": "WA",
+      "TLE": "TLE",
+      "MLE": "MLE",
+      "RE": "RE",
+      "CE": "CE"
+    },
+    "toggleDirection": "切换排序方向"
+  },
+  "hack": {
+    "title": "Hack 提交 #{rid}",
+    "description": "提供一组数据，尝试攻击 {user} 对「{title}」的通过提交。",
+    "input": "输入数据",
+    "inputPlaceholder": "输入本次 Hack 使用的数据",
+    "inputFile": "或上传输入文件",
+    "fileHint": "大小上限为 {limit}。",
+    "removeFile": "移除文件",
+    "autoOrganize": "自动整理输入",
+    "autoOrganizeHint": "调整换行并去除多余空白字符。",
+    "inputRequired": "请输入数据或选择输入文件。",
+    "fileTooLarge": "输入文件超过 {limit}。",
+    "submit": "提交 Hack",
+    "submitting": "提交中……",
+    "failed": "Hack 提交失败，请重试。",
+    "entry": "Hack"
+  }
+}

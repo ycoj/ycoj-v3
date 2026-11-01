@@ -10,7 +10,7 @@ import UserSpan from '@/features/user/user-span';
 import { Button } from '@/shared/components/ui/button';
 import { Separator } from '@/shared/components/ui/separator';
 import type { BaseUser } from '@/shared/types/user';
-import { Pencil, PlusSquare, type LucideIcon } from 'lucide-react';
+import { Pencil, FileText, PlusSquare, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -113,11 +113,18 @@ export default function TrainingSidebar({ tid, data, owner, canEdit }: Props) {
               </Button>
             )}
             {canEdit && (
-              <SidebarButton
-                href={`/training/${tid}/edit`}
-                icon={Pencil}
-                text={common('edit')}
-              />
+              <>
+                <SidebarButton
+                  href={`/training/${tid}/edit`}
+                  icon={Pencil}
+                  text={common('edit')}
+                />
+                <SidebarButton
+                  href={`/training/${tid}/file`}
+                  icon={FileText}
+                  text={t('files')}
+                />
+              </>
             )}
           </div>
           <Separator />

@@ -19,7 +19,7 @@ Description: render create/edit form. Request: `type Query={tid?:ObjectId}`; `GE
 Description: validate DAG and create/update training. Request: `type Request={tid?:ObjectId;title:string;content:string;dag:string;pin:number;description:string}`; `{ "title":"DP","content":"...","dag":"[{\"_id\":1,\"title\":\"A\",\"requireNids\":[],\"pids\":[1001]}]","pin":0,"description":"..." }`. Response: `type Response={tid:ObjectId;url?:string}`; `{ "tid":"665f...","url":"/training/665f..." }`.
 
 ## `GET /training/:tid/file`
-Description: list editable training files. Request: `type Query={tid:ObjectId}`; `GET /training/665f.../file`. Response: `type Response={tdoc:TrainingDoc;tsdoc:unknown;udoc:unknown;files:unknown[];urlForFile:string}`; `{ "tdoc":{"docId":"665f..."},"files":[] }`, HTML/PJAX.
+Description: list editable training files. Request: `type Query={tid:ObjectId}`; `GET /training/665f.../file`. Response: `type Response={tdoc:TrainingDoc;tsdoc:unknown;udoc:unknown;files:FileInfo[]}`; `{ "tdoc":{"docId":"665f..."},"files":[] }`, HTML/PJAX. The owner needs `PERM_EDIT_TRAINING_SELF`, otherwise `PERM_EDIT_TRAINING`. `urlForFile` is a template helper and is omitted from JSON.
 
 ## `POST /training/:tid/file` operation `uploadFile`
 Description: upload one file. Request: `type Request={operation:"uploadFile";filename:string;file:Blob}`; multipart example `filename=readme.md&file=@readme.md`. Response: `type Response={url?:string}`; `{ "url":"/training/665f.../file" }` or back.

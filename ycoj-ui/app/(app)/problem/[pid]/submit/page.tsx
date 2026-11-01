@@ -63,6 +63,8 @@ export default async function ProblemSubmitPage({
     return <Errored title={t('unavailable')} error={t('unavailable')} />;
   }
 
+  // Objective problems are answered in place on the detail page. Answer-file
+  // problems share the same `_` language but still need the upload form here.
   if (isObjectiveProblem(data.pdoc)) {
     const qs = searchParams.tid ? `?tid=${searchParams.tid}` : '';
     redirect(`/problem/${pid}${qs}`);

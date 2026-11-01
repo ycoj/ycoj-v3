@@ -18,9 +18,19 @@ export type GenerateProblemTestdataResponse = ProblemFilesMutationResponse & {
 const isValidRenameTarget = (name: string) =>
   name.length > 0 && name !== '.' && name !== '..' && !/[\\/]/.test(name);
 
-const problemFilesConfig = (tid?: ObjectId) => ({
-  params: tid ? { tid } : {},
+const problemFilesConfig = (tid?: ObjectId, domainId?: string) => ({
+  params: {
+    ...(tid ? { tid } : {}),
+    ...(domainId ? { domainId } : {}),
+  },
 });
+
+/**
+ * The backend resolves `/p/:pid/...` inside the request domain, which the
+ * `d` override selects. Non-system domains need it on every problem route.
+ */
+const domainProblemPath = (domainId: string | undefined, path: string) =>
+  domainId ? `/d/${encodeURIComponent(domainId)}${path}` : path;
 
 const getUploadBaseUrl = () =>
   process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ?? '';
@@ -54,16 +64,17 @@ export const getProblemFileLinks = (
   pid: string | number,
   files: string[],
   type: ProblemFileType = 'testdata',
-  tid?: ObjectId
+  tid?: ObjectId,
+  domainId?: string
 ) =>
   clientRequest.Post<ProblemFileLinksResponse>(
-    `/p/${pid}/files`,
+    domainProblemPath(domainId, `/p/${pid}/files`),
     {
       operation: 'get_links',
       files,
       type,
     },
-    problemFilesConfig(tid)
+    problemFilesConfig(tid, domainId)
   );
 
 /** Refreshes the current testdata list without navigating away from an editor. */

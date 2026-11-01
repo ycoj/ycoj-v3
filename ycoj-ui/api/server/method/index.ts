@@ -8,6 +8,7 @@ import Award from '@/api/server/method/award';
 import Branding from '@/api/server/method/branding';
 import Contests from '@/api/server/method/contests';
 import Discussion from '@/api/server/method/discussion';
+import Domain from '@/api/server/method/domain';
 import Homework from '@/api/server/method/homework';
 import Messages from '@/api/server/method/messages';
 import Paste from '@/api/server/method/paste';
@@ -42,6 +43,7 @@ const ServerApis = {
   Ranking,
   Realname,
   User,
+  Domain,
 };
 
 export default ServerApis;

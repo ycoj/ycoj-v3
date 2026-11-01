@@ -20,6 +20,7 @@ import {
   BadgeCheck,
   ChevronDown,
   ChevronRight,
+  Globe,
   Languages,
   LoaderCircle,
   LogOut,
@@ -160,6 +161,12 @@ export default function SidebarUserMenu({
             <Link href="/home/messages">
               <MessagesSquare aria-hidden="true" />
               <span data-llm-text={t('messages')}>{t('messages')}</span>
+            </Link>
+          </DropdownMenuPrimitive.Item>
+          <DropdownMenuPrimitive.Item asChild className={menuItemClassName}>
+            <Link href="/home/domain">
+              <Globe aria-hidden="true" />
+              <span data-llm-text={t('myDomains')}>{t('myDomains')}</span>
             </Link>
           </DropdownMenuPrimitive.Item>
           <DropdownMenuPrimitive.Item asChild className={menuItemClassName}>

@@ -7,6 +7,8 @@ import {
   getContestStatus,
 } from '@/features/contest/detail/contest-utils';
 import { getContestEndedVariant } from '@/features/problem/detail/contest-ended-mode';
+import ProblemPackageActions from '@/features/problem/detail/problem-package-actions';
+import ProblemRejudgeButton from '@/features/problem/detail/problem-rejudge-button';
 import ProblemFeedbackDialog from '@/features/problem/feedback/problem-feedback-dialog';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -18,6 +20,7 @@ import dayjs from 'dayjs';
 import {
   ArrowLeft,
   BookOpen,
+  ChartNoAxesColumn,
   MessageCircle,
   File,
   Navigation,
@@ -45,6 +48,12 @@ type Props = {
   objectiveSlot?: React.ReactNode;
   scratchpadSlot?: React.ReactNode;
   allowFeedback?: boolean;
+  /** Shows the "rejudge all submissions" action; backend also enforces this. */
+  allowRejudge?: boolean;
+  /** Shows the problem package download; backend also enforces access. */
+  allowDownloadPackage?: boolean;
+  /** Shows the cross-domain copy action. */
+  allowCopyProblem?: boolean;
 };
 
 type SidebarButtonProps = {
@@ -94,8 +103,12 @@ export default function ProblemSidebar({
   objectiveSlot,
   scratchpadSlot,
   allowFeedback,
+  allowRejudge,
+  allowDownloadPackage,
+  allowCopyProblem,
 }: Props) {
   const t = useTranslations('problem');
+  const tProblemOps = useTranslations('problemOps');
   const common = useTranslations('common');
   const contestT = useTranslations('contest');
   const format = useFormatter();
@@ -190,7 +203,7 @@ export default function ProblemSidebar({
           <SidebarButton
             icon={MessageCircle}
             text={common('discussion')}
-            href="#"
+            href={`/discussion/problem/${problem.docId}`}
             count={discussionCount}
           />
         )}
@@ -210,6 +223,24 @@ export default function ProblemSidebar({
           text={t('files')}
           href={withTid(`/problem/${problem.pid ?? problem.docId}/files`, tid)}
         />
+        {!isContestMode && (
+          <SidebarButton
+            icon={ChartNoAxesColumn}
+            text={tProblemOps('statistics')}
+            href={`/problem/${problem.pid ?? problem.docId}/stat`}
+          />
+        )}
+        {allowRejudge && !isContestMode && (
+          <ProblemRejudgeButton docId={problem.docId} tid={tid} />
+        )}
+        {!isContestMode && (allowDownloadPackage || allowCopyProblem) && (
+          <ProblemPackageActions
+            docId={problem.docId}
+            domainId={problem.domainId}
+            allowDownload={Boolean(allowDownloadPackage)}
+            allowCopy={Boolean(allowCopyProblem)}
+          />
+        )}
         {allowFeedback && (
           <ProblemFeedbackDialog pid={problem.pid ?? problem.docId} tid={tid} />
         )}

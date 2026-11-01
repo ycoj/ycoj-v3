@@ -14,6 +14,10 @@ const backendOrigin = backendBaseUrl ? new URL(backendBaseUrl).origin : '';
 // check this proxy bypasses. The rewritten referer also flows into backend
 // `back()` redirects, making `response.url` backend-absolute; a raw
 // `router.push(response.url)` would navigate to the backend origin.
+//
+// /oauth is matched as well: the start route is a header-driven redirect and
+// the callback is a cross-site POST target, so both need to look same-origin
+// to the backend during LAN development.
 export function proxy(request: NextRequest) {
   if (process.env.NODE_ENV !== 'development' || !backendBaseUrl)
     return NextResponse.next();
@@ -29,5 +33,12 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/fs/:path*', '/paste/:id/raw'],
+  matcher: [
+    '/api/:path*',
+    '/fs/:path*',
+    '/paste/:id/raw',
+    '/oauth/:path*',
+    '/storage/:path*',
+    '/file/:path+',
+  ],
 };

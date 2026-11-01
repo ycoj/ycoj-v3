@@ -4,7 +4,7 @@ import type { PreliminaryListView } from '@/api/server/method/preliminary/list';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { Plus, Search } from 'lucide-react';
+import { Import, Plus, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -96,6 +96,18 @@ export default function PreliminaryFilter({
               <Search strokeWidth={2} />
               {common('filter')}
             </Button>
+            {canCreate && (
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 flex-1 md:h-8 md:flex-none"
+              >
+                <Link href="/preliminary/import">
+                  <Import />
+                  {t('importObjective')}
+                </Link>
+              </Button>
+            )}
             {canCreate && (
               <Button asChild className="h-11 flex-1 md:h-8 md:flex-none">
                 <Link href="/preliminary/create">

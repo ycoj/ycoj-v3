@@ -3,6 +3,7 @@ import type { ProblemListResponse } from '@/api/server/method/problems/list';
 import messages from '@/messages/en';
 import { render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
+import type { ComponentProps } from 'react';
 import { describe, expect, it } from 'vitest';
 
 function makeProblem(
@@ -36,10 +37,32 @@ function makeData(pdocs: ProblemListResponse['pdocs']): ProblemListResponse {
   };
 }
 
-function renderList(data: ProblemListResponse) {
+const defaultFilters = {
+  q: '',
+  category: [],
+  difficulty: [],
+  namespace: '',
+  sort: 'default' as const,
+  dir: 'asc' as const,
+  showTags: false,
+  page: 1,
+};
+
+function renderList(
+  data: ProblemListResponse,
+  props: Partial<ComponentProps<typeof ProblemList>> = {}
+) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <ProblemList data={data} showTags={false} searchParams={{}} />
+      <ProblemList
+        data={data}
+        showTags={false}
+        filters={defaultFilters}
+        domainId="system"
+        canManageAll={false}
+        canManageOwn={false}
+        {...props}
+      />
     </NextIntlClientProvider>
   );
 }

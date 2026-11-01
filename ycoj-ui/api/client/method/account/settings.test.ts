@@ -1,10 +1,28 @@
-import { saveAccountSettings, updateAvatar, uploadAvatar } from './settings';
+import {
+  encodeSettingValue,
+  saveAccountSettings,
+  saveUserSettings,
+  updateAvatar,
+  uploadAvatar,
+} from './settings';
 import { uploadClientRequest } from '@/api/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+});
+
+describe('encodeSettingValue', () => {
+  it.each([
+    [true, 'on'],
+    [false, false],
+    ['text', 'text'],
+    ['', ''],
+    [0, 0],
+  ])('encodes %o as %o', (input, expected) => {
+    expect(encodeSettingValue(input as never)).toBe(expected);
+  });
 });
 
 describe('account settings requests', () => {
@@ -32,6 +50,29 @@ describe('account settings requests', () => {
       hidden: false,
     });
   });
+
+  it.each(['preference', 'domain'] as const)(
+    'writes %s settings to their category endpoint',
+    async (category) => {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify({ url: `/home/settings/${category}` }))
+        );
+      vi.stubGlobal('fetch', fetchMock);
+      await saveUserSettings(category, {
+        timeZone: 'UTC',
+        showAgo: true,
+      }).send();
+      const [url, config] = fetchMock.mock.calls[0];
+      expect(url).toBe(`/api/home/settings/${category}`);
+      expect(JSON.parse(config.body)).toEqual({
+        category,
+        timeZone: 'UTC',
+        showAgo: 'on',
+      });
+    }
+  );
 
   it.each(['gravatar', 'github', 'qq'] as const)(
     'encodes the %s avatar provider',

@@ -12,5 +12,6 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AccountSettingsRoute() {
   const data = await getAccountSettings();
   if ('error' in data) return <Errored error={data.error} />;
+  if (!('settings' in data)) return null;
   return <AccountSettingsPage data={data} />;
 }

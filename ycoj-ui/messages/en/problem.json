@@ -283,7 +283,16 @@
     "codePlaceholder": "Paste code here...",
     "useCodeEditor": "Use code editor",
     "submitting": "Submitting...",
-    "submit": "Submit"
+    "submit": "Submit",
+    "selectFile": "Select a file",
+    "answerFile": "Answer file",
+    "sourceFile": "Source file",
+    "dropFileHere": "Drop a file here or choose one below",
+    "removeFile": "Remove file",
+    "answerFileHint": "Upload your answer file. Maximum size: {limit}.",
+    "sourceFileHint": "Upload source code or an archive instead of pasting code. Maximum size: {limit}.",
+    "fileTooLarge": "The selected file is larger than {limit}.",
+    "codeTooLong": "Code must be {limit} characters or fewer."
   },
   "scratchpad": {
     "open": "Open scratchpad",
@@ -360,5 +369,6 @@
     "unanswered": "Unanswered",
     "submitFailed": "Submission failed",
     "submitRetry": "Submission failed. Please try again later."
-  }
+  },
+  "notHackable": "This problem does not allow hack submissions."
 }

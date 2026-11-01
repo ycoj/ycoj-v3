@@ -27,7 +27,7 @@ Description: update an existing homework with the same validated field set. Requ
 Description: delete homework and associated files. Request: `type Request={operation:"delete";tid:ObjectId}`; `{ "operation":"delete" }`. Response: `type Response={url:string}`; `{ "url":"/homework" }` under JSON negotiation, browser redirect otherwise.
 
 ## `GET /homework/:tid/file`
-Description: render the homework file manager. Request: `type Query={tid:ObjectId}`; `GET /homework/665f.../file`. Response: `type Response={tdoc:ContestDoc;files:unknown[];urlForFile:string}`; `{ "tdoc":{"docId":"665f..."},"files":[] }`, HTML/PJAX `homework_files.html`; view/edit permissions apply.
+Description: render the homework file manager. Request: `type Query={tid:ObjectId}`; `GET /homework/665f.../file`. Response: `type Response={tdoc:ContestDoc;tsdoc:ContestStatus|null;udoc:UserDoc;files:FileInfo[]}`; `{ "tdoc":{"docId":"665f..."},"tsdoc":null,"udoc":{"_id":12,"uname":"coach"},"files":[] }`, HTML/PJAX `homework_files.html`; the owner/maintainer needs `PERM_EDIT_HOMEWORK_SELF`, otherwise `PERM_EDIT_HOMEWORK`. `urlForFile` is a template helper and is omitted from JSON.
 
 ## `POST /homework/:tid/file` operation `uploadFile`
 Description: store one homework file. Request: `type Request={operation:"uploadFile";filename:string;file:Blob}`; multipart example `filename=statement.pdf&file=@statement.pdf`. Response: `type Response={url?:string}`; `{ "url":"/homework/665f.../file" }` or browser back redirect.

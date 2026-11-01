@@ -20,5 +20,6 @@
   "directory": "章节目录",
   "unnamedSection": "未命名章节",
   "chapter": "第 {number} 章. {title}",
-  "noSections": "暂无章节"
+  "noSections": "暂无章节",
+  "files": "文件"
 }

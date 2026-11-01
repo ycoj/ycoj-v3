@@ -4,6 +4,8 @@ import type {
   ProblemStatusDict,
 } from '@/shared/types/problem';
 
+export type ProblemListSort = 'default' | 'recent';
+
 export type ProblemListResponse = {
   page: number;
   pcount: number;
@@ -13,14 +15,20 @@ export type ProblemListResponse = {
   pdocs: ListProjectionProblem[];
   psdict: ProblemStatusDict;
   qs: string;
+  sort?: ProblemListSort;
   /** Domain-wide unreviewed solution count, available to reviewers. */
   pendingSolutionCount?: number;
 };
 
-export const getProblemsList = (query?: string, page?: number) =>
+export const getProblemsList = (
+  query?: string,
+  page?: number,
+  sort?: ProblemListSort
+) =>
   alova.Get<ProblemListResponse>('/p', {
     params: {
       q: query,
       page,
+      sort,
     },
   });

@@ -1,0 +1,47 @@
+{
+  "title": "偏好设置",
+  "description": "设置站点通用的默认值，例如时区和代码相关选项。",
+  "domainTitle": "域内设置",
+  "domainDescription": "仅在当前域内生效的个人设置。",
+  "settingsTitle": "设置",
+  "save": "保存修改",
+  "saving": "保存中…",
+  "saved": "设置已保存。",
+  "saveFailed": "保存失败，请稍后重试。",
+  "selectPlaceholder": "请选择",
+  "unchanged": "留空则保持不变",
+  "empty": "暂无可设置的偏好",
+  "emptyDescription": "当前服务器还没有注册任何偏好设置。",
+  "domainEmpty": "暂无可设置的域内设置",
+  "domainEmptyDescription": "当前服务器还没有注册域内个人设置。",
+  "families": {
+    "setting_display": "显示",
+    "setting_usage": "代码默认值",
+    "setting_markdown": "Markdown 编辑器",
+    "setting_highlight": "代码高亮",
+    "setting_info": "个人信息",
+    "setting_basic": "基本设置"
+  },
+  "fields": {
+    "timeZone": "时区",
+    "viewLang": "界面语言",
+    "codeLang": "默认代码语言",
+    "codeTemplate": "默认代码模板",
+    "preferredEditorType": "偏好编辑器",
+    "showInvisibleChar": "显示不可见字符",
+    "formatCode": "自动格式化代码",
+    "displayName": "显示名称"
+  },
+  "help": {
+    "timeZone": "时间将按此时区显示。",
+    "codeLang": "提交代码时默认选中的语言。",
+    "codeTemplate": "新建提交时插入编辑器的内容。留空则使用该语言的内置模板。",
+    "displayName": "在该域内替代用户名显示。"
+  },
+  "options": {
+    "preferredEditorType": {
+      "sv": "分栏视图",
+      "monaco": "Monaco 编辑器"
+    }
+  }
+}

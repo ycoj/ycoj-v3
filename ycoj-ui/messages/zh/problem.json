@@ -283,7 +283,16 @@
     "codePlaceholder": "在此粘贴代码...",
     "useCodeEditor": "使用代码编辑器",
     "submitting": "提交中...",
-    "submit": "提交"
+    "submit": "提交",
+    "selectFile": "请选择文件",
+    "answerFile": "答案文件",
+    "sourceFile": "源文件",
+    "dropFileHere": "将文件拖到此处，或在下方选择文件",
+    "removeFile": "移除文件",
+    "answerFileHint": "请上传答案文件，大小上限为 {limit}。",
+    "sourceFileHint": "可以上传源码或压缩包，代替直接粘贴代码。大小上限为 {limit}。",
+    "fileTooLarge": "所选文件超过 {limit}。",
+    "codeTooLong": "代码长度不能超过 {limit} 个字符。"
   },
   "scratchpad": {
     "open": "进入在线编程模式",
@@ -360,5 +369,6 @@
     "unanswered": "未作答",
     "submitFailed": "提交失败",
     "submitRetry": "提交失败，请稍后重试"
-  }
+  },
+  "notHackable": "本题不允许 Hack 提交。"
 }
