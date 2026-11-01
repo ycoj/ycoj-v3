@@ -2,11 +2,12 @@ import {
   addLineNumbers,
   parseCodeLanguage,
 } from '@/shared/lib/code-line-numbers';
+import { starryNightOptions } from '@/shared/lib/starry-night-options';
 import { common, createStarryNight } from '@wooorm/starry-night';
 import type { ElementContent } from 'hast';
 import { toHtml } from 'hast-util-to-html';
 
-const starryNight = await createStarryNight(common);
+const starryNight = await createStarryNight(common, starryNightOptions);
 
 export type CodeHighlightFallback = 'cpp' | 'plaintext';
 

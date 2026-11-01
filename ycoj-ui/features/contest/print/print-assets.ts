@@ -1,10 +1,7 @@
 import type { PrintSupport } from './compiler';
 
 /**
- * Public-asset manifest produced by `scripts/prepare-typst.mjs`. Paths are
- * appended to `getPrintAssetBase()` which honors
- * `NEXT_PUBLIC_PRINT_ASSET_PREFIX` (CDN in production and same-origin in
- * development). Next.js chunks and worker scripts remain same-origin.
+ * Same-origin public-asset manifest produced by `scripts/prepare-typst.mjs`.
  */
 
 /** Typst web-compiler wasm binary (from `@myriaddreamin/typst-ts-web-compiler`). */
@@ -48,14 +45,6 @@ export const PRINT_FONT_FILES: readonly string[] = [
   'NewCMMath-Bold.otf',
   'NewCMSansMath-Regular.otf',
 ];
-
-/**
- * Static prefix for print assets: `/typst/*` and `/fonts/typst/*`. Reads
- * `NEXT_PUBLIC_PRINT_ASSET_PREFIX`, normalizing trailing slashes.
- */
-export function getPrintAssetBase(): string {
-  return (process.env.NEXT_PUBLIC_PRINT_ASSET_PREFIX ?? '').replace(/\/+$/, '');
-}
 
 /**
  * Browser support gate. The Typst worker only needs a module worker and

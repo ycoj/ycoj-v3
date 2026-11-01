@@ -72,7 +72,7 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 
 网站名称和 Logo 优先使用后端 `/branding` 按访问 origin 返回的配置；在 `/manage/branding` 修改已匹配站点的名称和 Logo，不需要重新构建前端。`SITE_NAME` 只是兜底名称，不会覆盖 branding，省略时兜底名称为空。当前 `next.config.ts` 将它写入构建产物，因此修改兜底名称需重新构建，仅修改服务器 `runtime.env` 不会更新它。首次启用 branding 前先更新后端，并确保反向代理向前端传递真实的 `Host` 和 `X-Forwarded-Proto`，使协议、域名和端口与 branding 配置一致。
 
-示例将 `NEXT_PUBLIC_STATIC_ASSET_PREFIX` 设为空字符串，使新产物的静态资源走本站，首次迁移不依赖额外的 CDN 同步。若继续使用现有 `https://next-cdn.ycoj.cc`，须确保 CDN 回源到新的前端服务，或另行同步 `public/`；不能继续只读取旧源码目录中的静态文件。
+前端静态资源统一走本站，发布包包含生成的 `public/` 和 `.next/static/`，不需要额外同步 CDN。旧的 `NEXT_PUBLIC_STATIC_ASSET_PREFIX` 和 `NEXT_PUBLIC_PRINT_ASSET_PREFIX` 配置已停用，可以从密钥仓库移除。
 
 保留 `allow_slugs`、`allow_branches`、`allow_events` 限制，并确保仓库/组织的 CNB 构建触发规则允许同步所用 `CNB_TOKEN` 的身份触发。GitHub 仓库仍需配置现有同步流程使用的 `CNB_TOKEN`。
 

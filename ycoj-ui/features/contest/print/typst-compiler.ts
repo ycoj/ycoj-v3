@@ -11,7 +11,6 @@ import {
   PRINT_COMPILER_WASM_PATH,
   PRINT_FONT_FILES,
   PRINT_PACKAGE_ASSETS,
-  getPrintAssetBase,
 } from './print-assets';
 import { buildTypstFiles } from './print-source';
 import type {
@@ -32,13 +31,12 @@ export type TypstPrintCompilerOptions = PrintCompilerOptions & {
 };
 
 /**
- * Test seam: inject a fake worker factory / static fetcher / asset base so
+ * Test seam: inject a fake worker factory / static fetcher so
  * unit tests never touch real WASM or the network.
  */
 export type TypstPrintCompilerInternals = {
   createWorker?: () => Worker;
   fetchStatic?: typeof fetch;
-  assetBase?: string;
 };
 
 const describeError = (error: unknown): string =>
@@ -182,7 +180,6 @@ export function createTypstPrintCompiler(
   const report = options.onProgress ?? (() => undefined);
   const fetchStatic = internals.fetchStatic ?? fetch;
   const createWorker = internals.createWorker ?? defaultCreateWorker;
-  const assetBase = internals.assetBase ?? getPrintAssetBase();
 
   let worker: Worker | null = null;
   let bootPromise: Promise<void> | null = null;
@@ -200,22 +197,20 @@ export function createTypstPrintCompiler(
   const stages: Array<{ stage: PrintCompilerStage; files: StaticFile[] }> = [
     {
       stage: 'wasm',
-      files: [
-        { key: 'compiler', url: `${assetBase}${PRINT_COMPILER_WASM_PATH}` },
-      ],
+      files: [{ key: 'compiler', url: PRINT_COMPILER_WASM_PATH }],
     },
     {
       stage: 'fonts',
       files: PRINT_FONT_FILES.map((name) => ({
         key: name,
-        url: `${assetBase}/fonts/typst/${name}`,
+        url: `/fonts/typst/${name}`,
       })),
     },
     {
       stage: 'packages',
       files: PRINT_PACKAGE_ASSETS.map((asset) => ({
         key: asset.file,
-        url: `${assetBase}/typst/packages/${asset.file}`,
+        url: `/typst/packages/${asset.file}`,
       })),
     },
   ];

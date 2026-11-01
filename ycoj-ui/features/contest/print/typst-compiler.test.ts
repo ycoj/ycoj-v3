@@ -125,7 +125,6 @@ function makeHarness(
     {
       createWorker: () => new FakeWorker() as unknown as Worker,
       fetchStatic: fetchStatic as unknown as typeof fetch,
-      assetBase: 'https://cdn.example.com/print',
       ...internals,
     }
   );
@@ -165,9 +164,9 @@ describe('createTypstPrintCompiler', () => {
     ).toHaveLength(1);
     expect(urls.filter((url) => url.includes('/fonts/typst/')).length).toBe(18);
     expect(urls.some((url) => url.endsWith('mitex-0.2.7.tarball'))).toBe(true);
-    expect(urls.every((url) => url.startsWith('https://cdn.example.com'))).toBe(
-      true
-    );
+    expect(
+      urls.every((url) => url.startsWith('/') && !url.startsWith('//'))
+    ).toBe(true);
     for (const stage of ['wasm', 'fonts', 'packages']) {
       expect(harness.progress.map((event) => event.stage)).toContain(stage);
       const last = [...harness.progress]
