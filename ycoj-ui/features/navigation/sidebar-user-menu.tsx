@@ -1,6 +1,7 @@
 'use client';
 
 import ClientApis from '@/api/client/method';
+import { rewardFrameClasses } from '@/features/rewards/appearance';
 import CcfHook from '@/features/user/ccf-hook';
 import Username from '@/features/user/username';
 import { locales, type Locale } from '@/i18n/config';
@@ -14,6 +15,7 @@ import { cn } from '@/shared/lib/utils';
 import type { BaseUser } from '@/shared/types/user';
 import {
   Check,
+  Coins,
   Code2,
   BadgeCheck,
   ChevronDown,
@@ -39,7 +41,10 @@ import { useState, useSyncExternalStore } from 'react';
 export type SidebarRoleKey = 'user' | 'superAdmin' | 'coach';
 
 type Props = {
-  user: Pick<BaseUser, '_id' | 'uname' | 'ccfLevel' | 'contestRating' | 'priv'>;
+  user: Pick<
+    BaseUser,
+    '_id' | 'uname' | 'ccfLevel' | 'contestRating' | 'priv' | 'rewardEquipment'
+  >;
   roleKey: SidebarRoleKey;
   avatarSrc: string;
   canUsePaste?: boolean;
@@ -108,7 +113,12 @@ export default function SidebarUserMenu({
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           aria-label={user.uname}
         >
-          <Avatar className="h-8 w-8 rounded-lg">
+          <Avatar
+            className={cn(
+              'h-8 w-8 rounded-lg',
+              rewardFrameClasses[user.rewardEquipment?.frame ?? '']
+            )}
+          >
             <AvatarImage src={avatarSrc} alt={user.uname} />
             <AvatarFallback className="rounded-lg">
               {user.uname.slice(0, 2).toUpperCase()}
@@ -150,6 +160,12 @@ export default function SidebarUserMenu({
             <Link href="/home/messages">
               <MessagesSquare aria-hidden="true" />
               <span data-llm-text={t('messages')}>{t('messages')}</span>
+            </Link>
+          </DropdownMenuPrimitive.Item>
+          <DropdownMenuPrimitive.Item asChild className={menuItemClassName}>
+            <Link href="/rewards">
+              <Coins aria-hidden="true" />
+              <span>{t('rewards')}</span>
             </Link>
           </DropdownMenuPrimitive.Item>
           {canUsePaste && (

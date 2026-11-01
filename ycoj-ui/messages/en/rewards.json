@@ -1,0 +1,126 @@
+{
+  "title": "Growth & coins",
+  "description": "Every thoughtful practice counts. Complete small goals, collect coins, and choose a little reward of your own.",
+  "balance": "Your balance",
+  "coins": "coins",
+  "taskTab": "Learning tasks",
+  "shopTab": "Appearance shop",
+  "historyTab": "Coin history",
+  "refresh": "Refresh progress",
+  "refreshSuccess": "Progress updated.",
+  "gentleGoal": "Try 1–3 problems a day and practice on 3 days a week, at your own pace.",
+  "resetHint": "Resets at midnight daily and every Monday, Beijing time. Today: {date}. Week starts: {week}.",
+  "practice": "Practice problems",
+  "daily": "Small daily goals",
+  "weekly": "This week's growth plan",
+  "checkin": "Check in today",
+  "checkinSuccess": "Checked in! You can now claim today's check-in coins.",
+  "claim": "Claim coins",
+  "claimed": "Claimed",
+  "inProgress": "In progress",
+  "claimTask": "Claim coins for {task}",
+  "claimedTask": "Coins claimed for {task}",
+  "claimSuccess": "Coins received. Keep learning at your own pace!",
+  "buySuccess": "Redeemed! This item is yours permanently. Equip it to use it.",
+  "equipSuccess": "Appearance equipped.",
+  "unequipSuccess": "Default appearance restored. Your item stays in your inventory.",
+  "rulesTitle": "Thoughtful practice, steady rewards",
+  "rules": "Every account receives 100 welcome coins. Earn up to 50 coins daily and 100 extra from weekly tasks. New problems are problems you have never passed; references to the same source count once. Only normal submissions count, excluding test runs, data generation, and new passes from rejudging. A comeback requires a failed submission before your first pass. Your wallet and progress are shared across domains. Task rewards stack and use the submission date. Claim within the current day or week; expired rewards cannot be claimed later. Missing a day never costs coins. Cosmetics are permanent and do not affect scores, rankings, or permissions.",
+  "contestHint": "Contest and homework submissions count after the event ends and results are public, to protect hidden verdicts. They still use their original submission dates.",
+  "shopTitle": "A little reward for your effort",
+  "shopHint": "Select an item to preview before redeeming. Every item is permanent.",
+  "ownedOnly": "Owned items only",
+  "preview": "Appearance preview",
+  "previewItem": "Preview {item}",
+  "price": "{coins} coins",
+  "buyFor": "Confirm redemption · {coins} coins",
+  "purchaseHint": "Redeeming does not auto-equip. Switch items whenever you like.",
+  "shortfall": "Save {coins} more coins by completing learning tasks.",
+  "ownedForever": "Yours permanently. Equip or remove it anytime.",
+  "owned": "Owned",
+  "equipped": "Equipped",
+  "equip": "Equip",
+  "unequip": "Remove",
+  "wearing": "Currently equipped",
+  "removeSlot": "Remove {slot}",
+  "defaultAppearance": "Default",
+  "emptyInventory": "Your inventory is empty. Clear the filter to find your first reward.",
+  "historyTitle": "Every coin has a story",
+  "historyHint": "Your latest 100 transactions. Total earned includes welcome coins.",
+  "totals": "Earned {earned} · Redeemed {spent}",
+  "welcome": "Welcome gift",
+  "purchaseReason": "Redeemed: {item}",
+  "slots": {
+    "frame": "Avatar frame",
+    "background": "Name background",
+    "title": "Personal title",
+    "accent": "Interface accent"
+  },
+  "tasks": {
+    "checkin": {
+      "name": "Here again today",
+      "description": "Check in today for a gentle start to learning."
+    },
+    "first-solve": {
+      "name": "One step forward",
+      "description": "Pass 1 previously unsolved problem today."
+    },
+    "three-solves": {
+      "name": "Three little stars",
+      "description": "Pass 3 new problems today, at a comfortable pace."
+    },
+    "comeback": {
+      "name": "I can try again",
+      "description": "Get a first pass today on a problem you previously failed."
+    },
+    "practice-days": {
+      "name": "Spread out your effort",
+      "description": "Get at least 1 first pass on any 3 days this week. No streak required."
+    },
+    "eight-solves": {
+      "name": "A week of progress",
+      "description": "Get first passes on 8 new problems this week."
+    }
+  },
+  "items": {
+    "frame-sprout": {
+      "name": "Sprout frame",
+      "description": "A fresh green frame for every small step of growth."
+    },
+    "frame-starlight": {
+      "name": "Starlight frame",
+      "description": "Turn your thoughtful practice into a bright golden frame."
+    },
+    "background-sky": {
+      "name": "Clear sky name",
+      "description": "A soft blue background for your name on profiles and user lists."
+    },
+    "background-peach": {
+      "name": "Peach name",
+      "description": "A warm peach background to bring a little joy to practice."
+    },
+    "title-explorer": {
+      "name": "Algorithm explorer",
+      "description": "For curious problem explorers. Shown on profiles and user labels."
+    },
+    "title-persistent": {
+      "name": "Never-give-up hero",
+      "description": "Think a little more, try once again. Celebrate your persistence."
+    },
+    "accent-forest": {
+      "name": "Forest accent",
+      "description": "Use forest green across your learning interface, in light and dark mode."
+    },
+    "accent-violet": {
+      "name": "Violet accent",
+      "description": "Brighten buttons and highlights with violet, in light and dark mode."
+    }
+  },
+  "errors": {
+    "request-failed": "The action could not be confirmed. Refresh progress before retrying. If check-in is unavailable, try again from the homepage.",
+    "insufficient-coins": "You need more coins. Refresh your balance and complete a few tasks first.",
+    "task-incomplete": "This task is incomplete or its period has reset. Refresh progress and try again.",
+    "item-not-owned": "Redeem this item before equipping it.",
+    "busy": "Too many actions at once. Refresh progress and try again."
+  }
+}

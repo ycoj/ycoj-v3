@@ -43,6 +43,7 @@ import problem from './problem.json';
 import ranking from './ranking.json';
 import realname from './realname.json';
 import record from './record.json';
+import rewards from './rewards.json';
 import scoreboard from './scoreboard.json';
 import solution from './solution.json';
 import sudo from './sudo.json';
@@ -52,6 +53,7 @@ import userImport from './user-import.json';
 import user from './user.json';
 
 const catalog = {
+  rewards,
   paste,
   manage,
   sudo,

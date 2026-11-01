@@ -49,6 +49,7 @@ export function getProfileUser(data: UserDetailResponse): BaseUser {
     mail: data.udoc.mail,
     avatar: extras.avatar ?? '',
     ccfLevel: data.udoc.ccfLevel,
+    rewardEquipment: data.udoc.rewardEquipment,
     contestRating: data.contestRating,
   };
 }

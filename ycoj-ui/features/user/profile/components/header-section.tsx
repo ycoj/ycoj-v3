@@ -4,6 +4,7 @@ import {
   getProfileUser,
   type UserProfileProps,
 } from './shared';
+import RewardTitle from '@/features/rewards/reward-title';
 import CcfHook from '@/features/user/ccf-hook';
 import UserAvatar from '@/features/user/user-avatar';
 import Username from '@/features/user/username';
@@ -46,6 +47,9 @@ export default function HeaderSection({ data }: UserProfileProps) {
                 >
                   UID {data.udoc._id}
                 </p>
+                {profileUser.rewardEquipment?.title && (
+                  <RewardTitle id={profileUser.rewardEquipment.title} />
+                )}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">

@@ -30,6 +30,7 @@ export function SidebarUser({ user }: { user: User | null | undefined }) {
             ccfLevel: user.ccfLevel,
             contestRating: user.contestRating,
             priv: user.priv,
+            rewardEquipment: user.rewardEquipment,
           }}
           roleKey={getRoleKey(user)}
           avatarSrc={avatarUrl(user.avatar)}

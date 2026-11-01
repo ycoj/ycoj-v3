@@ -1,0 +1,126 @@
+{
+  "title": "成长与金币",
+  "description": "每一次认真练习，都值得被看见。完成小任务，攒下金币，换一份属于自己的小奖励。",
+  "balance": "我的余额",
+  "coins": "金币",
+  "taskTab": "学习任务",
+  "shopTab": "装扮商店",
+  "historyTab": "金币明细",
+  "refresh": "刷新进度",
+  "refreshSuccess": "进度已更新。",
+  "gentleGoal": "每天 1–3 题，每周练习 3 天，按自己的节奏进步。",
+  "resetHint": "北京时间每日 00:00、每周一重置。今天 {date}，本周从 {week} 开始。",
+  "practice": "去做题",
+  "daily": "每日小目标",
+  "weekly": "本周成长计划",
+  "checkin": "今日签到",
+  "checkinSuccess": "签到成功，可以领取今天的签到金币了。",
+  "claim": "领取金币",
+  "claimed": "已领取",
+  "inProgress": "进行中",
+  "claimTask": "领取「{task}」金币",
+  "claimedTask": "「{task}」金币已领取",
+  "claimSuccess": "金币已到账，继续保持自己的节奏！",
+  "buySuccess": "兑换成功！装扮已永久存入背包，点击佩戴即可使用。",
+  "equipSuccess": "装扮已佩戴。",
+  "unequipSuccess": "已恢复默认装扮，物品仍在背包里。",
+  "rulesTitle": "认真练习，轻松积累",
+  "rules": "每个账号获赠 100 金币，每日最多获得 50 金币，周任务额外奖励 100 金币。新题指此前从未通过的题目，同源引用题合并计算；仅统计正常提交，不计测试运行、数据生成或重测产生的新通过。错题攻克需在首次通过前有失败提交。各域共用一个账户与任务进度，任务可叠加领取，按提交日期计算。奖励需在当天或当周领取，过期不补领。断签不扣币，装扮永久有效，不影响成绩、排名或权限。",
+  "contestHint": "比赛和作业提交在活动结束且成绩公开后才计入，避免提前透露评测结果；仍按原提交日期计算。",
+  "shopTitle": "给努力一点小奖励",
+  "shopHint": "先选中看看效果，再决定兑换。所有物品永久有效。",
+  "ownedOnly": "只看已拥有",
+  "preview": "装扮预览",
+  "previewItem": "预览{item}",
+  "price": "{coins} 金币",
+  "buyFor": "确认兑换 · {coins} 金币",
+  "purchaseHint": "兑换后不会自动佩戴，可随时切换。",
+  "shortfall": "还差 {coins} 金币，完成学习任务就能继续积攒。",
+  "ownedForever": "已永久拥有，随时佩戴或取下。",
+  "owned": "已拥有",
+  "equipped": "佩戴中",
+  "equip": "佩戴",
+  "unequip": "取下",
+  "wearing": "当前佩戴",
+  "removeSlot": "取下{slot}",
+  "defaultAppearance": "默认",
+  "emptyInventory": "背包还是空的。取消筛选，看看第一份想兑换的奖励吧。",
+  "historyTitle": "每一枚金币都有来处",
+  "historyHint": "展示最近 100 笔金币变动。累计收入包含初始赠送。",
+  "totals": "累计获得 {earned} · 累计兑换 {spent}",
+  "welcome": "欢迎加入 · 初始赠送",
+  "purchaseReason": "兑换：{item}",
+  "slots": {
+    "frame": "头像框",
+    "background": "名字背景",
+    "title": "个人称号",
+    "accent": "界面主题色"
+  },
+  "tasks": {
+    "checkin": {
+      "name": "今天也来啦",
+      "description": "完成今日签到，给学习一个轻松的开始。"
+    },
+    "first-solve": {
+      "name": "每天前进一步",
+      "description": "今天首次通过 1 道从未通过的题目。"
+    },
+    "three-solves": {
+      "name": "小小三连星",
+      "description": "今天首次通过 3 道新题，量力而行。"
+    },
+    "comeback": {
+      "name": "再试一次，我可以",
+      "description": "今天首次通过 1 道之前提交失败的题目。"
+    },
+    "practice-days": {
+      "name": "把努力分给每一天",
+      "description": "本周任意 3 天各首次通过至少 1 道新题，无需连续。"
+    },
+    "eight-solves": {
+      "name": "收集一周的进步",
+      "description": "本周累计首次通过 8 道新题。"
+    }
+  },
+  "items": {
+    "frame-sprout": {
+      "name": "新芽头像框",
+      "description": "一圈清新的绿色，纪念每一次小小的成长。"
+    },
+    "frame-starlight": {
+      "name": "星光头像框",
+      "description": "把认真攒成星光，让头像多一点明亮。"
+    },
+    "background-sky": {
+      "name": "晴空名字背景",
+      "description": "为名字铺上一片晴空，在个人页与用户列表展示。"
+    },
+    "background-peach": {
+      "name": "蜜桃名字背景",
+      "description": "给名字一点温暖的蜜桃色，练习也有好心情。"
+    },
+    "title-explorer": {
+      "name": "算法小探险家",
+      "description": "属于愿意探索新题目的你。个人页和用户标签中展示。"
+    },
+    "title-persistent": {
+      "name": "不放弃的小勇士",
+      "description": "再想一想，再试一次。为坚持下来的自己点个赞。"
+    },
+    "accent-forest": {
+      "name": "森林主题色",
+      "description": "将自己的学习界面主色切换为森林绿，支持明暗模式。"
+    },
+    "accent-violet": {
+      "name": "紫罗兰主题色",
+      "description": "用紫罗兰色点亮按钮与重点内容，支持明暗模式。"
+    }
+  },
+  "errors": {
+    "request-failed": "操作暂未完成。请刷新进度确认结果后重试；签到暂不可用时也可以从首页重试。",
+    "insufficient-coins": "金币还不够。请刷新余额，完成任务后再来兑换。",
+    "task-incomplete": "任务还未完成，或已经跨过重置时间。请刷新进度后再试。",
+    "item-not-owned": "请先兑换这件装扮，再进行佩戴。",
+    "busy": "操作有些频繁，请刷新进度后重试。"
+  }
+}

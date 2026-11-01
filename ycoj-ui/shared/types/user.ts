@@ -1,6 +1,8 @@
 import type { UserContestRating } from './rating';
+import type { RewardEquipment } from './rewards';
 
 export type BaseUser = {
+  rewardEquipment?: RewardEquipment;
   _id: number;
   uname: string;
   mail: string;

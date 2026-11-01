@@ -22,7 +22,7 @@ beforeAll(() => {
   window.addEventListener(
     'error',
     (event) => {
-      if (!event.message.includes('ResizeObserver loop')) return;
+      if (!event.message?.includes('ResizeObserver loop')) return;
       event.preventDefault();
       event.stopImmediatePropagation();
     },

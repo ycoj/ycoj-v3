@@ -17,6 +17,7 @@ import {
 } from '@/shared/components/ui/sidebar';
 import {
   Award,
+  Coins,
   MessageCircle,
   Clipboard,
   Code2,
@@ -156,6 +157,14 @@ export default async function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/rewards" prefetch={false}>
+                    <Coins aria-hidden="true" />
+                    <span>{t('rewards')}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
