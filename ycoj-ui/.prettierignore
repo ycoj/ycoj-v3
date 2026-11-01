@@ -5,4 +5,5 @@ pnpm-lock.yaml
 public/clangd/v2/
 public/typst/
 public/velocitex/
+public/vendor/
 public/fonts/typst/

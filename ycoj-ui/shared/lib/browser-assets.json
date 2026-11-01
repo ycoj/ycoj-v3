@@ -1,0 +1,18 @@
+{
+  "monaco-editor": { "version": "0.56.0", "files": ["min/vs"] },
+  "@highlightjs/cdn-assets": {
+    "version": "11.11.1",
+    "files": ["highlight.min.js", "styles"]
+  },
+  "prettier": {
+    "version": "3.9.6",
+    "files": ["standalone.js", "plugins/markdown.js"]
+  },
+  "cropperjs": {
+    "version": "1.6.2",
+    "files": ["dist/cropper.min.js", "dist/cropper.min.css"]
+  },
+  "screenfull": { "version": "5.2.0", "files": ["dist/screenfull.js"] },
+  "mermaid": { "version": "11.12.3", "files": ["dist/mermaid.min.js"] },
+  "echarts": { "version": "6.1.0", "files": ["dist/echarts.min.js"] }
+}

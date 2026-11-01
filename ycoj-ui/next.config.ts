@@ -11,8 +11,9 @@ const uploadBaseUrl =
   process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ??
   backendBaseUrl ??
   '';
-const printAssetPrefix =
-  process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '';
+const staticAssetPrefix =
+  process.env.NEXT_PUBLIC_STATIC_ASSET_PREFIX?.replace(/\/+$/, '') ??
+  (process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '');
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['@resvg/resvg-js'],
@@ -40,9 +41,10 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    // Static print resources can use the CDN; worker scripts must share the
-    // page's origin, so Next chunks and the clangd worker stay same-origin.
-    NEXT_PUBLIC_PRINT_ASSET_PREFIX: printAssetPrefix,
+    // Static dependencies and print resources use the CDN. Application worker
+    // entry points and Next chunks retain their same-origin loading paths.
+    NEXT_PUBLIC_PRINT_ASSET_PREFIX: staticAssetPrefix,
+    NEXT_PUBLIC_STATIC_ASSET_PREFIX: staticAssetPrefix,
     NEXT_PUBLIC_UPLOAD_BASEURL: uploadBaseUrl,
     SITE_NAME: process.env.SITE_NAME ?? '',
   },
@@ -61,6 +63,17 @@ const nextConfig: NextConfig = {
       { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
     ];
     return [
+      {
+        source: '/vendor/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
       // Cross-origin isolation is only required by the optional clangd Wasm
       // mode, so it is gated on the opt-in query parameter. `has` query
       // matching applies to full document loads only; client-side soft

@@ -1,13 +1,21 @@
 'use client';
 
+import { browserAssetUrl } from '@/shared/lib/browser-assets';
 import { cn } from '@/shared/lib/utils';
 import type { OnMount } from '@monaco-editor/react';
 import { useTheme } from 'next-themes';
 import dynamic from 'next/dynamic';
 
-const Editor = dynamic(() => import('@monaco-editor/react'), {
-  ssr: false,
-});
+const Editor = dynamic(
+  async () => {
+    const { default: editor, loader } = await import('@monaco-editor/react');
+    loader.config({
+      paths: { vs: browserAssetUrl('monaco-editor', 'min/vs') },
+    });
+    return editor;
+  },
+  { ssr: false }
+);
 
 type Props = {
   value: string;

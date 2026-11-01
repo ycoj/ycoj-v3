@@ -7,6 +7,8 @@
 
 项目内置中英文双语。
 
+浏览器静态依赖使用自有 CDN，资源准备和发布配置见 [STATIC_ASSETS.md](STATIC_ASSETS.md)。
+
 部分功能基于定制的 Hydro 后端，源代码与前端共同维护在 [YCOJ v3](https://github.com/ycoj/ycoj-v3)。上游项目为 [Hydro](https://github.com/hydro-dev/Hydro)。
 
 ## 界面展示

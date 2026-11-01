@@ -63,5 +63,6 @@ next-env.d.ts
 # reproducible build output copied from the installed package.
 # Some font files are not content-hashed, so no immutable cache headers.
 /public/excalidraw/
+/public/vendor/
 .vscode/
 opencode.json
