@@ -14,6 +14,10 @@ Description: display/run a registered admin script. GET `type Query={}`, example
 ## `GET|POST /manage/setting`
 Description: display/save registered settings. GET `type Query={}`, example `GET /manage/setting`, response `HTML`. POST `type Input=Record<string,string|boolean|number>`, example `{"server.name":"YCOJ"}`, response `Redirect`, example `{"url":"/manage/setting"}`; values are typed/validated by each setting and empty secret fields preserve existing secret.
 
+## `GET|POST /manage/branding`
+
+Read/replace the global origin-to-brand configuration. Requires `PRIV_EDIT_SYSTEM` and sudo. See [complete request/response types, examples, validation and live CORS effects](../ui/branding.md).
+
 ## `GET|POST /manage/ai-provider`
 Description: display/save the global provider registry and the models selected for AI test-data generation and HTML-to-Markdown conversion. This route requires `PRIV_EDIT_SYSTEM` and sudo.
 

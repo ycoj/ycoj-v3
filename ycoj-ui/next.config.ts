@@ -8,9 +8,7 @@ const CLANGD_ISOLATION_PARAM = 'clangd';
 
 const backendBaseUrl = process.env.BACKEND_BASEURL?.replace(/\/+$/, '');
 const uploadBaseUrl =
-  process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ??
-  backendBaseUrl ??
-  '';
+  process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ?? '';
 const staticAssetPrefix =
   process.env.NEXT_PUBLIC_STATIC_ASSET_PREFIX?.replace(/\/+$/, '') ??
   (process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '');
@@ -28,11 +26,10 @@ const nextConfig: NextConfig = {
   experimental: {
     // proxy.ts makes Next buffer request bodies before the backend rewrites;
     // keep /api file uploads (imports, bulk submits) above the 10MB default.
-    // Bodies past this size are silently truncated, not rejected. Problem-file
-    // uploads POST straight to NEXT_PUBLIC_UPLOAD_BASEURL (the absolute
-    // backend URL by default) and bypass the proxy; on referer rejections,
-    // set NEXT_PUBLIC_UPLOAD_BASEURL='' to route them through /api.
-    proxyClientMaxBodySize: '100mb',
+    // Bodies past this size are silently truncated, not rejected. Uploads use
+    // the visiting origin by default so branded domains retain their session.
+    // NEXT_PUBLIC_UPLOAD_BASEURL can opt into direct cross-origin uploads.
+    proxyClientMaxBodySize: '256mb',
   },
   outputFileTracingIncludes: {
     '/scoreboard-export/*/*': [

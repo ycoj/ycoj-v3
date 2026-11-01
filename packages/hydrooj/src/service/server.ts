@@ -12,6 +12,7 @@ import { errorMessage, Time } from '@hydrooj/utils';
 import { Context } from '../context';
 import { PermissionError, PrivilegeError, RealnameRequiredError } from '../error';
 import type { DomainDoc } from '../interface';
+import { BRANDING_CONFIG_KEY, getBrandingConfig } from '../lib/branding';
 import { nextRealnameRoute, shouldBlockUnverifiedAccess } from '../lib/realname';
 import { Logger } from '../logger';
 import { PERM, PRIV } from '../model/builtin';
@@ -100,6 +101,10 @@ export async function apply(ctx: Context) {
     if (process.env.HYDRO_CLI) return;
     await ctx.inject(['server', 'oauth', 'setting'], (childContext) => {
         const { server, on, oauth } = childContext;
+        server.corsOrigins = () => getBrandingConfig(system.get(BRANDING_CONFIG_KEY)).brands.map((brand) => brand.origin);
+        childContext.on('system/setting', () => {
+            server.config.cors = system.get('server.cors') || '';
+        });
         server.addHandlerLayer('init', async (c, next) => {
             const init = Date.now();
             try {
