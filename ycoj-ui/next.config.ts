@@ -10,9 +10,6 @@ const standalone = process.env.YCOJ_STANDALONE === '1';
 const backendBaseUrl = process.env.BACKEND_BASEURL?.replace(/\/+$/, '');
 const uploadBaseUrl =
   process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ?? '';
-const staticAssetPrefix =
-  process.env.NEXT_PUBLIC_STATIC_ASSET_PREFIX?.replace(/\/+$/, '') ??
-  (process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '');
 
 const nextConfig: NextConfig = {
   output: standalone ? 'standalone' : undefined,
@@ -41,10 +38,6 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    // Static dependencies and print resources use the CDN. Application worker
-    // entry points and Next chunks retain their same-origin loading paths.
-    NEXT_PUBLIC_PRINT_ASSET_PREFIX: staticAssetPrefix,
-    NEXT_PUBLIC_STATIC_ASSET_PREFIX: staticAssetPrefix,
     NEXT_PUBLIC_UPLOAD_BASEURL: uploadBaseUrl,
     SITE_NAME: process.env.SITE_NAME ?? '',
   },
