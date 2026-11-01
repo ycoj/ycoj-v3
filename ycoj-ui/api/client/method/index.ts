@@ -15,11 +15,13 @@ import Preliminary from '@/api/client/method/preliminary';
 import Problem from '@/api/client/method/problem';
 import Realname from '@/api/client/method/realname';
 import Record from '@/api/client/method/record';
+import * as Rewards from '@/api/client/method/rewards';
 import Training from '@/api/client/method/training';
 import UI from '@/api/client/method/ui';
 import User from '@/api/client/method/user';
 
 const ClientApis = {
+  Rewards,
   Account,
   AccountExpiration,
   AiProvider,

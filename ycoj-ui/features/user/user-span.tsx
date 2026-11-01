@@ -1,3 +1,4 @@
+import RewardTitle from '@/features/rewards/reward-title';
 import CcfHook from '@/features/user/ccf-hook';
 import UserAvatar from '@/features/user/user-avatar';
 import Username from '@/features/user/username';
@@ -17,6 +18,9 @@ export default function UserSpan({ user, showAvatar = true }: Props) {
         <span className="inline-flex min-w-0 items-center gap-0.5">
           <Username user={user} />
           <CcfHook level={user.ccfLevel} />
+          {user.rewardEquipment?.title && (
+            <RewardTitle id={user.rewardEquipment.title} />
+          )}
         </span>
       </span>
     </Link>

@@ -16,11 +16,13 @@ import Problems from '@/api/server/method/problems';
 import Ranking from '@/api/server/method/ranking';
 import Realname from '@/api/server/method/realname';
 import Record from '@/api/server/method/record';
+import * as Rewards from '@/api/server/method/rewards';
 import Training from '@/api/server/method/training';
 import UI from '@/api/server/method/ui';
 import User from '@/api/server/method/user';
 
 const ServerApis = {
+  Rewards,
   Account,
   AccountExpiration,
   AiProvider,

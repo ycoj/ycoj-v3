@@ -1,7 +1,9 @@
+import '@/features/rewards/rewards.css';
 import { getSiteBrand } from '@/features/branding/get-brand';
 import { CollapsedTrigger } from '@/features/navigation/collapsed-trigger';
 import OmnibarProvider from '@/features/navigation/omnibar-provider';
 import AppSidebar from '@/features/navigation/sidebar';
+import { getUser } from '@/features/user/lib/get-user';
 import ThemeLogo from '@/shared/components/theme-logo';
 import { SidebarInset, SidebarProvider } from '@/shared/components/ui/sidebar';
 import { TooltipProvider } from '@/shared/components/ui/tooltip';
@@ -16,10 +18,11 @@ type Props = {
 export default async function AppFrame({ children, banner }: Props) {
   const { name: siteName, logo } = await getSiteBrand();
   const t = await getTranslations('misc');
+  const user = await getUser();
 
   return (
     <TooltipProvider>
-      <SidebarProvider>
+      <SidebarProvider data-reward-accent={user?.rewardEquipment?.accent}>
         <OmnibarProvider>
           <AppSidebar />
           <SidebarInset className="overflow-auto p-4 has-data-[app-full-width]:px-2 has-data-[app-full-width]:pb-0 md:overflow-visible">

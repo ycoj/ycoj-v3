@@ -458,14 +458,18 @@ class UserModel {
             ...(await UserModel.getById('system', 0)).getFields(showPrivateInfo ? 'private' : 'public'),
             ..._extraFields,
         ]));
-        const [udocs, vudocs, dudocs] = await Promise.all([
+        const [udocs, vudocs, dudocs, wallets] = await Promise.all([
             UserModel.getMulti({ _id: { $in: uids } }, fields).toArray(),
             collV.find({ _id: { $in: uids } }).toArray(),
             domain.getDomainUserMulti(domainId, uids).project(buildProjection(fields.concat('uid'))).toArray(),
+            db.collection('reward.wallet').find({ _id: { $in: uids } }).project({ equipped: 1 }).toArray(),
         ]);
         const udict = {};
         for (const udoc of udocs) udict[udoc._id] = udoc;
         for (const udoc of vudocs) udict[udoc._id] = udoc;
+        for (const wallet of wallets) {
+            if (udict[wallet._id]) udict[wallet._id].rewardEquipment = wallet.equipped;
+        }
         if (showPrivateInfo) {
             for (const dudoc of dudocs) Object.assign(udict[dudoc.uid], omit(dudoc, ['_id', 'uid']));
         }

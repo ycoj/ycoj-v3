@@ -1,0 +1,27 @@
+[data-reward-accent='accent-forest'] {
+  --primary: oklch(0.5 0.12 160);
+  --primary-foreground: oklch(0.99 0.005 160);
+  --ring: oklch(0.5 0.12 160);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+[data-reward-accent='accent-violet'] {
+  --primary: oklch(0.52 0.18 295);
+  --primary-foreground: oklch(0.99 0.005 295);
+  --ring: oklch(0.52 0.18 295);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+}
+
+.dark [data-reward-accent='accent-forest'] {
+  --primary: oklch(0.68 0.12 160);
+  --primary-foreground: oklch(0.3 0.05 230);
+  --ring: oklch(0.68 0.12 160);
+}
+
+.dark [data-reward-accent='accent-violet'] {
+  --primary: oklch(0.7 0.15 295);
+  --primary-foreground: oklch(0.3 0.05 230);
+  --ring: oklch(0.7 0.15 295);
+}
