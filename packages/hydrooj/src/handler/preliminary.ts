@@ -1,14 +1,18 @@
 import { escapeRegExp } from 'lodash';
 import { Filter, ObjectId } from 'mongodb';
 import { Context } from '../context';
-import { PreliminaryAttemptNotFoundError, PreliminaryPaperNotPublishedError } from '../error';
+import {
+    PreliminaryAttemptNotFoundError, PreliminaryPaperNotPublishedError, ProblemNotFoundError, ValidationError,
+} from '../error';
 import type { PreliminaryPaperDoc } from '../interface';
+import { objectiveConfig, objectiveToPreliminary } from '../lib/objectiveToPreliminary';
 import {
     preliminaryQuestionCount, preliminaryTotalScore, toPreliminaryReview, toPublicPreliminaryDefinition,
 } from '../lib/preliminary';
 import { PERM, PRIV } from '../model/builtin';
 import * as preliminary from '../model/preliminary';
 import problem from '../model/problem';
+import type { ProblemDoc } from '../model/problem';
 import user from '../model/user';
 import {
     Handler, param, post, Types,
@@ -229,6 +233,69 @@ class PreliminaryEditHandler extends Handler {
     }
 }
 
+class PreliminaryImportHandler extends Handler {
+    async prepare() {
+        this.checkPerm(PERM.PERM_CREATE_PROBLEM);
+        this.checkPerm(PERM.PERM_VIEW_PROBLEM);
+    }
+
+    @param('q', Types.String, true)
+    async get(domainId: string, q = '') {
+        const query: Filter<ProblemDoc> = {};
+        if (!this.user.hasPerm(PERM.PERM_EDIT_PROBLEM)) {
+            if (!this.user.hasPerm(PERM.PERM_EDIT_PROBLEM_SELF)) {
+                this.response.body = { pdocs: [] };
+                return;
+            }
+            query.$or = [{ owner: this.user._id }, { maintainer: this.user._id }];
+        }
+        if (q.trim()) {
+            const regex = new RegExp(escapeRegExp(q.trim()), 'i');
+            query.$and = [{ $or: [{ title: regex }, { pid: regex }, ...(/^\d+$/.test(q.trim()) ? [{ docId: +q }] : [])] }];
+        }
+        const pdocs: Array<{ docId: number, pid?: string, title: string }> = [];
+        const cursor = problem.getMulti(domainId, query, [
+            'docId', 'pid', 'title', 'owner', 'maintainer', 'hidden', 'config', 'reference',
+        ]);
+        try {
+            for await (const pdoc of cursor) {
+                if (!problem.canViewBy(pdoc, this.user) || pdoc.reference || objectiveConfig(pdoc.config).type !== 'objective') continue;
+                pdocs.push({ docId: pdoc.docId, pid: pdoc.pid, title: pdoc.title });
+                if (pdocs.length === 20) break;
+            }
+        } finally {
+            await cursor.close();
+        }
+        this.response.body = { pdocs };
+    }
+
+    @post('pid', Types.ProblemId)
+    async postImport(domainId: string, pid: number | string) {
+        const pdoc = await problem.get(domainId, pid, problem.PROJECTION_PUBLIC, true);
+        if (!pdoc || !problem.canViewBy(pdoc, this.user)) throw new ProblemNotFoundError(domainId, pid);
+        if (!this.user.own(pdoc, PERM.PERM_EDIT_PROBLEM_SELF)) this.checkPerm(PERM.PERM_EDIT_PROBLEM);
+        if (pdoc.reference || pdoc.html) {
+            throw new ValidationError('pid', null, '暂不支持转换引用题或 HTML 题面，请先使用独立的 Markdown 客观题。');
+        }
+        let content = pdoc.content;
+        if (content.trim().startsWith('{')) {
+            try {
+                const statements = JSON.parse(content);
+                if (statements && typeof statements === 'object' && !Array.isArray(statements)) {
+                    content = statements[this.user.viewLang] || statements.zh || statements.en || Object.values(statements)[0];
+                }
+            } catch { /* The statement is ordinary Markdown. */ }
+        }
+        if (typeof content !== 'string') throw new ValidationError('pid', null, '题面内容无效。');
+        content = content.replace(/file:\/\/([^\s)"\\]+)/g, `/api/d/${encodeURIComponent(domainId)}/p/${pdoc.docId}/file/$1`);
+        const definition = objectiveToPreliminary(pdoc.title, content, pdoc.config);
+        await this.limitRate('preliminary_import', 60, 10, '{{user}}');
+        const paperId = await preliminary.add(domainId, definition, this.user._id, false);
+        this.response.body = { paperId };
+        this.response.redirect = this.url('preliminary_edit', { paperId });
+    }
+}
+
 class PreliminaryAttemptHandler extends Handler {
     @param('paperId', Types.ObjectId)
     @param('attemptId', Types.ObjectId)
@@ -255,6 +322,7 @@ export function apply(ctx: Context) {
     ctx.on('record/judge', async (rdoc) => preliminary.updateProgrammingResult(rdoc.domainId, rdoc));
     ctx.Route('preliminary_main', '/preliminary', PreliminaryMainHandler, PERM.PERM_VIEW_PROBLEM);
     ctx.Route('preliminary_create', '/preliminary/create', PreliminaryEditHandler);
+    ctx.Route('preliminary_import', '/preliminary/import', PreliminaryImportHandler);
     ctx.Route('preliminary_detail', '/preliminary/:paperId', PreliminaryDetailHandler, PERM.PERM_VIEW_PROBLEM);
     ctx.Route('preliminary_edit', '/preliminary/:paperId/edit', PreliminaryEditHandler);
     ctx.Route('preliminary_attempt', '/preliminary/:paperId/attempt/:attemptId', PreliminaryAttemptHandler, PERM.PERM_VIEW_PROBLEM);

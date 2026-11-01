@@ -32,7 +32,7 @@
         "test:locales": "node -r @hydrooj/register --test packages/hydrooj/tests/sortLocales.spec.ts",
         "test:realname": "node -r @hydrooj/register --test packages/hydrooj/tests/realname.spec.ts",
         "test:oier": "node -r @hydrooj/register --test packages/hydrooj/tests/oier.spec.ts",
-        "test:preliminary": "node -r @hydrooj/register --test packages/hydrooj/tests/preliminary.spec.ts",
+        "test:preliminary": "node -r @hydrooj/register --test packages/hydrooj/tests/preliminary.spec.ts packages/hydrooj/tests/objectiveToPreliminary.spec.ts packages/hydrooj/tests/objectiveImport.spec.ts",
         "test:problem-feedback": "node -r @hydrooj/register --test packages/hydrooj/tests/problemFeedback.spec.ts",
         "test:home-settings": "node -r @hydrooj/register --test packages/hydrooj/tests/homeSettings*.spec.ts",
         "test:rank-visibility": "node -r @hydrooj/register --test packages/hydrooj/tests/rankVisibility.spec.ts",

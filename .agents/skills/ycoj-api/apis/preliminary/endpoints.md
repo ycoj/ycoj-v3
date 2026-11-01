@@ -80,6 +80,32 @@ Example: `GET /preliminary?page=1&q=CSP` -> `{"view":"papers","papers":[],"page"
 
 Attempt-history response uses `view:"attempts"` and `attempts:Array<{docId,paperId,revision,title,score,totalScore,submittedAt}>`; `q` is empty. Example: `GET /preliminary?view=attempts` -> `{"view":"attempts","attempts":[],"page":1,"pcount":0,"q":""}`.
 
+## `GET /preliminary/import`
+
+Description: search independent objective problems the caller can view and edit. Requires both `PERM_CREATE_PROBLEM` and `PERM_VIEW_PROBLEM`. Edit access is owner/maintainer with `PERM_EDIT_PROBLEM_SELF`, or `PERM_EDIT_PROBLEM`. Results never expose raw configuration or standard answers. Referenced problems are excluded.
+
+Request `type Query={q?:string}`. A trimmed, case-insensitive literal query matches title or PID; numeric queries also match document ID. Empty queries list the first eligible problems. At most 20 matches are returned in problem sort order; there is no pagination.
+
+Response `type Response={pdocs:Array<{docId:number;pid?:string;title:string}>}`.
+
+Example: `GET /preliminary/import?q=CSP` -> `{"pdocs":[{"docId":1001,"pid":"P1001","title":"CSP-J 2025"}]}`. A caller without source edit permissions gets `{"pdocs":[]}`.
+
+## `POST /preliminary/import` operation `import`
+
+Description: convert a visible, editable Markdown objective problem into a new unpublished preliminary paper owned by the caller. Requires `PERM_CREATE_PROBLEM` + `PERM_VIEW_PROBLEM` and the same source edit access as the search endpoint. Unauthorized or missing source problems fail before reading answers into a paper. Hidden-source visibility is checked separately from edit permission. Referenced and HTML problems are rejected. Rate limit: 10 conversions per 60 seconds per user.
+
+Request `type Request={operation:"import";pid:number|string}`; `pid` accepts a numeric document ID or problem PID.
+
+Example: `{"operation":"import","pid":1001}`.
+
+Response `type Response={paperId:ObjectId;url:string}`. Example: `{"paperId":"68b6a37c02f364f625239e11","url":"/preliminary/68b6a37c02f364f625239e11/edit"}`. Browser negotiation redirects to the edit page; domain-scoped URLs may contain `/d/:domainId`.
+
+Conversion supports `{{ select(id) }}` followed immediately (apart from blank lines) by an unordered Markdown option list, and `{{ dropdown(id)[value1,value2] }}`. Each question must have exactly one answer and score pair in raw `config.answers`: `["B",2]` for select, or `["value2",2]` for dropdown. IDs support numeric and `number-number` forms. The result has one `single_choice` section with stable `q-<sourceId>` question IDs, preserves source question order, Markdown prompts/options, answers, and scores, and uses all ordinary complete-paper validation limits. Shared program passages stay in question prompts. Fenced and indented code blocks are preserved. Trailing text is retained in the last prompt. Source `file://` references become `/api/d/:domainId/p/:docId/file/...` URLs and continue to depend on source file access. Multilingual statements select the user's view language, then `zh`, then `en`, then the first statement.
+
+Unsupported text/multiselect controls, repeated IDs, unmatched answers, malformed option lists, alternative-answer scoring, invalid scores, and other invalid definitions fail with `ValidationError` before any paper is created. Missing/inaccessible sources produce `ProblemNotFoundError`; insufficient edit permission produces the ordinary permission error. Source problems and submission records remain unchanged, explanations start empty, no revision is published, and no attempt is created.
+
+Workflow: search -> select a result -> POST `import` -> open returned edit URL -> review/correct the draft -> save or publish using the existing `save` operation. A failed conversion must not continue to publishing. Search results can contain unsupported question formats; conversion is the authoritative validation step.
+
 ## `GET /preliminary/:paperId`
 
 Description: render a published paper or an authorized draft preview. Response `type Response={paper:PublicPaper;pdict:Record<number,ProblemDoc>;attempts:AttemptSummary[];owner:User;canEdit:boolean;canSubmit:boolean}`. `pdict` contains each accessible programming problem referenced by the paper, keyed by numeric problem document ID, using the public problem projection (including its statement and judge configuration); inaccessible or missing problems are omitted, and it is empty when the paper has no programming questions. `PublicPaper.sections[].questions[]` includes the prompt, type, score, and options but never includes `answer` or `explanation`. The attempt list contains at most the current user's latest 20 attempts.
