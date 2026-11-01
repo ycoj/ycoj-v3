@@ -24,6 +24,7 @@ if [[ "$(git symbolic-ref --short HEAD)" != master ]]; then
 fi
 if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
   echo 'Backend has tracked local changes; refusing to overwrite them.' >&2
+  git status --short --untracked-files=no >&2
   exit 1
 fi
 pm2 describe "$process_name" > /dev/null
