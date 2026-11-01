@@ -3,6 +3,7 @@ import AccountExpiration from '@/api/client/method/account-expiration';
 import AiProvider from '@/api/client/method/ai-provider';
 import Auth from '@/api/client/method/auth';
 import Award from '@/api/client/method/award';
+import Branding from '@/api/client/method/branding';
 import * as Checkin from '@/api/client/method/checkin';
 import Contest from '@/api/client/method/contest';
 import Discussion from '@/api/client/method/discussion';
@@ -14,14 +15,17 @@ import Preliminary from '@/api/client/method/preliminary';
 import Problem from '@/api/client/method/problem';
 import Realname from '@/api/client/method/realname';
 import Record from '@/api/client/method/record';
+import * as Rewards from '@/api/client/method/rewards';
 import Training from '@/api/client/method/training';
 import UI from '@/api/client/method/ui';
 import User from '@/api/client/method/user';
 
 const ClientApis = {
+  Rewards,
   Account,
   AccountExpiration,
   AiProvider,
+  Branding,
   Award,
   Auth,
   Checkin,

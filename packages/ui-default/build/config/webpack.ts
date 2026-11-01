@@ -79,10 +79,13 @@ export default async function (env: { watch?: boolean, production?: boolean, mea
     return {
       loader: 'stylus-loader',
       options: {
+        // Native imports avoid webpack importer's extended-path mismatch on Windows.
+        webpackImporter: false,
         stylusOptions: {
-          preferPathResolver: 'webpack',
-          use: [require('rupture')()],
-          import: ['~vj/common/common.inc.styl'],
+          import: [
+            require.resolve('rupture/rupture/index.styl').replace(/\\/g, '/'),
+            root('common/common.inc.styl').replace(/\\/g, '/'),
+          ],
         },
       },
     };
@@ -185,7 +188,7 @@ export default async function (env: { watch?: boolean, production?: boolean, mea
         },
         {
           test: /\.ts$/,
-          include: /@types\//,
+          include: /@types[\\/]/,
           type: 'asset/inline',
           generator: {
             dataUrl: (buf) => buf.toString(),
@@ -193,13 +196,13 @@ export default async function (env: { watch?: boolean, production?: boolean, mea
         },
         {
           test: /\.[mc]?[jt]sx?$/,
-          exclude: [/@types\//, /components\/message\//, /entry\.js/],
+          exclude: [/@types[\\/]/, /components[\\/]message[\\/]/, /entry\.js/],
           type: 'javascript/auto',
           use: [esbuildLoader()],
         },
         {
           test: /\.[mc]?[jt]sx?$/,
-          include: [/components\/message\//, /entry\.js/],
+          include: [/components[\\/]message[\\/]/, /entry\.js/],
           type: 'javascript/auto',
           use: [{
             loader: 'ts-loader',

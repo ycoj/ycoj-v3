@@ -1,12 +1,13 @@
 # UI assets, rendering, and miscellaneous routes
 
 - [Strict UI and utility endpoint contracts](endpoints.md)
+- [Domain brand resolution, system brand settings and CORS](branding.md)
 
 ## UI and document presentation
 
 | Route / methods | Request format/example | Response / access |
 | --- | --- | --- |
-| `/ui/nav` GET | active domain inferred from host | JSON `{navItems:[…],user:{…,realnameStatus,realnameSubmittedAt,modType}}`; visibility-filtered. |
+| `/ui/nav` GET | active domain inferred from host | JSON `{navItems:[…],user:{…,realnameStatus,realnameSubmittedAt,modType,rewardEquipment}}`; visibility-filtered. Cosmetic equipment is public; wallet data is private. See [appearance contract](../rewards/wallet.md#public-user-appearance). |
 | `/ui/languages` GET | `?pid?:problemId` | JSON language map/array available in domain (and problem-specific restrictions), e.g. `{"cpp":"C++17"}`. |
 | `/ui/media` POST | `{uids?:int[],pids?:int[],cids?:ObjectId[],hids?:ObjectId[]}` | JSON rich-media records used by the UI; only visible entities are returned. |
 | `/media` POST | `{domainId?:string,items:Array<{type:"user"|"problem"|"contest"|"homework",id:string,domainId?:string}>}` | JSON `string[]` of rendered HTML snippets, e.g. `["<a …>alice</a>"]`; inaccessible/unknown items become `""`. |

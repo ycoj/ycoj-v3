@@ -66,6 +66,8 @@ Use Prometheus scrape. Request `type MetricsHeaders={Authorization:"Basic <base6
 
 Optional center telemetry ingestion. `type CenterReport={installId:string;payload:string}`; example `{"installId":"abc","payload":"{\\"version\\":\\"5\\",\\"url\\":\\"https://oj.example\\"}"}`. Response `type CenterResult={code:0;notification?:string}`, example `{"code":0}`. Registered only with `center` package.
 
+The Hydro monitor producer skips initialization when `CI` is set, including its server-monitor write, telemetry feedback, and periodic monitor timer. The optional center ingestion endpoint above keeps its existing request and response contract.
+
 ### `GET /onlyoffice-jwt`
 
 Optional OnlyOffice JWT helper. `type OnlyOfficeQuery={url:string}`; example `GET /onlyoffice-jwt?url=https%3A%2F%2Foffice.example%2Fdoc`. Default response `type OnlyOfficeConfig={document:Record<string,unknown>;editorConfig:Record<string,unknown>;token:string}`, example `{"document":{"url":"https://office.example/doc","fileType":"docx"},"editorConfig":{"mode":"view"},"token":"eyJ…"}`. If `onlyoffice.externalSign` is configured, the external signer's body is forwarded instead. No route permission; URL/configuration validation applies.

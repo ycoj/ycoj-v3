@@ -116,7 +116,7 @@ so every byte arrives inside `files` and the worker performs zero fetches.
 - `dispose()` rejects in-flight calls, terminates the worker, and latches —
   subsequent calls reject immediately.
 - `createTypstPrintCompiler(options, internals)` accepts `createWorker`,
-  `fetchStatic`, and `assetBase` overrides for tests; the default worker is
+  `fetchStatic` overrides for tests; the default worker is
   `new Worker(new URL('./typst.worker.ts', import.meta.url), {type:'module'})`.
 
 ## Source assembly contract (`print-source.ts`)
@@ -174,9 +174,9 @@ Fira Mono, SimSun, SimHei, SimKai and New Computer Modern files. The local
 source binaries and checksums are documented in `assets/fonts/README.md` and
 `scripts/prepare-typst.mjs`.
 
-Runtime base URL: `getPrintAssetBase()` reads `NEXT_PUBLIC_PRINT_ASSET_PREFIX`
-(set in `next.config.ts` to the print CDN in production); empty → same-origin
-`public/` paths. Worker scripts always load from the application origin.
+Runtime assets use same-origin `public/` paths, including the compiler WASM,
+fonts, vendored packages, and worker scripts. The former
+`NEXT_PUBLIC_PRINT_ASSET_PREFIX` setting is no longer used.
 
 ## typst.ts 0.7.0 API notes
 

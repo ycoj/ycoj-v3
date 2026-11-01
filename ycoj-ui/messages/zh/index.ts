@@ -5,6 +5,7 @@ import auth from './auth.json';
 import autoComplete from './auto-complete.json';
 import award from './award.json';
 import blog from './blog.json';
+import branding from './branding.json';
 import checkin from './checkin.json';
 import common from './common.json';
 import contestCreate from './contest-create.json';
@@ -51,6 +52,7 @@ import problem from './problem.json';
 import ranking from './ranking.json';
 import realname from './realname.json';
 import record from './record.json';
+import rewards from './rewards.json';
 import scoreboard from './scoreboard.json';
 import security from './security.json';
 import solution from './solution.json';
@@ -63,6 +65,7 @@ import userImport from './user-import.json';
 import user from './user.json';
 
 const catalog = {
+  rewards,
   paste,
   manage,
   sudo,
@@ -93,6 +96,7 @@ const catalog = {
   user,
   accountSettings,
   aiProvider,
+  branding,
   messages,
   homepage,
   checkin,

@@ -5,6 +5,7 @@ import AccountExpiration from '@/api/server/method/account-expiration';
 import AiProvider from '@/api/server/method/ai-provider';
 import Auth from '@/api/server/method/auth';
 import Award from '@/api/server/method/award';
+import Branding from '@/api/server/method/branding';
 import Contests from '@/api/server/method/contests';
 import Discussion from '@/api/server/method/discussion';
 import Domain from '@/api/server/method/domain';
@@ -16,14 +17,17 @@ import Problems from '@/api/server/method/problems';
 import Ranking from '@/api/server/method/ranking';
 import Realname from '@/api/server/method/realname';
 import Record from '@/api/server/method/record';
+import * as Rewards from '@/api/server/method/rewards';
 import Training from '@/api/server/method/training';
 import UI from '@/api/server/method/ui';
 import User from '@/api/server/method/user';
 
 const ServerApis = {
+  Rewards,
   Account,
   AccountExpiration,
   AiProvider,
+  Branding,
   Award,
   Auth,
   UI,

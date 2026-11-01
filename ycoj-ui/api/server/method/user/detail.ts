@@ -27,7 +27,14 @@ export type AwardRecord = {
 /** User document as returned by the user detail API. */
 export type Udoc = Pick<
   User,
-  '_id' | 'mail' | 'uname' | 'priv' | 'regat' | 'loginat' | 'ccfLevel'
+  | '_id'
+  | 'mail'
+  | 'uname'
+  | 'priv'
+  | 'regat'
+  | 'loginat'
+  | 'ccfLevel'
+  | 'rewardEquipment'
 >;
 
 /** Recent session info (login/refresh time). */

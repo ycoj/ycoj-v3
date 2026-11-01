@@ -1,5 +1,6 @@
 'use client';
 
+import { useBrand } from '@/features/branding/brand-provider';
 import ThemeLogo from '@/shared/components/theme-logo';
 import {
   Card,
@@ -18,8 +19,6 @@ type Props = {
   footer?: ReactNode;
 };
 
-const siteName = process.env.SITE_NAME ?? '';
-
 /**
  * Shared frame for the unauthenticated auth pages: centered card, logo above,
  * and a viewport height that survives mobile browser chrome changes.
@@ -30,7 +29,9 @@ export default function AuthShell({
   children,
   footer,
 }: Props) {
+  const brand = useBrand();
   const t = useTranslations('misc');
+  const siteName = brand.name || process.env.SITE_NAME || '';
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

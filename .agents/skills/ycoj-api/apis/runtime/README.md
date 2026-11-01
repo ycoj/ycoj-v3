@@ -1,6 +1,6 @@
 # Files, storage, judges, metrics, and connections
 
-- [Detailed file, judge, monitoring, and connection contracts](endpoints.md)
+- [Detailed file, judge, monitoring, and connection contracts](endpoints.md): monitor initialization/feedback is skipped in CI
 - [Strict WebSocket/SSE connection contracts](connections.md)
 - [System-management HTTP contracts](../domain/manage.md)
 

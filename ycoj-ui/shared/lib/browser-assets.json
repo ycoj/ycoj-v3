@@ -1,4 +1,5 @@
 {
+  "vscode-oniguruma": { "version": "2.0.1", "files": ["release/onig.wasm"] },
   "monaco-editor": { "version": "0.56.0", "files": ["min/vs"] },
   "@highlightjs/cdn-assets": {
     "version": "11.11.1",

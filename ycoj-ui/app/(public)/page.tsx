@@ -1,3 +1,4 @@
+import { getSiteBrand } from '@/features/branding/get-brand';
 import { getUser } from '@/features/user/lib/get-user';
 import SiteFooter from '@/shared/components/site-footer';
 import ThemeLogo from '@/shared/components/theme-logo';
@@ -14,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function IndexPage() {
   const t = await getTranslations();
-  const siteName = process.env.SITE_NAME ?? '';
+  const { name: siteName } = await getSiteBrand();
   const user = await getUser();
   if (user?._id > 0) {
     redirect('/home');

@@ -61,6 +61,9 @@ describe('management access', () => {
       expect(
         screen.getByRole('link', { name: 'System console' })
       ).toHaveAttribute('aria-current', 'page');
+    expect(!!screen.queryByRole('link', { name: 'Brand settings' })).toBe(
+      canEditSystem({ priv })
+    );
     if (canManageExpiration({ priv }))
       expect(
         screen.getByRole('link', { name: 'Account expiration' })

@@ -14,6 +14,7 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 | `/record`, `/record/*`, `/record-conn`, `/record-detail-conn` | [Record](record/README.md) | Submission search/detail, rejudge/cancel, live record streams |
 | `/status`, `/status/*` | [Status](status/README.md) | Judge/system status and updates |
 | `/checkin` | [Check-in](checkin/README.md) | Daily check-in mutation |
+| `/rewards` | [Learning rewards](rewards/README.md) | Global coin wallet, daily/weekly tasks, permanent cosmetics, equipment, and private ledger |
 | `/home/realname`, `/home/realname/result`, `/manage/realname` | [Real-name](realname/README.md) | User submission/result plus super-admin review; users who have not submitted, or whose review is still unfinished/rejected after a seven-day grace period, are blocked from other feature HTTP routes except public versioned UI assets (`/lazy/*`, `/resource/*`, `/plugins/*`). WebSocket handshake does not throw `RealnameRequiredError`; `/websocket` rejects subscriptions outside the grace period. |
 | `/home/award`, `/manage/award` | [Award](award/README.md) | Real-name-approved users bind imported CCF/NOI contestant records; system administrators unbind; `importOier` script loads an OIerDb `data/` directory |
 | `/login`, `/logout`, `/register*`, `/lostpass*`, `/user/*`, `/oauth/*`, `/contestmode` | [Identity](identity/README.md) | Authentication, account recovery, profiles with full permitted Rating history, public-user Rating summaries for username colors, OAuth, sudo/TFA/WebAuthn |
@@ -24,6 +25,10 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 | `/api/:op`, `/api/:op/conn` | [Operation transport](api/README.md) | Query/Mutation request protocol, projection, connections, registered non-problem operations |
 
 Within a group, use its `README.md` only as an index and open the linked endpoint document. A registered path can expose GET, POST, multiple POST `operation` values, or a connection; follow the contract for the exact variant being called.
+
+Shared HTTP behavior: [content negotiation, cache variation, and nested errors](http-behavior.md). Handler responses vary on `Accept` in addition to the existing `Origin` and `Referer` cache keys. Problem creation has a dedicated per-user rate limit; see [creation and editing](problem/problem-create-edit.md).
+
+Domain branding: [`GET /branding` and `GET|POST /manage/branding`](ui/branding.md), including exact-origin CORS grants, defaults and deployment requirements.
 
 Contest Rating fields, scoreboard results, profile summaries/history and automatic replay: [Contest Rating](contest/rating.md).
 

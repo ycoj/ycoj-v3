@@ -9,6 +9,7 @@ import { PRIV } from '@/features/user/lib/priv';
 import { cn } from '@/shared/lib/utils';
 import {
   Award,
+  Globe,
   CalendarClock,
   FileCode2,
   LayoutDashboard,
@@ -60,6 +61,7 @@ export default function ManageSidebar({ priv }: { priv: number }) {
           { href: '/manage/config', label: t('config'), icon: FileCode2 },
           { href: '/manage/script', label: t('script'), icon: Terminal },
           { href: '/manage/userpriv', label: t('userPriv'), icon: ShieldCheck },
+          { href: '/manage/branding', label: t('branding'), icon: Globe },
           { href: '/manage/award', label: t('award'), icon: Award },
           {
             href: '/manage/ai-provider',

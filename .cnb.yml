@@ -1,0 +1,74 @@
+master:
+  push:
+    - name: deploy-production
+      runner:
+        tags: cnb:arch:amd64
+        cpus: 8
+      docker:
+        image: node:22-bookworm
+        volumes:
+          - /root/.local/share/pnpm/store
+      git:
+        enable: true
+        lfs: false
+        submodules: false
+      env:
+        npm_config_registry: https://mirrors.cloud.tencent.com/npm/
+      imports:
+        - https://cnb.cool/ycoj-ui/ycoj-secrets/-/blob/main/ycoj-ui.yml
+      stages:
+        - name: Prepare build tools
+          script: |
+            set -eu
+            apt-get update
+            apt-get install -y --no-install-recommends git git-lfs openssh-client ca-certificates
+            npm install --global pnpm@10.11.1
+            test "$(uname -m)" = x86_64
+        - name: Verify source checkout
+          script: |
+            set -eu
+            cd "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}"
+            : "${CNB_COMMIT:?Set by the CNB runner}"
+            retry() {
+              attempt=1
+              until "$@"; do
+                if [ "$attempt" -ge 5 ]; then
+                  echo "Source checkout failed after $attempt attempts." >&2
+                  return 1
+                fi
+                delay=$((attempt * 10))
+                echo "Source download failed; retrying in $delay seconds." >&2
+                sleep "$delay"
+                attempt=$((attempt + 1))
+              done
+            }
+            # CNB's checkout can report success after an HTTP 429 and leave an
+            # empty repository. Recover the exact triggering commit before build.
+            if ! git cat-file -e "$CNB_COMMIT^{commit}" 2>/dev/null; then
+              retry git fetch --depth=1 origin "$CNB_COMMIT"
+            fi
+            GIT_LFS_SKIP_SMUDGE=1 git checkout --detach --force "$CNB_COMMIT"
+            git lfs install --local
+            retry git lfs pull
+            test -f ycoj-ui/package.json
+        - name: Build standalone UI
+          timeout: 60m
+          script: |
+            set -eu
+            : "${BACKEND_BASEURL:?Set BACKEND_BASEURL in the CNB secret file}"
+            cd "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/ycoj-ui"
+            pnpm install --frozen-lockfile
+            YCOJ_STANDALONE=1 pnpm build
+        - name: Package UI
+          script: bash "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/.cnb/package-ui.sh"
+        - name: Deploy backend and UI
+          timeout: 30m
+          lock:
+            key: production-ui
+            wait: true
+            expires: 1800
+            timeout: 3600
+          script: |
+            set -eu
+            bash "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/.cnb/deploy-backend.sh"
+            bash "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/.cnb/deploy-ui.sh"

@@ -15,6 +15,7 @@ import ClientApis from '@/api/client/method';
 import { loginErrorKey } from '@/features/auth/auth-errors';
 import AuthShell from '@/features/auth/auth-shell';
 import { hardNavigate } from '@/features/auth/navigate';
+import { useBrand } from '@/features/branding/brand-provider';
 import { Button } from '@/shared/components/ui/button';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 import {
@@ -59,6 +60,7 @@ function responseUrl(response: unknown) {
 
 export function LoginPage({ providers = [], builtInLogin = true }: Props) {
   const t = useTranslations('auth');
+  const brand = useBrand();
   const searchParams = useSearchParams();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [challenge, setChallenge] = useState<ChallengeState | null>(null);
@@ -196,7 +198,7 @@ export function LoginPage({ providers = [], builtInLogin = true }: Props) {
     <AuthShell
       title={t('loginTitle')}
       description={t('loginDescription', {
-        siteName: process.env.SITE_NAME ?? '',
+        siteName: brand.name || process.env.SITE_NAME || '',
       })}
       footer={
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">

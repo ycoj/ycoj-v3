@@ -1,3 +1,4 @@
+import { getSiteBrand } from '@/features/branding/get-brand';
 import GraphEditor from '@/features/tools/graph-editor/graph-editor';
 import ThemeLogo from '@/shared/components/theme-logo';
 import { Button } from '@/shared/components/ui/button';
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function GraphEditorPage() {
   const t = await getTranslations('common');
   const misc = await getTranslations('misc');
-  const siteName = process.env.SITE_NAME ?? '';
+  const { name: siteName } = await getSiteBrand();
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6">
       <header className="flex items-center justify-between">

@@ -1,5 +1,7 @@
 import './globals.css';
 import SudoRedirectListener from '@/features/auth/sudo/sudo-redirect-listener';
+import BrandProvider from '@/features/branding/brand-provider';
+import { getSiteBrand } from '@/features/branding/get-brand';
 import { Toaster } from '@/shared/components/ui/sonner';
 import { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
@@ -14,7 +16,6 @@ const inter = localFont({
   style: 'normal',
   display: 'swap',
 });
-const siteName = process.env.SITE_NAME ?? '';
 
 const geistSans = localFont({
   src: '../public/fonts/Geist[wght].ttf',
@@ -32,20 +33,26 @@ const geistMono = localFont({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: {
-    template: `%s - ${siteName}`,
-    default: siteName,
-  },
-  description:
-    'A modern, AI-ready online judge platform for competitive programmers.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { name: siteName } = await getSiteBrand();
+  return {
+    applicationName: siteName,
+    openGraph: { siteName },
+    title: {
+      template: `%s - ${siteName}`,
+      default: siteName,
+    },
+    description:
+      'A modern, AI-ready online judge platform for competitive programmers.',
+  };
+}
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const brand = await getSiteBrand();
   const locale = await getLocale();
   const messages = await getMessages();
   return (
@@ -60,9 +67,11 @@ export default async function RootLayout({
           enableColorScheme
         >
           <NextIntlClientProvider locale={locale} messages={messages}>
-            <SudoRedirectListener />
-            {children}
-            <Toaster richColors position="top-right" />
+            <BrandProvider brand={brand}>
+              <SudoRedirectListener />
+              {children}
+              <Toaster richColors position="top-right" />
+            </BrandProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

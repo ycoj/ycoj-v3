@@ -2,13 +2,14 @@ import {
   resolveLineNumberSkips,
   wrapCodeBlockLines,
 } from './rehype-code-line-numbers';
+import { starryNightOptions } from '@/shared/lib/starry-night-options';
 import type { Root } from 'hast';
 import rehypeStarryNight from 'rehype-starry-night';
 import type { Plugin } from 'unified';
 
 // Reuse the highlighter across processors: preliminary papers render many
 // independent markdown fragments in a single request.
-const highlight = rehypeStarryNight();
+const highlight = rehypeStarryNight(starryNightOptions);
 
 const rehypeCodeBlocks: Plugin<[], Root> = () => async (tree, file) => {
   const skipped = resolveLineNumberSkips(tree);

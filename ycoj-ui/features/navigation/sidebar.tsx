@@ -1,6 +1,7 @@
 import OmnibarTrigger from './omnibar-trigger';
 import { SidebarUser } from './sidebar-user';
 import { type NavItem } from '@/api/server/method/ui/nav';
+import { getSiteBrand } from '@/features/branding/get-brand';
 import { getNavInfos } from '@/features/user/lib/get-user';
 import ThemeLogo from '@/shared/components/theme-logo';
 import {
@@ -17,6 +18,7 @@ import {
 } from '@/shared/components/ui/sidebar';
 import {
   Award,
+  Coins,
   MessageCircle,
   Clipboard,
   Code2,
@@ -89,7 +91,7 @@ const buildHref = (item: NavItem) => {
 export default async function AppSidebar() {
   const t = await getTranslations('common');
   const misc = await getTranslations('misc');
-  const siteName = process.env.SITE_NAME ?? '';
+  const { name: siteName, logo } = await getSiteBrand();
   const data = await getNavInfos();
   const items = data.navItems ?? [];
   const user = data.user;
@@ -98,12 +100,19 @@ export default async function AppSidebar() {
     <Sidebar variant="inset" id="sidebar">
       <SidebarHeader className="mt-1">
         <div className="flex items-center justify-between">
-          <ThemeLogo
-            width={290}
-            height={87}
-            alt={misc('logoAlt', { siteName })}
-            className="h-auto w-[100px]"
-          />
+          <div className="min-w-0 space-y-1">
+            <ThemeLogo
+              width={290}
+              height={87}
+              alt={misc('logoAlt', { siteName })}
+              className="h-auto w-[100px]"
+            />
+            {logo && (
+              <p className="truncate text-sm font-medium" title={siteName}>
+                {siteName}
+              </p>
+            )}
+          </div>
           <SidebarTrigger className="opacity-60" />
         </div>
       </SidebarHeader>
@@ -156,6 +165,14 @@ export default async function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/rewards" prefetch={false}>
+                    <Coins aria-hidden="true" />
+                    <span>{t('rewards')}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

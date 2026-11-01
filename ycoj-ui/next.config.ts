@@ -7,16 +7,14 @@ import type { NextConfig } from 'next';
 // imported here to keep the build-time config dependency-free)
 const CLANGD_ISOLATION_PARAM = 'clangd';
 
+const standalone = process.env.YCOJ_STANDALONE === '1';
 const backendBaseUrl = process.env.BACKEND_BASEURL?.replace(/\/+$/, '');
 const uploadBaseUrl =
-  process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ??
-  backendBaseUrl ??
-  '';
-const staticAssetPrefix =
-  process.env.NEXT_PUBLIC_STATIC_ASSET_PREFIX?.replace(/\/+$/, '') ??
-  (process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '');
+  process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ?? '';
 
 const nextConfig: NextConfig = {
+  output: standalone ? 'standalone' : undefined,
+  outputFileTracingRoot: standalone ? __dirname : undefined,
   serverExternalPackages: ['@resvg/resvg-js'],
   // LAN dev access: requests to dev-only resources (HMR socket, _next assets)
   // from other devices carry the machine's private address as their origin.
@@ -29,23 +27,22 @@ const nextConfig: NextConfig = {
   experimental: {
     // proxy.ts makes Next buffer request bodies before the backend rewrites;
     // keep /api file uploads (imports, bulk submits) above the 10MB default.
-    // Bodies past this size are silently truncated, not rejected. Problem-file
-    // uploads POST straight to NEXT_PUBLIC_UPLOAD_BASEURL (the absolute
-    // backend URL by default) and bypass the proxy; on referer rejections,
-    // set NEXT_PUBLIC_UPLOAD_BASEURL='' to route them through /api.
-    proxyClientMaxBodySize: '100mb',
+    // Bodies past this size are silently truncated, not rejected. Uploads use
+    // the visiting origin by default so branded domains retain their session.
+    // NEXT_PUBLIC_UPLOAD_BASEURL can opt into direct cross-origin uploads.
+    proxyClientMaxBodySize: '256mb',
   },
   outputFileTracingIncludes: {
+    '/*': [
+      './node_modules/vscode-oniguruma/release/onig.wasm',
+      './node_modules/.pnpm/vscode-oniguruma@*/node_modules/vscode-oniguruma/release/onig.wasm',
+    ],
     '/scoreboard-export/*/*': [
       './assets/fonts/NotoSansCJKsc-Regular.otf',
       './assets/fonts/noto-sans-cjk-OFL.txt',
     ],
   },
   env: {
-    // Static dependencies and print resources use the CDN. Application worker
-    // entry points and Next chunks retain their same-origin loading paths.
-    NEXT_PUBLIC_PRINT_ASSET_PREFIX: staticAssetPrefix,
-    NEXT_PUBLIC_STATIC_ASSET_PREFIX: staticAssetPrefix,
     NEXT_PUBLIC_UPLOAD_BASEURL: uploadBaseUrl,
     SITE_NAME: process.env.SITE_NAME ?? '',
   },

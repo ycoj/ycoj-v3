@@ -1,7 +1,8 @@
 # Domain, ranking, and management routes
 
-- [Strict domain endpoint contracts](domain.md)
+- [Strict domain endpoint contracts](domain.md): batch role assignment upserts each distinct uid, including missing domain-user records
 - [Strict management endpoint contracts](manage.md)
+- [System brand settings and CORS](../ui/branding.md)
 - [Real-name super-admin review](../realname/manage.md)
 
 These are HTML/PJAX management pages, not REST resources. `GET` renders the named page; `POST` fields select a handler operation (`operation` convention) and generally redirects on success. All state-changing fields are decorator-validated in the handler.
