@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import removeMd from 'remove-markdown';
 
@@ -56,15 +57,20 @@ function BlogRow({ blog, udict }: { blog: Blog; udict: BaseUserDict }) {
   const publishedAt = dayjs(blog.updateAt).isValid()
     ? dayjs(blog.updateAt).format('YYYY-MM-DD')
     : '';
+  const blogHref = `/blog/${blog.owner}/${blog.docId}`;
 
   return (
     <div data-llm-visible="true" className="space-y-2">
       <div className="space-y-1">
-        <p
-          data-llm-text={blog.title}
-          className="text-foreground overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap"
-        >
-          {blog.title}
+        <p className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">
+          <Link
+            href={blogHref}
+            prefetch={false}
+            data-llm-text={blog.title}
+            className="text-foreground hover:text-primary hover:underline"
+          >
+            {blog.title}
+          </Link>
         </p>
         {excerpt && (
           <p
@@ -81,7 +87,9 @@ function BlogRow({ blog, udict }: { blog: Blog; udict: BaseUserDict }) {
         {blog.category && <MetaItem icon={Tag}>{blog.category}</MetaItem>}
         <MetaItem icon={Eye}>{blog.views}</MetaItem>
         <MetaItem icon={MessageCircle}>{blog.nReply}</MetaItem>
-        <MetaItem icon={Heart}>{blog.likeCount}</MetaItem>
+        {typeof blog.likeCount === 'number' && (
+          <MetaItem icon={Heart}>{blog.likeCount}</MetaItem>
+        )}
         {publishedAt && <MetaItem icon={Calendar}>{publishedAt}</MetaItem>}
       </div>
     </div>

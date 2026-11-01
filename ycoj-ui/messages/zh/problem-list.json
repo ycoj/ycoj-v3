@@ -1,0 +1,68 @@
+{
+  "filters": {
+    "category": "分类",
+    "allCategories": "全部分类",
+    "difficulty": "难度",
+    "anyDifficulty": "不限难度",
+    "minDifficulty": "最低",
+    "maxDifficulty": "最高",
+    "namespace": "命名空间",
+    "allNamespaces": "全部命名空间",
+    "reset": "重置筛选",
+    "sort": "排序",
+    "sortDefault": "题目顺序",
+    "sortRecent": "最新题目",
+    "ascending": "升序",
+    "descending": "降序",
+    "random": "随机选题",
+    "randomFailed": "当前筛选条件下没有匹配的题目。"
+  },
+  "edit": {
+    "enter": "编辑题目",
+    "leave": "退出编辑模式",
+    "selectAll": "全选本页题目",
+    "selectProblem": "选择 {pid}",
+    "selected": "{count} 道题目已选择"
+  },
+  "bulk": {
+    "hide": "隐藏",
+    "unhide": "取消隐藏",
+    "delete": "删除",
+    "download": "下载题目包",
+    "copy": "复制到领域",
+    "downloadName": "题目包文件名",
+    "downloadNamePlaceholder": "Export",
+    "downloadStart": "下载",
+    "hideSuccess": "已隐藏 {count} 道题目",
+    "unhideSuccess": "已取消隐藏 {count} 道题目",
+    "deleteSuccess": "已删除 {count} 道题目",
+    "downloadSuccess": "题目包已生成",
+    "deleteTitle": "删除所选题目",
+    "deleteDescription": "确认永久删除 {count} 道题目吗？此操作无法撤销。",
+    "deleteConfirm": "删除",
+    "deleting": "正在删除...",
+    "cancel": "取消",
+    "failed": "操作失败，请重试"
+  },
+  "copy": {
+    "title": "复制题目",
+    "description": "将 {count} 道题目复制到其他领域。",
+    "target": "目标领域",
+    "targetPlaceholder": "搜索领域",
+    "loading": "正在加载领域...",
+    "noResults": "未找到领域",
+    "hidden": "以隐藏状态创建",
+    "confirm": "复制",
+    "copying": "正在复制...",
+    "success": "已复制 {count} 道题目",
+    "failed": "复制失败，请重试",
+    "targetRequired": "请选择目标领域",
+    "cancel": "取消"
+  },
+  "package": {
+    "download": "下载题目包",
+    "copy": "复制到其他领域",
+    "ready": "题目包已生成",
+    "failed": "无法生成题目包"
+  }
+}

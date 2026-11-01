@@ -10,7 +10,12 @@ import { cn } from '@/shared/lib/utils';
 import {
   Award,
   CalendarClock,
+  FileCode2,
+  LayoutDashboard,
+  Settings,
+  ShieldCheck,
   Sparkles,
+  Terminal,
   UserCheck,
   UserPlus,
 } from 'lucide-react';
@@ -21,6 +26,7 @@ import { usePathname } from 'next/navigation';
 export default function ManageSidebar({ priv }: { priv: number }) {
   const t = useTranslations('manage');
   const pathname = usePathname();
+  const canEdit = canEditSystem({ priv });
   const items = [
     ...(canImportUsers({ priv })
       ? [
@@ -34,22 +40,31 @@ export default function ManageSidebar({ priv }: { priv: number }) {
     ...(priv === PRIV.PRIV_ALL
       ? [{ href: '/manage/realname', label: t('realname'), icon: UserCheck }]
       : []),
-    ...(canEditSystem({ priv })
-      ? [
-          { href: '/manage/award', label: t('award'), icon: Award },
-          {
-            href: '/manage/ai-provider',
-            label: t('aiProvider'),
-            icon: Sparkles,
-          },
-        ]
-      : []),
     ...(canManageExpiration({ priv })
       ? [
           {
             href: '/manage/user-expiration',
             label: t('expiration'),
             icon: CalendarClock,
+          },
+        ]
+      : []),
+    ...(canEdit
+      ? [
+          {
+            href: '/manage/dashboard',
+            label: t('dashboard'),
+            icon: LayoutDashboard,
+          },
+          { href: '/manage/setting', label: t('settings'), icon: Settings },
+          { href: '/manage/config', label: t('config'), icon: FileCode2 },
+          { href: '/manage/script', label: t('script'), icon: Terminal },
+          { href: '/manage/userpriv', label: t('userPriv'), icon: ShieldCheck },
+          { href: '/manage/award', label: t('award'), icon: Award },
+          {
+            href: '/manage/ai-provider',
+            label: t('aiProvider'),
+            icon: Sparkles,
           },
         ]
       : []),

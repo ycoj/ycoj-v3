@@ -13,5 +13,22 @@
   "days": "{days} 天",
   "untilStart": "距离 {name} 开始还剩 {time}",
   "noEvents": "暂无进行中的赛事",
-  "bannerAlt": "横幅 {number}"
+  "bannerAlt": "横幅 {number}",
+  "homework": "作业",
+  "training": "训练",
+  "ranking": "排行榜",
+  "starredProblems": "收藏的题目",
+  "discussionNodes": "讨论节点",
+  "hitokoto": "一言",
+  "hitokotoUnavailable": "一言服务暂时不可用。",
+  "deadline": "截止时间",
+  "progress": "进度",
+  "notEnrolled": "未参加",
+  "sectionError": "此板块加载失败",
+  "sectionErrorDescription": "首页板块加载失败，请刷新页面重试。",
+  "suggestionGroups": {
+    "chinese": "中文",
+    "english": "英文",
+    "tools": "工具"
+  }
 }

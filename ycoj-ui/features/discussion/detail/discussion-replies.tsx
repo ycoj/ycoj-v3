@@ -1,28 +1,33 @@
 import DiscussionRepliesClient from '@/features/discussion/detail/discussion-replies-client';
+import { resolveDiscussionPermissions } from '@/features/discussion/lib/permissions';
 import { getUser } from '@/features/user/lib/get-user';
-import { hasPerm, PERM } from '@/features/user/lib/priv';
-import type { DiscussionReplyDoc } from '@/shared/types/discussion';
+import type {
+  DiscussionDoc,
+  DiscussionReplyDoc,
+} from '@/shared/types/discussion';
 import type { BaseUser, BaseUserDict } from '@/shared/types/user';
 
 type Props = {
   did: string;
+  ddoc: DiscussionDoc;
   drdocs: DiscussionReplyDoc[];
   udict: BaseUserDict;
   page: number;
   pcount: number;
-  drcount: number;
+  reactions: Record<string, Record<string, number>>;
 };
 
 export default async function DiscussionReplies({
   did,
+  ddoc,
   drdocs,
   udict,
   page,
   pcount,
-  drcount,
+  reactions,
 }: Props) {
   const user = await getUser();
-  const canReply = !!user?._id && hasPerm(user, PERM.PERM_REPLY_DISCUSSION);
+  const permissions = resolveDiscussionPermissions(user);
   const currentUser: BaseUser | null = user
     ? {
         _id: user._id,
@@ -39,9 +44,12 @@ export default async function DiscussionReplies({
       udict={udict}
       page={page}
       pcount={pcount}
-      drcount={drcount}
       currentUser={currentUser}
-      canReply={canReply}
+      viewerId={user?._id}
+      permissions={permissions}
+      topicOwner={ddoc.owner}
+      topicLocked={!!ddoc.lock}
+      reactions={reactions}
     />
   );
 }

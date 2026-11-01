@@ -2,6 +2,7 @@ import {
   SETTING_FLAG,
   type AccountSetting,
   type AccountSettingValue,
+  type UserSettingsCategory,
 } from '@/shared/types/account-settings';
 import { z } from 'zod';
 
@@ -11,6 +12,10 @@ export const settingsFormSchema = z.object({
 
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
+/**
+ * The avatar control has its own section and storage settings are internal, so
+ * both are excluded from the generic field renderer in every category.
+ */
 export const getVisibleSettings = (settings: AccountSetting[]) =>
   settings.filter(
     (setting) =>
@@ -18,6 +23,14 @@ export const getVisibleSettings = (settings: AccountSetting[]) =>
       setting.family !== 'setting_storage' &&
       !(setting.flag & SETTING_FLAG.HIDDEN)
   );
+
+/** Ordering for the personal-information block when fields are mixed. */
+const infoOrder = ['qq', 'gender', 'phone', 'school', 'studentId'];
+
+const infoRank = (key: string) => {
+  const index = infoOrder.indexOf(key);
+  return index === -1 ? infoOrder.length : index;
+};
 
 export function getSettingValue(
   setting: AccountSetting,
@@ -71,11 +84,6 @@ export function groupSettings(settings: AccountSetting[]) {
     fields.push({ setting, index });
     groups.set(setting.family, fields);
   });
-  const infoOrder = ['qq', 'gender', 'phone', 'school', 'studentId'];
-  const infoRank = (key: string) => {
-    const index = infoOrder.indexOf(key);
-    return index === -1 ? infoOrder.length : index;
-  };
   return Array.from(groups, ([family, fields]) => ({
     family,
     fields:
@@ -85,4 +93,15 @@ export function groupSettings(settings: AccountSetting[]) {
           )
         : fields,
   }));
+}
+
+/**
+ * `preference` and `domain` categories post to the category returned by the
+ * backend; the URL segment is the fallback for a missing response field.
+ */
+export function resolveSettingsCategory(
+  category: UserSettingsCategory | undefined,
+  fallback: UserSettingsCategory
+): UserSettingsCategory {
+  return category ?? fallback;
 }

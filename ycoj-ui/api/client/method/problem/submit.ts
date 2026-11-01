@@ -13,6 +13,8 @@ export type ProblemSubmitResponse = {
   error?: HydroError;
   rid?: ObjectId;
   tid?: ObjectId;
+  /** Framework redirect target when the backend answers without a record. */
+  url?: string;
 };
 
 /**

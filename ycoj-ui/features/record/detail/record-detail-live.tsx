@@ -24,6 +24,8 @@ type Props = {
   allowRejudge: boolean;
   allRevs: Record<string, string>;
   selectedRev?: string;
+  /** Set when the viewer may hack this submission. */
+  hackHref?: string;
 };
 
 type RecordDetailMessage = {
@@ -50,6 +52,7 @@ export default function RecordDetailLive({
   allowRejudge,
   allRevs,
   selectedRev,
+  hackHref,
 }: Props) {
   const [rdoc, setRdoc] = useState(initialRdoc);
   const [lastInitialRdoc, setLastInitialRdoc] = useState(initialRdoc);
@@ -96,7 +99,9 @@ export default function RecordDetailLive({
   }, [initialRdoc._id, router]);
 
   const showSidebar =
-    (allowRejudge && !isHistorical) || Object.keys(allRevs ?? {}).length > 0;
+    Boolean(hackHref) ||
+    (allowRejudge && !isHistorical) ||
+    Object.keys(allRevs ?? {}).length > 0;
 
   if (rdoc.lang === 'ai') {
     return (
@@ -132,6 +137,7 @@ export default function RecordDetailLive({
               allowRejudge={allowRejudge}
               onRejudge={handleRejudge}
               onCancel={handleCancel}
+              hackHref={hackHref}
             />
           ) : undefined
         }

@@ -1,4 +1,5 @@
 import SolutionList from './solution-list';
+import { resolveSolutionPermissions } from './solution-reply-permissions';
 import type { ProblemSolutionResponse } from '@/api/server/method/problems/solution';
 import { getUser } from '@/features/user/lib/get-user';
 import { hasPerm, PERM } from '@/features/user/lib/priv';
@@ -10,21 +11,16 @@ import Link from 'next/link';
 
 type Props = {
   data: ProblemSolutionResponse;
+  /** Solution opened through its permalink, highlighted in place. */
+  highlightedId?: string;
 };
 
-export default async function SolutionContent({ data }: Props) {
+export default async function SolutionContent({ data, highlightedId }: Props) {
   const t = await getTranslations('solution');
   const user = await getUser();
   const allowCreate =
     !!user?._id && hasPerm(user, PERM.PERM_CREATE_PROBLEM_SOLUTION);
-  const allowEditAny =
-    !!user?._id && hasPerm(user, PERM.PERM_EDIT_PROBLEM_SOLUTION);
-  const allowEditSelf =
-    !!user?._id && hasPerm(user, PERM.PERM_EDIT_PROBLEM_SOLUTION_SELF);
-  const allowDeleteAny =
-    !!user?._id && hasPerm(user, PERM.PERM_DELETE_PROBLEM_SOLUTION);
-  const allowDeleteSelf =
-    !!user?._id && hasPerm(user, PERM.PERM_DELETE_PROBLEM_SOLUTION_SELF);
+  const permissions = resolveSolutionPermissions(user);
   const pid = data.pdoc.pid ?? data.pdoc.docId;
 
   return (
@@ -49,10 +45,15 @@ export default async function SolutionContent({ data }: Props) {
       <SolutionList
         data={data}
         viewerId={user?._id}
-        allowEditAny={allowEditAny}
-        allowEditSelf={allowEditSelf}
-        allowDeleteAny={allowDeleteAny}
-        allowDeleteSelf={allowDeleteSelf}
+        allowEditAny={permissions.allowEditAny}
+        allowEditSelf={permissions.allowEditSelf}
+        allowDeleteAny={permissions.allowDeleteAny}
+        allowDeleteSelf={permissions.allowDeleteSelf}
+        allowReply={permissions.allowReply}
+        allowEditReplySelf={permissions.allowEditReplySelf}
+        allowDeleteReplyAny={permissions.allowDeleteReplyAny}
+        allowDeleteReplySelf={permissions.allowDeleteReplySelf}
+        highlightedId={highlightedId}
       />
     </div>
   );

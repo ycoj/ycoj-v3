@@ -1,8 +1,10 @@
+import { getSubmitPreferences } from './get-submit-preferences';
 import ProblemSubmitFormClient from './problem-submit-form-client';
 import ServerApis from '@/api/server/method';
 import type { ProblemDetailMode } from '@/api/server/method/problems/detail';
 import { getContestStatus } from '@/features/contest/detail/contest-utils';
 import { getContestEndedVariant } from '@/features/problem/detail/contest-ended-mode';
+import { getUser } from '@/features/user/lib/get-user';
 import type { Contest } from '@/shared/types/contest';
 import type { Homework } from '@/shared/types/homework';
 import { PublicProjectionProblem } from '@/shared/types/problem';
@@ -21,7 +23,11 @@ export default async function ProblemSubmitForm({
   contest,
   mode,
 }: Props) {
-  const languagesRes = await ServerApis.UI.getAvailableLanguages(problem.docId);
+  const [languagesRes, user] = await Promise.all([
+    ServerApis.UI.getAvailableLanguages(problem.docId),
+    getUser(),
+  ]);
+  const preferences = await getSubmitPreferences(user);
   const submitId = problem.pid || problem.docId.toString();
 
   // 判断比赛是否已结束
@@ -37,7 +43,10 @@ export default async function ProblemSubmitForm({
     <ProblemSubmitFormClient
       pid={submitId}
       tid={tid}
+      problem={problem}
       languages={languagesRes.languages}
+      preferredLanguage={preferences.codeLang}
+      codeTemplate={preferences.codeTemplate}
       contestEndedMode={contestEndedMode}
     />
   );

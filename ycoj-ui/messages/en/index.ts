@@ -4,6 +4,7 @@ import aiProvider from './ai-provider.json';
 import auth from './auth.json';
 import autoComplete from './auto-complete.json';
 import award from './award.json';
+import blog from './blog.json';
 import checkin from './checkin.json';
 import common from './common.json';
 import contestCreate from './contest-create.json';
@@ -14,9 +15,13 @@ import contestSolution from './contest-solution.json';
 import contest from './contest.json';
 import difficulty from './difficulty.json';
 import discussion from './discussion.json';
+import domainAdmin from './domain-admin.json';
+import domain from './domain.json';
 import draw from './draw.json';
 import error from './error.json';
+import file from './file.json';
 import graphEditor from './graph-editor.json';
+import help from './help.json';
 import homepage from './homepage.json';
 import homeworkCreate from './homework-create.json';
 import homeworkEdit from './homework-edit.json';
@@ -31,6 +36,7 @@ import omnibar from './omnibar.json';
 import pagination from './pagination.json';
 import paste from './paste.json';
 import pdf from './pdf.json';
+import preference from './preference.json';
 import preliminaryForm from './preliminary-form.json';
 import preliminary from './preliminary.json';
 import problemCreate from './problem-create.json';
@@ -38,14 +44,19 @@ import problemEdit from './problem-edit.json';
 import problemFeedback from './problem-feedback.json';
 import problemImport from './problem-import.json';
 import problemListEditor from './problem-list-editor.json';
+import problemList from './problem-list.json';
+import problemOps from './problem-ops.json';
 import problemType from './problem-type.json';
 import problem from './problem.json';
 import ranking from './ranking.json';
 import realname from './realname.json';
 import record from './record.json';
 import scoreboard from './scoreboard.json';
+import security from './security.json';
 import solution from './solution.json';
+import status from './status.json';
 import sudo from './sudo.json';
+import system from './system.json';
 import trainingForm from './training-form.json';
 import training from './training.json';
 import userImport from './user-import.json';
@@ -104,6 +115,17 @@ const catalog = {
   graphEditor,
   draw,
   userImport,
+  blog,
+  domainAdmin,
+  domain,
+  file,
+  help,
+  preference,
+  problemList,
+  problemOps,
+  security,
+  status,
+  system,
 };
 
 export default catalog;

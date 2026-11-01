@@ -12,5 +12,9 @@
   "joined": "已参加",
   "backToHomework": "返回作业",
   "none": "暂无作业",
-  "noneDescription": "教练还没有添加作业，或是你没有对应权限。"
+  "noneDescription": "教练还没有添加作业，或是你没有对应权限。",
+  "files": "文件",
+  "exportAllCode": "导出所有代码",
+  "allSubmissions": "所有递交",
+  "mySubmissions": "我的最近递交记录"
 }

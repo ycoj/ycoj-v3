@@ -4,6 +4,7 @@ import { getHomeworkDetail } from '@/features/homework/detail/get-homework-detai
 import HomeworkContent from '@/features/homework/detail/homework-content';
 import HomeworkSidebar from '@/features/homework/detail/homework-sidebar';
 import { canEditHomework } from '@/features/homework/lib/can-edit-homework';
+import { getHomeworkRecordEntries } from '@/features/homework/lib/homework-record-entries';
 import { getUser } from '@/features/user/lib/get-user';
 import TwoColumnLayout from '@/shared/layout/two-column';
 import type { Metadata } from 'next';
@@ -35,6 +36,7 @@ export default async function HomeworkDetailPage({
   const { tid } = await params;
   const [data, user] = await Promise.all([getHomeworkDetail(tid), getUser()]);
   const owner = data.udict[data.tdoc.owner];
+  const recordEntries = getHomeworkRecordEntries(user, data.tdoc, data.tsdoc);
 
   return (
     <div className="space-y-6">
@@ -59,6 +61,10 @@ export default async function HomeworkDetailPage({
             homeworkStatus={data.tsdoc}
             owner={owner}
             canEdit={canEditHomework(user, data.tdoc)}
+            canExportCode={recordEntries.all}
+            canViewAllSubmissions={recordEntries.all}
+            canViewOwnSubmissions={recordEntries.own}
+            viewerId={user._id}
           />
         }
       />

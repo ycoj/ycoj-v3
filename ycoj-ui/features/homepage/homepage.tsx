@@ -1,75 +1,80 @@
-import Banner from './components/banner';
-import RecentBlogs from './components/blogs';
-import Bulletin from './components/bulletin';
-import Contests from './components/contests';
-import Countdown from './components/countdown';
 import DailyCheckin from './components/daily-checkin';
-import Discussions from './components/discussions';
-import RecentProblems from './components/recent-problems';
-import Suggestions from './components/suggestions';
+import HomepageColumns from './components/homepage-columns';
+import HomepageSection from './components/homepage-section';
+import {
+  getColumnSpans,
+  normalizeHomepageColumns,
+  placeCheckinColumn,
+  type HomepageColumn,
+} from './section-layout';
 import ServerApis from '@/api/server/method';
-import type { SectionType } from '@/api/server/method/ui/homepage';
+import type { HomepageResponse } from '@/api/server/method/ui/homepage';
 import { getUser } from '@/features/user/lib/get-user';
-import TwoColumnLayout from '@/shared/layout/two-column';
-import type { HomepageCheckin } from '@/shared/types/checkin';
+import { hasPriv, PRIV } from '@/features/user/lib/priv';
 import type { BaseUserDict } from '@/shared/types/user';
 import { redirect } from 'next/navigation';
+import type { ReactNode } from 'react';
 
-type SectionMap = {
-  [K in SectionType[0]]?: Extract<SectionType, [K, unknown]>[1];
-};
-
-type ColumnProps = {
-  contents: SectionMap;
+type ColumnInput = {
+  columns: HomepageColumn[];
   udict: BaseUserDict;
-
   bulletin?: string;
-};
-
-type RightColumnProps = ColumnProps & {
-  checkin: HomepageCheckin;
+  checkin: HomepageResponse['checkin'];
   username: string;
+  canEnroll: boolean;
 };
 
-async function LeftColumn({ contents, udict, bulletin }: ColumnProps) {
-  return (
-    <div className="space-y-6">
-      {contents.banner && (
-        <div className="hidden md:block">
-          <Banner banner={contents.banner} />
-        </div>
-      )}
-      <Bulletin bulletin={bulletin} />
-      {contents.contest && <Contests contests={contents.contest[0]} />}
-      {contents.discussion && (
-        <Discussions discussions={contents.discussion[0]} udict={udict} />
-      )}
-    </div>
-  );
-}
-
-async function RightColumn({
-  contents,
+/**
+ * Builds the homepage columns from the normalized server layout.
+ *
+ * Layout decision (HOME-02): the server's column widths and section order are
+ * preserved. Every configured column renders in order on a 12-column grid with
+ * its configured width; the daily check-in (a YCOJ addition, not a legacy
+ * section) is placed first in the last narrow column so it stays in the
+ * sidebar, or first in the last column when every column is wide. Configured
+ * widths are only scaled when a custom layout totals more than twelve units.
+ *
+ * Sections render in server order regardless of their kind: the column comes
+ * from the configuration rather than from the section name.
+ */
+export function buildHomepageColumns({
+  columns,
   udict,
+  bulletin,
   checkin,
   username,
-}: RightColumnProps) {
-  return (
-    <div className="space-y-6">
-      <DailyCheckin checkin={checkin} username={username} />
-      {contents.countdown && <Countdown config={contents.countdown} />}
-      {contents.recent_problems && (
-        <RecentProblems
-          problems={contents.recent_problems[0]}
-          psdict={contents.recent_problems[1]}
-        />
-      )}
-      {contents.suggestions && <Suggestions sections={contents.suggestions} />}
-      {contents.recent_blogs && (
-        <RecentBlogs blogs={contents.recent_blogs} udict={udict} />
-      )}
-    </div>
+  canEnroll,
+}: ColumnInput) {
+  const placed = placeCheckinColumn(columns);
+  const spans = getColumnSpans(placed.columns);
+
+  const rendered = placed.columns.map((column, index): ReactNode[] | null => {
+    const nodes: ReactNode[] = column.sections.map((section, sectionIndex) => (
+      <HomepageSection
+        // A config may repeat a name; the position keeps keys unique.
+        key={`${section.name}-${sectionIndex}`}
+        section={section}
+        udict={udict}
+        bulletin={bulletin}
+        canEnroll={canEnroll}
+      />
+    ));
+    if (index === placed.checkinColumnIndex) {
+      nodes.push(
+        <DailyCheckin key="checkin" checkin={checkin} username={username} />
+      );
+    }
+    // A configured column with no known sections is dropped so the remaining
+    // columns get the full width; an added check-in column always has content.
+    return nodes.length ? nodes : null;
+  });
+
+  const visibleColumns = rendered.filter(
+    (nodes): nodes is ReactNode[] => nodes !== null
   );
+  const visibleSpans = spans.filter((_, index) => rendered[index] !== null);
+
+  return <HomepageColumns spans={visibleSpans} columns={visibleColumns} />;
 }
 
 export default async function Homepage() {
@@ -79,33 +84,14 @@ export default async function Homepage() {
   ]);
   if (!user?._id) redirect('/login');
 
-  const contents = homepage.contents
-    .flatMap((content) => content.sections)
-    .reduce<SectionMap>((acc, [key, section]) => {
-      return {
-        ...acc,
-        [key]: section,
-      };
-    }, {});
-  const udict = homepage.udict;
+  const { columns } = normalizeHomepageColumns(homepage.contents);
 
-  return (
-    <TwoColumnLayout
-      left={
-        <LeftColumn
-          contents={contents}
-          udict={udict}
-          bulletin={homepage.domain.bulletin}
-        />
-      }
-      right={
-        <RightColumn
-          contents={contents}
-          udict={udict}
-          checkin={homepage.checkin}
-          username={user.uname}
-        />
-      }
-    />
-  );
+  return buildHomepageColumns({
+    columns,
+    udict: homepage.udict,
+    bulletin: homepage.domain.bulletin,
+    checkin: homepage.checkin,
+    username: user.uname,
+    canEnroll: hasPriv(user, PRIV.PRIV_USER_PROFILE),
+  });
 }

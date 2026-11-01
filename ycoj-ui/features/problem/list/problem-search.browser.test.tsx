@@ -25,8 +25,20 @@ vi.mock('next/link', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/problem',
   useSearchParams: () => new URLSearchParams(),
 }));
+
+const defaultFilters = {
+  q: '',
+  category: [],
+  difficulty: [],
+  namespace: '',
+  sort: 'default' as const,
+  dir: 'asc' as const,
+  showTags: false,
+  page: 1,
+};
 
 function mount(count?: number, canReview = true, locale = 'en') {
   return render(
@@ -40,6 +52,7 @@ function mount(count?: number, canReview = true, locale = 'en') {
           canReview={canReview}
           canManageFeedback
           pendingSolutionCount={count}
+          filters={defaultFilters}
         />
       </div>
     </NextIntlClientProvider>

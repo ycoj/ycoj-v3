@@ -20,5 +20,6 @@
   "directory": "Contents",
   "unnamedSection": "Untitled section",
   "chapter": "Chapter {number}. {title}",
-  "noSections": "No sections"
+  "noSections": "No sections",
+  "files": "Files"
 }

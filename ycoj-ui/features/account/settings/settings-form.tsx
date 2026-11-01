@@ -1,11 +1,12 @@
 'use client';
 
-import SettingField from './setting-field';
+import SettingField, { type SettingsNamespace } from './setting-field';
 import {
   getSettingsFormValues,
   getSettingsPayload,
   getVisibleSettings,
   groupSettings,
+  resolveSettingsCategory,
   settingsFormSchema,
   type SettingsFormValues,
 } from './settings-form-utils';
@@ -17,6 +18,7 @@ import { FieldError, FieldGroup } from '@/shared/components/ui/field';
 import {
   SETTING_FLAG,
   type AccountSettingsData,
+  type UserSettingsCategory,
 } from '@/shared/types/account-settings';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -24,10 +26,14 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-type Props = { data: AccountSettingsData };
+type Props = {
+  data: AccountSettingsData;
+  category: UserSettingsCategory;
+  namespace: SettingsNamespace;
+};
 
-export default function AccountSettingsForm({ data }: Props) {
-  const t = useTranslations('accountSettings');
+export default function SettingsForm({ data, category, namespace }: Props) {
+  const t = useTranslations(namespace);
   const router = useRouter();
   const settings = getVisibleSettings(data.settings);
   const {
@@ -44,7 +50,8 @@ export default function AccountSettingsForm({ data }: Props) {
 
   const submit = async (values: SettingsFormValues) => {
     try {
-      const response = await ClientApis.Account.saveAccountSettings(
+      const response = await ClientApis.Account.saveUserSettings(
+        resolveSettingsCategory(data.category, category),
         getSettingsPayload(settings, values)
       ).send();
       if ('error' in response)
@@ -67,7 +74,7 @@ export default function AccountSettingsForm({ data }: Props) {
     <form
       onSubmit={handleSubmit(submit)}
       className="space-y-6"
-      aria-label={t('profileTitle')}
+      aria-label={t('settingsTitle')}
       data-llm-visible="true"
     >
       {groupSettings(settings).map(({ family, fields }, groupIndex) => {
@@ -77,7 +84,7 @@ export default function AccountSettingsForm({ data }: Props) {
         return (
           <SettingsSection
             key={family}
-            id={`account-section-${groupIndex}`}
+            id={`settings-section-${groupIndex}`}
             title={title}
           >
             <FieldGroup className="grid grid-cols-1 items-start gap-x-6 gap-y-5 sm:grid-cols-6">
@@ -88,6 +95,7 @@ export default function AccountSettingsForm({ data }: Props) {
                   index={index}
                   control={control}
                   saving={isSubmitting}
+                  namespace={namespace}
                 />
               ))}
             </FieldGroup>

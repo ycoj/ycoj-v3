@@ -71,5 +71,21 @@
   "content": "题解内容",
   "back": "返回",
   "upvote": "赞同",
-  "downvote": "反对"
+  "downvote": "反对",
+  "copyLink": "复制题解链接",
+  "linkCopied": "链接已复制",
+  "replies": {
+    "reply": "回复",
+    "edit": "编辑回复",
+    "delete": "删除回复",
+    "confirmDelete": "确认删除该回复？",
+    "cancel": "取消",
+    "confirm": "删除",
+    "deleting": "删除中...",
+    "deleteFailed": "删除回复失败。",
+    "save": "保存",
+    "contentRequired": "回复内容不能为空",
+    "replyFailed": "回复失败，请稍后重试",
+    "replyLabel": "回复内容"
+  }
 }

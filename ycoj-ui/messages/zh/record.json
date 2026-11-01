@@ -75,5 +75,6 @@
     "cancelling": "取消中...",
     "caseCount": "已安装测试点：{count}",
     "totalBytes": "总大小：{size}"
-  }
+  },
+  "hack": "Hack"
 }

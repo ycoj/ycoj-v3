@@ -1,4 +1,3 @@
-import type { DiscussionReplyDoc } from './discussion';
 import type { FileInfo } from './file';
 import type { ObjectId } from './shared';
 
@@ -82,12 +81,20 @@ export type SolutionDoc = {
   content: string;
   parentId: number;
   parentType: number;
-  reply: DiscussionReplyDoc[];
+  /** Solution replies; `docId` is always present, `_id` mirrors it on older documents. */
+  reply: SolutionReplyDoc[];
   vote: number;
   reviewStatus: SolutionReviewStatus;
   revision: number;
   reviewedBy?: number;
   reviewedAt?: string;
+};
+
+export type SolutionReplyDoc = {
+  _id: ObjectId;
+  docId?: ObjectId;
+  owner: number;
+  content: string;
 };
 
 export type SolutionReviewStatus = -1 | 0 | 1 | 2 | 3;

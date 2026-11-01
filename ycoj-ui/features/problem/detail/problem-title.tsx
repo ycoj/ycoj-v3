@@ -19,6 +19,8 @@ type Props = {
   problem: ContestListProjectionProblem | PublicProjectionProblem;
   contest?: Contest | Homework;
   compact?: boolean;
+  /** Rendered next to the title, e.g. the star toggle on the detail page. */
+  actionsSlot?: React.ReactNode;
 };
 
 const PROBLEM_TYPE_KEYS: Record<string, string> = {
@@ -59,7 +61,12 @@ function StatItem({
   );
 }
 
-export default function ProblemTitle({ problem, contest, compact }: Props) {
+export default function ProblemTitle({
+  problem,
+  contest,
+  compact,
+  actionsSlot,
+}: Props) {
   const t = useTranslations('problem');
   const config = 'config' in problem ? problem.config : undefined;
   const difficulty = 'difficulty' in problem ? problem.difficulty : undefined;
@@ -143,6 +150,7 @@ export default function ProblemTitle({ problem, contest, compact }: Props) {
 
       {!contest && (
         <div className="flex shrink-0 items-start gap-8">
+          {actionsSlot}
           <StatItem
             value={'nAccept' in problem ? problem.nAccept : undefined}
             label={t('accepted')}

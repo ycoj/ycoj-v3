@@ -6,7 +6,7 @@ Authenticated calls use `Cookie: sid=<token>` or `Authorization: Bearer <token>`
 
 ### GET — file list
 
-Use to view the current user's files (or admin-inspect a user). `type FileListQuery={uid?:number}`; example `GET /file?uid=12`. Response `type FileList={files:Array<{name:string;size:number;lastModified?:number;etag?:string}>;urlForFile:string}`; example `{"files":[{"name":"a.txt","size":3}],"urlForFile":"/file/12/a.txt"}` plus HTML/PJAX template. A non-owner `uid` requires `PRIV_EDIT_SYSTEM`; empty file lists require `PRIV_CREATE_FILE`.
+Use to view the current user's files (or admin-inspect a user). `type FileListQuery={uid?:number}`; example `GET /file?uid=12`. Response `type FileList={files:Array<{_id:string;name:string;size:number;lastModified?:number;etag?:string}>}`; example `{"files":[{"_id":"a.txt","name":"a.txt","size":3}]}` plus HTML/PJAX template. `urlForFile` is a template helper and is omitted from JSON. A non-owner `uid` requires `PRIV_EDIT_SYSTEM`; empty file lists require `PRIV_CREATE_FILE`.
 
 ### POST `uploadFile`
 

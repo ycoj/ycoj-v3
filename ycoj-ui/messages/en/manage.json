@@ -1,5 +1,10 @@
 {
   "navigation": "System management",
+  "dashboard": "System console",
+  "settings": "System settings",
+  "config": "Raw configuration",
+  "script": "Admin scripts",
+  "userPriv": "User privileges",
   "realname": "Real-name review",
   "expiration": "Account expiration",
   "userImport": "Import users",

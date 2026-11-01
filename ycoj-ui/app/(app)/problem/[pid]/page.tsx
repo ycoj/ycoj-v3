@@ -8,9 +8,11 @@ import {
   type ProblemDetailData,
 } from '@/features/problem/detail/get-problem-detail';
 import ProblemContent from '@/features/problem/detail/problem-content';
+import ProblemStarButton from '@/features/problem/detail/problem-star-button';
 import ProblemTitle from '@/features/problem/detail/problem-title';
 import { isObjectiveProblem } from '@/features/problem/detail/problem-type';
 import { canEditProblem } from '@/features/problem/lib/can-edit-problem';
+import { isOwner } from '@/features/problem/lib/is-owner';
 import ObjectiveProblemPage from '@/features/problem/objective/objective-page';
 import { canEnterScratchpad } from '@/features/problem/scratchpad/scratchpad-eligibility';
 import ScratchpadOpenButton from '@/features/problem/scratchpad/scratchpad-open-button';
@@ -18,6 +20,7 @@ import ScratchpadProvider from '@/features/problem/scratchpad/scratchpad-provide
 import { flattenScratchpadLanguages } from '@/features/problem/scratchpad/scratchpad-utils';
 import ProblemSidebar from '@/features/problem/sidebar';
 import { getUser } from '@/features/user/lib/get-user';
+import { hasPerm, hasPriv, PERM, PRIV } from '@/features/user/lib/priv';
 import { Errored } from '@/shared/components/errored';
 import TwoColumnLayout from '@/shared/layout/two-column';
 import type { User } from '@/shared/types/user';
@@ -107,6 +110,14 @@ export default async function ProblemDetailPage({
       data={data}
       searchParams={searchParams}
       canConfigure={canConfigure}
+      canRejudge={hasPerm(user, PERM.PERM_REJUDGE_PROBLEM)}
+      canDownloadPackage={
+        Boolean(user?._id) &&
+        (isOwner(data.pdoc, user?._id) ||
+          hasPriv(user, PRIV.PRIV_READ_PROBLEM_DATA) ||
+          hasPerm(user, PERM.PERM_READ_PROBLEM_DATA))
+      }
+      canCopyProblem={Boolean(user?._id)}
       user={user}
       scratchpadLanguages={scratchpadLanguages}
     />
@@ -117,12 +128,18 @@ function ProblemDetailContent({
   data,
   searchParams,
   canConfigure,
+  canRejudge,
+  canDownloadPackage,
+  canCopyProblem,
   user,
   scratchpadLanguages,
 }: {
   data: ProblemDetailData;
   searchParams: SearchParams;
   canConfigure: boolean;
+  canRejudge: boolean;
+  canDownloadPackage: boolean;
+  canCopyProblem: boolean;
   user: User | null;
   scratchpadLanguages: Record<string, LanguageFamily>;
 }) {
@@ -139,7 +156,18 @@ function ProblemDetailContent({
   const content = (
     <div className="space-y-6">
       {data.tdoc && <ContestTimer contest={data.tdoc} status={data.tsdoc} />}
-      <ProblemTitle problem={data.pdoc} contest={data.tdoc} />
+      <ProblemTitle
+        problem={data.pdoc}
+        contest={data.tdoc}
+        actionsSlot={
+          user?._id && !searchParams.tid ? (
+            <ProblemStarButton
+              pid={data.pdoc.pid ?? data.pdoc.docId}
+              initialStarred={Boolean(data.psdoc?.star)}
+            />
+          ) : undefined
+        }
+      />
       <TwoColumnLayout
         ratio="8-2"
         left={
@@ -159,6 +187,9 @@ function ProblemDetailContent({
             contestStatus={data.tsdoc}
             mode={data.mode}
             allowConfigure={canConfigure}
+            allowRejudge={canRejudge}
+            allowDownloadPackage={canDownloadPackage}
+            allowCopyProblem={canCopyProblem}
             allowFeedback={Boolean(user?._id)}
             scratchpadSlot={
               flattenScratchpadLanguages(scratchpadLanguages).length ? (

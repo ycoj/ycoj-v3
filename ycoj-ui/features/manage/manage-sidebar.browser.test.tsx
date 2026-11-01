@@ -11,13 +11,13 @@ import { NextIntlClientProvider } from 'next-intl';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/manage/user-expiration',
+  usePathname: () => '/manage/dashboard',
 }));
 
 describe('management access', () => {
   it.each([
     { priv: -1, path: '/manage/realname', allowed: true },
-    { priv: 5, path: '/manage/user-import', allowed: true },
+    { priv: 5, path: '/manage/dashboard', allowed: true },
     { priv: 4, path: '/home', allowed: false },
   ])('routes privilege $priv correctly', ({ priv, path, allowed }) => {
     expect(canManageExpiration({ priv })).toBe(allowed);
@@ -46,9 +46,24 @@ describe('management access', () => {
     expect(!!screen.queryByRole('link', { name: 'AI providers' })).toBe(
       canEditSystem({ priv })
     );
+    for (const name of [
+      'System console',
+      'System settings',
+      'Raw configuration',
+      'Admin scripts',
+      'User privileges',
+    ]) {
+      expect(!!screen.queryByRole('link', { name })).toBe(
+        canEditSystem({ priv })
+      );
+    }
+    if (canEditSystem({ priv }))
+      expect(
+        screen.getByRole('link', { name: 'System console' })
+      ).toHaveAttribute('aria-current', 'page');
     if (canManageExpiration({ priv }))
       expect(
         screen.getByRole('link', { name: 'Account expiration' })
-      ).toHaveAttribute('aria-current', 'page');
+      ).not.toHaveAttribute('aria-current');
   });
 });

@@ -19,6 +19,7 @@ import dayjs from 'dayjs';
 import {
   Award,
   Check,
+  CircleHelp,
   MessageCircle,
   PlusSquare,
   type LucideIcon,
@@ -144,9 +145,14 @@ export default function ContestSidebar({
           />
         )}
         <SidebarButton
-          href="#"
+          href={`/discussion/contest/${contest.docId}`}
           icon={MessageCircle}
           text={common('discussion')}
+        />
+        <SidebarButton
+          href="/wiki/help#contest"
+          icon={CircleHelp}
+          text={common('help')}
         />
         {canEdit && <ContestManagementNav tid={tid} />}
       </div>

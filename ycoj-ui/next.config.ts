@@ -1,4 +1,5 @@
 import withNextIntl from './next-intl.config';
+import { buildLegacyRedirects } from './shared/lib/legacy-routes';
 import type { NextConfig } from 'next';
 
 // keep in sync with CLANGD_ISOLATION_PARAM in
@@ -49,13 +50,11 @@ const nextConfig: NextConfig = {
     SITE_NAME: process.env.SITE_NAME ?? '',
   },
   async redirects() {
-    return [
-      {
-        source: '/p/:path*',
-        destination: '/problem/:path*',
-        permanent: true,
-      },
-    ];
+    // Legacy page deep links → new UI routes. The table lives in
+    // shared/lib/legacy-routes.ts so it is unit-tested; it deliberately
+    // excludes protocol paths (downloads, raw bodies, OAuth), which are
+    // rewrites below, not page redirects. Order matters: the first match wins.
+    return buildLegacyRedirects();
   },
   async headers() {
     const isolationHeaders = [
@@ -131,12 +130,32 @@ const nextConfig: NextConfig = {
         destination: `${backendBaseUrl}/paste/:id/raw`,
       },
       {
+        // OAuth start and callback must reach the backend: the start handler
+        // answers with a 302 to the provider, and the callback needs the
+        // backend session cookie. A page redirect here would break the flow.
+        source: '/oauth/:path*',
+        destination: `${backendBaseUrl}/oauth/:path*`,
+      },
+      {
         source: '/api/:path*',
         destination: `${backendBaseUrl}/:path*`,
       },
       {
         source: '/fs/:path*',
         destination: `${backendBaseUrl}/fs/:path*`,
+      },
+      {
+        // Signed local-storage downloads. The backend answers with
+        // `Location: /storage?...`; that link is followed by the browser on
+        // this origin, so it has to be forwarded byte-for-byte.
+        source: '/storage/:path*',
+        destination: `${backendBaseUrl}/storage/:path*`,
+      },
+      {
+        // Legacy personal-file downloads (`/file/:uid/:filename`) and avatars.
+        // `/file` itself is a new UI page and is not matched (`:path+`).
+        source: '/file/:path+',
+        destination: `${backendBaseUrl}/file/:path+`,
       },
     ];
   },

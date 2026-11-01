@@ -1,5 +1,6 @@
 'use client';
 
+import { discussionCreatePath } from '@/features/discussion/lib/node';
 import { Button } from '@/shared/components/ui/button';
 import {
   Select,
@@ -17,14 +18,25 @@ import { useMemo } from 'react';
 
 type Props = {
   vnodes: Node[];
+  /** Resource node currently shown, when the page is scoped to one. */
+  selectedNodeId?: string;
+  /** Path of the resource create page, for `/discussion/:type/:name`. */
+  createHref?: string;
+  /** Whether to show the create entry for the selected node. */
+  canCreate?: boolean;
 };
 
-export default function DiscussionNodeFilter({ vnodes }: Props) {
+export default function DiscussionNodeFilter({
+  vnodes,
+  selectedNodeId,
+  createHref,
+  canCreate = true,
+}: Props) {
   const t = useTranslations('discussion');
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentNode = searchParams.get('node') || 'all';
+  const currentNode = selectedNodeId ?? searchParams.get('node') ?? 'all';
 
   const nodeOptions = useMemo(() => {
     return vnodes.map((vnode) => ({
@@ -34,17 +46,18 @@ export default function DiscussionNodeFilter({ vnodes }: Props) {
   }, [vnodes]);
 
   const handleNodeChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-
     if (value === 'all') {
-      params.delete('node');
-    } else {
-      params.set('node', value);
+      router.push('/discussion');
+      return;
     }
+    if (selectedNodeId) {
+      // A resource node is not part of the plain node select; keep this page.
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('node', value);
     params.delete('page');
-
-    const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   return (
@@ -66,11 +79,12 @@ export default function DiscussionNodeFilter({ vnodes }: Props) {
         </SelectContent>
       </Select>
 
-      {currentNode !== 'all' && (
+      {currentNode !== 'all' && canCreate && (
         <Button asChild className="ml-auto">
           <Link
-            href={`/discussion/create?node=${currentNode}`}
+            href={createHref ?? discussionCreatePath('node', currentNode)}
             className="gap-2"
+            prefetch={false}
           >
             <Plus strokeWidth={2} />
             {t('create')}

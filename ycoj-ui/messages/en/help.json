@@ -1,0 +1,82 @@
+{
+  "title": "Help",
+  "intro": "A short guide to the main parts of this online judge.",
+  "aboutTitle": "About",
+  "aboutEmpty": "The site has not configured an about page yet.",
+  "sections": {
+    "domain": {
+      "title": "Domains",
+      "body": {
+        "1": "Any user can create a domain. A teacher can make one for a course and add problems and students to it; a team can use a domain as a shared space.",
+        "2": "Roles and permissions decide whether a domain is public or private. Each domain has its own problem set, discussions, trainings and contests.",
+        "3": "The default domain is system. Opening the main site address lands in this domain, and the logo returns to it from anywhere."
+      }
+    },
+    "limits": {
+      "title": "Time and memory limits",
+      "body": {
+        "1": "Time is measured as the CPU time the process uses. Unless a problem says otherwise, the limit is the one declared for each test case.",
+        "2": "Memory is measured as the sum of the process's virtual and physical memory. The default is 256 MiB unless the problem declares a different per-case limit."
+      }
+    },
+    "io": {
+      "title": "Input and output",
+      "body": {
+        "1": "Unless stated otherwise, programs read from standard input and write to standard output."
+      }
+    },
+    "judge": {
+      "title": "Judge results",
+      "body": {
+        "1": "Waiting, Fetched, Compiling and Judging mean the submission is still being processed. Accepted means the output matched. Wrong Answer means it did not, ignoring trailing whitespace at the end of a line and a final newline. Time or memory limit exceeded, runtime errors, compile errors and system errors are reported with their own names. Ignored or canceled submissions are not counted. A submission marked as canceled by an administrator may indicate a rule violation, such as code that closely matches another user's."
+      }
+    },
+    "ce": {
+      "title": "Compile errors",
+      "body": {
+        "1": "Common causes: the wrong language was selected; for Java the main class is not named Main; the code has a normal syntax or type error.",
+        "2": "C and C++ notes: use long long instead of __int64, declare main as returning int, expect a loop variable declared in for to go out of scope afterwards, do not rely on itoa, and use %f rather than %lf with printf."
+      }
+    },
+    "training": {
+      "title": "Training",
+      "body": {
+        "1": "Curated problem sets are available under Training in the navigation. Open a training to see its chapters and your progress."
+      }
+    },
+    "contest": {
+      "title": "Contests",
+      "body": {
+        "1": "Each contest rule defines how submissions and the scoreboard work. Under IOI, XCPC and Ledo rules you may submit repeatedly and see results while the contest runs; under IOI, XCPC and Ledo you can also see the scoreboard during the contest.",
+        "2": "Under OI rules only the last submission counts, so avoid a final compile error. Total score decides the ranking, and equal totals share a rank.",
+        "3": "Under XCPC rules each wrong submission adds 20 minutes of penalty. The team that solves more problems ranks first; ties are broken by less total time including penalties.",
+        "4": "Under Ledo rules repeated submissions reduce the score shown on the scoreboard, and the highest score counts. Each problem's final score is s times max(0.95^n, 0.7), where s is the score of this submission and n is the number of attempts before it."
+      }
+    },
+    "rp": {
+      "title": "RP",
+      "body": {
+        "1": "RP is earned from problems, activities and contests. A user who has opted out of the leaderboard still earns RP; they are simply not listed in the ranking."
+      }
+    },
+    "difficulty": {
+      "title": "Problem difficulty",
+      "body": {
+        "1": "Difficulty is computed from submission counts, acceptance ratio and the timing and results of each submission.",
+        "2": "Larger values mean harder problems. A new problem's difficulty can be inaccurate until it receives enough submissions, and early submissions weigh more in the calculation."
+      }
+    },
+    "markdown": {
+      "title": "Markdown",
+      "body": {
+        "1": "Markdown fields use CommonMark with extensions: KaTeX math, @[](/user/12) to mention a user, ==text== to highlight, image sizes with ![alt](url =100x100), @[video](url), @[bilibili](id), @[pdf](url), file://name to link an attachment of a problem, contest, homework or training, and a subset of HTML tags."
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "body": {
+        "1": "If something looks wrong or you want to report a post, start a discussion on the site or contact an administrator through the site's published contact details."
+      }
+    }
+  }
+}

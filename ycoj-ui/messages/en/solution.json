@@ -71,5 +71,21 @@
   "content": "Solution content",
   "back": "Back",
   "upvote": "Upvote",
-  "downvote": "Downvote"
+  "downvote": "Downvote",
+  "copyLink": "Copy solution link",
+  "linkCopied": "Link copied",
+  "replies": {
+    "reply": "Reply",
+    "edit": "Edit reply",
+    "delete": "Delete reply",
+    "confirmDelete": "Delete this reply?",
+    "cancel": "Cancel",
+    "confirm": "Delete",
+    "deleting": "Deleting...",
+    "deleteFailed": "Could not delete the reply.",
+    "save": "Save",
+    "contentRequired": "Reply cannot be empty.",
+    "replyFailed": "Reply failed. Please try again later.",
+    "replyLabel": "Reply content"
+  }
 }

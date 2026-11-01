@@ -1,6 +1,10 @@
 {
   "navigation": "设置",
   "title": "账户设置",
+  "securityTitle": "安全设置",
+  "preferenceTitle": "偏好设置",
+  "domainTitle": "域内设置",
+  "settingsTitle": "账户设置",
   "description": "更新你的头像与个人资料。",
   "profileTitle": "个人资料",
   "save": "保存修改",

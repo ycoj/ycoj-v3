@@ -23,6 +23,7 @@ import { page as browserPage } from 'vitest/browser';
 
 const mocks = vi.hoisted(() => ({
   save: vi.fn(),
+  category: vi.fn(),
   updateAvatar: vi.fn(),
   uploadAvatar: vi.fn(),
   refresh: vi.fn(),
@@ -33,7 +34,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/api/client/method', () => ({
   default: {
     Account: {
-      saveAccountSettings: mocks.save,
+      saveUserSettings: (category: string, values: unknown) => {
+        mocks.category(category);
+        return mocks.save(values);
+      },
       updateAvatar: mocks.updateAvatar,
       uploadAvatar: mocks.uploadAvatar,
     },
@@ -41,6 +45,7 @@ vi.mock('@/api/client/method', () => ({
 }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mocks.refresh }),
+  usePathname: () => '/home/settings/account',
 }));
 vi.mock('sonner', () => ({
   toast: { success: mocks.success, error: mocks.error },
@@ -291,6 +296,7 @@ describe('account settings fields', () => {
     expect(mocks.save.mock.calls[0][0]).not.toHaveProperty('avatar');
     expect(mocks.save.mock.calls[0][0]).not.toHaveProperty('phone');
     expect(mocks.save.mock.calls[0][0]).not.toHaveProperty('secret');
+    expect(mocks.category).toHaveBeenCalledWith('account');
     expect(mocks.refresh).toHaveBeenCalledOnce();
   });
 

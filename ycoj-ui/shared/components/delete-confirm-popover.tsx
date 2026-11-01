@@ -14,8 +14,8 @@ import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-type Props = {
-  onDelete: () => Promise<Errorable<Record<string, never>>>;
+type Props<T extends object = Record<string, never>> = {
+  onDelete: () => Promise<Errorable<T>>;
   successHref?: string;
   deleteLabel: string;
   confirmDeleteLabel: string;
@@ -25,7 +25,9 @@ type Props = {
   deleteFailedLabel: string;
 };
 
-export default function DeleteConfirmPopover({
+export default function DeleteConfirmPopover<
+  T extends object = Record<string, never>,
+>({
   onDelete,
   successHref,
   deleteLabel,
@@ -34,7 +36,7 @@ export default function DeleteConfirmPopover({
   confirmLabel,
   deletingLabel,
   deleteFailedLabel,
-}: Props) {
+}: Props<T>) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);

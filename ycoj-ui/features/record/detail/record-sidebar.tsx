@@ -13,8 +13,9 @@ import {
 import { Separator } from '@/shared/components/ui/separator';
 import { formatRecordTime } from '@/shared/lib/format-time';
 import dayjs from 'dayjs';
-import { Ban, RotateCcw } from 'lucide-react';
+import { Ban, Bug, RotateCcw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
@@ -26,6 +27,8 @@ type Props = {
   allowRejudge: boolean;
   onRejudge: () => Promise<void>;
   onCancel: () => Promise<void>;
+  /** Where the Hack entry points, or `undefined` when hacking is unavailable. */
+  hackHref?: string;
 };
 
 export default function RecordSidebar({
@@ -34,6 +37,7 @@ export default function RecordSidebar({
   allowRejudge,
   onRejudge,
   onCancel,
+  hackHref,
 }: Props) {
   const t = useTranslations('record');
   const router = useRouter();
@@ -79,6 +83,21 @@ export default function RecordSidebar({
 
   return (
     <div className="w-full space-y-4" data-llm-visible="true">
+      {hackHref && !isHistorical && (
+        <div className="space-y-1">
+          <Button
+            asChild
+            variant="outline"
+            className="h-10 w-full justify-start gap-3 px-4"
+          >
+            <Link href={hackHref}>
+              <Bug strokeWidth={2} />
+              <span data-llm-text={t('hack')}>{t('hack')}</span>
+            </Link>
+          </Button>
+        </div>
+      )}
+
       {showActions && (
         <div className="space-y-1">
           <Button

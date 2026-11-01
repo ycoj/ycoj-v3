@@ -18,10 +18,14 @@ import type { BaseUser } from '@/shared/types/user';
 import dayjs from 'dayjs';
 import {
   Award,
+  Check,
+  Download,
+  FileText,
+  Flag,
   MessageCircle,
   Pencil,
   PlusSquare,
-  Check,
+  UserRound,
   type LucideIcon,
 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
@@ -35,6 +39,14 @@ type Props = {
   homeworkStatus?: HomeworkStatus | null;
   owner?: BaseUser;
   canEdit: boolean;
+  /** Whether the viewer may download every submission as a zip archive. */
+  canExportCode?: boolean;
+  /** Whether the viewer may browse every submission of this homework. */
+  canViewAllSubmissions?: boolean;
+  /** Whether the viewer may browse their own submissions. */
+  canViewOwnSubmissions?: boolean;
+  /** Current viewer id, used to filter the "my submissions" record list. */
+  viewerId?: number;
 };
 
 type SidebarButtonProps = {
@@ -58,12 +70,37 @@ function SidebarButton({ href, icon: Icon, text }: SidebarButtonProps) {
   );
 }
 
+/** Points at a backend download endpoint rather than a Next.js route. */
+function SidebarLink({
+  href,
+  icon: Icon,
+  text,
+  download,
+}: SidebarButtonProps & { download?: string }) {
+  return (
+    <Button
+      asChild
+      className="h-10 w-full justify-start gap-3 px-4"
+      variant="ghost"
+    >
+      <a href={href} download={download}>
+        <Icon strokeWidth={2} />
+        <span data-llm-text={text}>{text}</span>
+      </a>
+    </Button>
+  );
+}
+
 export default function HomeworkSidebar({
   tid,
   homework,
   homeworkStatus,
   owner,
   canEdit,
+  canExportCode = false,
+  canViewAllSubmissions = false,
+  canViewOwnSubmissions = false,
+  viewerId,
 }: Props) {
   const t = useTranslations('homework');
   const contestT = useTranslations('contest');
@@ -142,17 +179,45 @@ export default function HomeworkSidebar({
           text={contestT('scoreboard')}
         />
         <SidebarButton
-          href="#"
+          href={`/discussion/homework/${homework.docId}`}
           icon={MessageCircle}
           text={common('discussion')}
         />
         {canEdit && (
-          <SidebarButton
-            href={`/homework/${tid}/edit`}
-            icon={Pencil}
-            text={common('edit')}
+          <>
+            <SidebarButton
+              href={`/homework/${tid}/edit`}
+              icon={Pencil}
+              text={common('edit')}
+            />
+            <SidebarButton
+              href={`/homework/${tid}/file`}
+              icon={FileText}
+              text={t('files')}
+            />
+          </>
+        )}
+        {canExportCode && (
+          <SidebarLink
+            href={`/api/homework/${encodeURIComponent(tid)}/code`}
+            icon={Download}
+            text={t('exportAllCode')}
           />
         )}
+        {canViewAllSubmissions && (
+          <SidebarButton
+            href={`/record?tid=${encodeURIComponent(tid)}`}
+            icon={Flag}
+            text={t('allSubmissions')}
+          />
+        )}
+        {canViewOwnSubmissions && viewerId ? (
+          <SidebarButton
+            href={`/record?tid=${encodeURIComponent(tid)}&uidOrName=${viewerId}`}
+            icon={UserRound}
+            text={t('mySubmissions')}
+          />
+        ) : null}
       </div>
 
       <Separator />

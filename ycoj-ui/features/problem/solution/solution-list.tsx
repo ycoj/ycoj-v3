@@ -22,6 +22,12 @@ type Props = {
   allowEditSelf: boolean;
   allowDeleteAny: boolean;
   allowDeleteSelf: boolean;
+  allowReply?: boolean;
+  allowEditReplySelf?: boolean;
+  allowDeleteReplyAny?: boolean;
+  allowDeleteReplySelf?: boolean;
+  /** Solution opened through its permalink, highlighted in place. */
+  highlightedId?: string;
 };
 
 export default function SolutionList({
@@ -31,6 +37,11 @@ export default function SolutionList({
   allowEditSelf,
   allowDeleteAny,
   allowDeleteSelf,
+  allowReply,
+  allowEditReplySelf,
+  allowDeleteReplyAny,
+  allowDeleteReplySelf,
+  highlightedId,
 }: Props) {
   const t = useTranslations('solution');
   const pid = data.pdoc.pid ?? data.pdoc.docId;
@@ -79,7 +90,12 @@ export default function SolutionList({
             allowEditSelf={allowEditSelf}
             allowDeleteAny={allowDeleteAny}
             allowDeleteSelf={allowDeleteSelf}
+            allowReply={allowReply}
+            allowEditReplySelf={allowEditReplySelf}
+            allowDeleteReplyAny={allowDeleteReplyAny}
+            allowDeleteReplySelf={allowDeleteReplySelf}
             reviewLabel={data.reviewLabels[solution.reviewStatus]}
+            highlighted={solution.docId === highlightedId}
           />
           {index < solutions.length - 1 && <Separator className="mt-6" />}
         </Fragment>

@@ -20,18 +20,34 @@ vi.mock('./components/blogs', () => ({ default: () => null }));
 vi.mock('./components/bulletin', () => ({ default: () => null }));
 vi.mock('./components/contests', () => ({ default: () => null }));
 vi.mock('./components/countdown', () => ({ default: () => null }));
-vi.mock('./components/daily-checkin', () => ({ default: () => null }));
+vi.mock('./components/daily-checkin', () => ({
+  default: ({ username }: { username: string }) => (
+    <div data-testid="checkin">{username}</div>
+  ),
+}));
+vi.mock('./components/discussion-nodes', () => ({ default: () => null }));
 vi.mock('./components/discussions', () => ({ default: () => null }));
+vi.mock('./components/homework', () => ({ default: () => null }));
+vi.mock('./components/hitokoto', () => ({ default: () => null }));
+vi.mock('./components/ranking', () => ({ default: () => null }));
 vi.mock('./components/recent-problems', () => ({ default: () => null }));
+vi.mock('./components/starred-problems', () => ({ default: () => null }));
 vi.mock('./components/suggestions', () => ({ default: () => null }));
+vi.mock('./components/training', () => ({ default: () => null }));
 
 beforeEach(() => {
   vi.resetAllMocks();
 });
 
+function renderColumns(homepage: unknown) {
+  mocks.getUser.mockResolvedValue({ _id: 2, uname: 'alice', priv: 0 });
+  mocks.getHomepage.mockResolvedValue(homepage);
+  return Homepage();
+}
+
 describe('Homepage access', () => {
   it.each([undefined, null, { _id: 0, uname: 'guest' }])(
-    'redirects guests before reading homepage data (%j)',
+    'redirects guests before rendering (%j)',
     async (user) => {
       mocks.getUser.mockResolvedValue(user);
       mocks.getHomepage.mockResolvedValue({ url: '/login' });
@@ -59,36 +75,70 @@ describe('Homepage access', () => {
     await expect(result).rejects.toThrow('redirect:/login');
     expect(mocks.getHomepage).toHaveBeenCalledTimes(1);
   });
+});
 
-  it.each([
-    { contents: [], expected: {} },
-    {
-      contents: [{ sections: [['banner', { pictures: [] }]] }],
-      expected: { banner: { pictures: [] } },
-    },
-  ])('preserves homepage data for authenticated users (%j)', async (data) => {
-    const homepage = {
-      contents: data.contents,
-      udict: {},
-      domain: { bulletin: 'Welcome' },
-      checkin: { canCheckin: true, record: null, streak: 0 },
-    };
-    mocks.getUser.mockResolvedValue({ _id: 2, uname: 'alice' });
-    mocks.getHomepage.mockResolvedValue(homepage);
+describe('Homepage layout', () => {
+  const base = {
+    udict: {},
+    domain: { bulletin: 'Welcome' },
+    checkin: { canCheckin: true, record: null, streak: 0 },
+  };
 
-    const page = await Homepage();
-
-    expect(mocks.getHomepage).toHaveBeenCalledTimes(1);
-    expect(page.props.left.props).toMatchObject({
-      contents: data.expected,
-      udict: homepage.udict,
-      bulletin: 'Welcome',
+  it('preserves the server column widths and order', async () => {
+    const page = await renderColumns({
+      ...base,
+      contents: [
+        {
+          width: 9,
+          sections: [
+            ['contest', [[], {}]],
+            ['homework', [[], {}]],
+          ],
+        },
+        {
+          width: 3,
+          sections: [
+            ['hitokoto', true],
+            ['starred_problems', [[]]],
+          ],
+        },
+      ],
     });
-    expect(page.props.right.props).toMatchObject({
-      contents: data.expected,
-      udict: homepage.udict,
-      checkin: homepage.checkin,
-      username: 'alice',
+
+    const columns = page.props.columns;
+    // Two configured columns plus the sidebar check-in card.
+    expect(columns).toHaveLength(2);
+    expect(columns[0]).toHaveLength(2);
+    expect(columns[1]).toHaveLength(3);
+    // 9/3 remains 9/3 on the 12-column grid.
+    expect(page.props.spans).toEqual([9, 3]);
+  });
+
+  it('skips sections this UI cannot render', async () => {
+    const page = await renderColumns({
+      ...base,
+      contents: [
+        { width: 12, sections: [['custom_widget', {}]] },
+        { width: 12, sections: [['bulletin', true]] },
+      ],
     });
+
+    const columns = page.props.columns;
+    // Only the configured column survives; the check-in joins it.
+    expect(columns).toHaveLength(1);
+    expect(page.props.spans).toEqual([12]);
+  });
+
+  it('scales widths that exceed one grid row', async () => {
+    const page = await renderColumns({
+      ...base,
+      contents: [
+        { width: 9, sections: [['bulletin', true]] },
+        { width: 9, sections: [['hitokoto', true]] },
+      ],
+    });
+
+    // Two 9-wide columns are scaled proportionally back to twelve.
+    expect(page.props.spans).toEqual([6, 6]);
   });
 });

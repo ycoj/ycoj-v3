@@ -1,0 +1,76 @@
+{
+  "statistics": "Statistics",
+  "star": {
+    "star": "Star this problem",
+    "unstar": "Remove star",
+    "failed": "Could not update the star. Please try again."
+  },
+  "rejudge": {
+    "title": "Rejudge all submissions",
+    "confirm": "All normal submissions of this problem will be queued for rejudging. Canceled submissions and hacks are excluded.",
+    "confirmAction": "Rejudge all",
+    "cancel": "Cancel",
+    "rejudging": "Queueing...",
+    "queued": "Submissions were queued for rejudging.",
+    "failed": "Could not start the rejudge. Please try again."
+  },
+  "stats": {
+    "title": "Statistics",
+    "distribution": "Status and score distribution",
+    "distributionUnavailable": "No statistics are available for this problem yet.",
+    "statusChart": "Submission status distribution",
+    "scoreChart": "Score distribution",
+    "performance": "AC submission performance",
+    "description": "Accepted submissions, ranked by the selected metric.",
+    "empty": "No accepted submissions to show.",
+    "sort": "Sort by",
+    "direction": "Direction",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "language": "Language",
+    "allLanguages": "All languages",
+    "apply": "Search",
+    "sortOptions": {
+      "time": "Run time",
+      "memory": "Memory",
+      "length": "Code length",
+      "date": "Submit time"
+    },
+    "columns": {
+      "status": "Status",
+      "submitter": "Submitter",
+      "time": "Time",
+      "memory": "Memory",
+      "language": "Language",
+      "length": "Length",
+      "submittedAt": "Submitted"
+    },
+    "totalAccepted": "{count, plural, one {# accepted submission} other {# accepted submissions}}",
+    "statusValues": {
+      "AC": "AC",
+      "WA": "WA",
+      "TLE": "TLE",
+      "MLE": "MLE",
+      "RE": "RE",
+      "CE": "CE"
+    },
+    "toggleDirection": "Toggle sort direction"
+  },
+  "hack": {
+    "title": "Hack submission #{rid}",
+    "description": "Provide an input that challenges {user}'s accepted submission to \"{title}\".",
+    "input": "Input",
+    "inputPlaceholder": "Enter the input for this hack",
+    "inputFile": "Or upload an input file",
+    "fileHint": "Maximum size: {limit}.",
+    "removeFile": "Remove file",
+    "autoOrganize": "Auto organize input",
+    "autoOrganizeHint": "Adjust line breaks and remove unnecessary whitespace characters.",
+    "inputRequired": "Enter input or choose an input file.",
+    "fileTooLarge": "The input file is larger than {limit}.",
+    "submit": "Submit hack",
+    "submitting": "Submitting...",
+    "failed": "Could not submit the hack. Please try again.",
+    "entry": "Hack"
+  }
+}

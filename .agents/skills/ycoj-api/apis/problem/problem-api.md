@@ -60,6 +60,8 @@ type ProblemsResponse = ProblemDoc[];
 [{"docId":1000,"pid":"P1000","title":"A + B"}]
 ```
 
+Callers that export a problem package also use `problem` with a `projection` of `domainId,docId,pid,owner,title,tag,nSubmit,nAccept,content,data,additional_file`; signed URLs for `data` and `additional_file` still come from `POST /p/:pid/files` with `operation=get_links` (see [problem files](problem-files.md)). Send `domainId` in `args`; the browser client must keep the path at `/api/problem` because the Next.js rewrite strips the `/api` prefix.
+
 # POST `/api/tags` — problem categories
 
 ## Description

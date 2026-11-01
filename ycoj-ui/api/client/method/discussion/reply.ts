@@ -3,19 +3,24 @@ import type { ObjectId } from '@/shared/types/shared';
 
 export type DiscussionContent = string | Record<string, unknown>;
 
-export type DiscussionReplyResponse = {
+export type DiscussionMutationResponse = {
+  /** Backend `Handler#back()` echoes the referer as `url`. */
+  url?: string;
+};
+
+export type DiscussionReplyResponse = DiscussionMutationResponse & {
   drid?: ObjectId;
 };
 
-export type DiscussionTailReplyResponse = Record<string, never>;
+export type DiscussionTailReplyResponse = DiscussionMutationResponse;
 
-export type DiscussionEditReplyResponse = Record<string, never>;
+export type DiscussionEditReplyResponse = DiscussionMutationResponse;
 
-export type DiscussionDeleteReplyResponse = Record<string, never>;
+export type DiscussionDeleteReplyResponse = DiscussionMutationResponse;
 
-export type DiscussionEditTailReplyResponse = Record<string, never>;
+export type DiscussionEditTailReplyResponse = DiscussionMutationResponse;
 
-export type DiscussionDeleteTailReplyResponse = Record<string, never>;
+export type DiscussionDeleteTailReplyResponse = DiscussionMutationResponse;
 
 export const replyDiscussion = (did: string, content: DiscussionContent) =>
   clientRequest.Post<DiscussionReplyResponse>(`/discuss/${did}`, {

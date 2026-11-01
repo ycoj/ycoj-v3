@@ -1,0 +1,68 @@
+{
+  "filters": {
+    "category": "Category",
+    "allCategories": "All categories",
+    "difficulty": "Difficulty",
+    "anyDifficulty": "Any difficulty",
+    "minDifficulty": "Lowest",
+    "maxDifficulty": "Highest",
+    "namespace": "Namespace",
+    "allNamespaces": "All namespaces",
+    "reset": "Reset filters",
+    "sort": "Sort",
+    "sortDefault": "Problem order",
+    "sortRecent": "Newest first",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "random": "Pick a random problem",
+    "randomFailed": "No problem matched the current filters."
+  },
+  "edit": {
+    "enter": "Edit problems",
+    "leave": "Leave edit mode",
+    "selectAll": "Select all problems on this page",
+    "selectProblem": "Select {pid}",
+    "selected": "{count, plural, =0 {No problems selected} one {# problem selected} other {# problems selected}}"
+  },
+  "bulk": {
+    "hide": "Hide",
+    "unhide": "Unhide",
+    "delete": "Delete",
+    "download": "Download package",
+    "copy": "Copy to domain",
+    "downloadName": "Package file name",
+    "downloadNamePlaceholder": "Export",
+    "downloadStart": "Download",
+    "hideSuccess": "{count, plural, one {# problem hidden} other {# problems hidden}}",
+    "unhideSuccess": "{count, plural, one {# problem unhidden} other {# problems unhidden}}",
+    "deleteSuccess": "{count, plural, one {# problem deleted} other {# problems deleted}}",
+    "downloadSuccess": "The problem package is ready.",
+    "deleteTitle": "Delete selected problems",
+    "deleteDescription": "{count, plural, one {Permanently delete # problem? This cannot be undone.} other {Permanently delete # problems? This cannot be undone.}}",
+    "deleteConfirm": "Delete",
+    "deleting": "Deleting...",
+    "cancel": "Cancel",
+    "failed": "The operation failed. Please try again."
+  },
+  "copy": {
+    "title": "Copy problems",
+    "description": "{count, plural, one {Copy # problem to another domain.} other {Copy # problems to another domain.}}",
+    "target": "Target domain",
+    "targetPlaceholder": "Search domains",
+    "loading": "Loading domains...",
+    "noResults": "No domains found.",
+    "hidden": "Create as hidden",
+    "confirm": "Copy",
+    "copying": "Copying...",
+    "success": "{count, plural, one {# problem copied} other {# problems copied}}",
+    "failed": "Could not copy the problems. Please try again.",
+    "targetRequired": "Choose a target domain.",
+    "cancel": "Cancel"
+  },
+  "package": {
+    "download": "Download package",
+    "copy": "Copy to another domain",
+    "ready": "The problem package is ready.",
+    "failed": "Could not build the problem package."
+  }
+}

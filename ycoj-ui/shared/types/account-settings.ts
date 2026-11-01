@@ -33,8 +33,10 @@ export type AccountSetting = {
   range?: [string, string][] | Record<string, string> | null;
 };
 
+export type UserSettingsCategory = 'preference' | 'account' | 'domain';
+
 export type AccountSettingsData = {
-  category: 'account';
+  category: UserSettingsCategory;
   current: BaseUser;
   settings: AccountSetting[];
 };

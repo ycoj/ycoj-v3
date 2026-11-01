@@ -75,5 +75,6 @@
     "cancelling": "Cancelling...",
     "caseCount": "Installed cases: {count}",
     "totalBytes": "Total size: {size}"
-  }
+  },
+  "hack": "Hack"
 }

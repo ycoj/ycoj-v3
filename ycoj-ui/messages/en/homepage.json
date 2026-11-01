@@ -13,5 +13,22 @@
   "days": "{days}d",
   "untilStart": "{time} until {name} starts",
   "noEvents": "No events are currently in progress",
-  "bannerAlt": "Banner {number}"
+  "bannerAlt": "Banner {number}",
+  "homework": "Homework",
+  "training": "Training",
+  "ranking": "Ranking",
+  "starredProblems": "Starred problems",
+  "discussionNodes": "Discussion nodes",
+  "hitokoto": "Quote of the moment",
+  "hitokotoUnavailable": "The quote service is unavailable right now.",
+  "deadline": "Deadline",
+  "progress": "Progress",
+  "notEnrolled": "Not enrolled",
+  "sectionError": "This section could not be loaded",
+  "sectionErrorDescription": "The homepage widget failed to load. Refresh the page to try again.",
+  "suggestionGroups": {
+    "chinese": "Chinese",
+    "english": "English",
+    "tools": "Tools"
+  }
 }

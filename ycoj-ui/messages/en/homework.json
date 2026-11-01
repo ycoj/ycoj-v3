@@ -12,5 +12,9 @@
   "joined": "Joined",
   "backToHomework": "Back to homework",
   "none": "No homework",
-  "noneDescription": "No homework is available yet, or you do not have permission to view it."
+  "noneDescription": "No homework is available yet, or you do not have permission to view it.",
+  "files": "Files",
+  "exportAllCode": "Export all code",
+  "allSubmissions": "All submissions",
+  "mySubmissions": "My recent submissions"
 }

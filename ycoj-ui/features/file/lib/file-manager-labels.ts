@@ -1,0 +1,31 @@
+import type { UploadRejection } from './validate-upload';
+
+export type FileManagerLabels = {
+  title: string;
+  upload: string;
+  download: string;
+  downloadSelected: string;
+  preview: string;
+  previewFile: (name: string) => string;
+  previewLoading: string;
+  previewError: string;
+  selectAll: string;
+  selectFile: (name: string) => string;
+  fileNameLabel: string;
+  size: string;
+  modified: string;
+  actions: string;
+  empty: string;
+  delete: string;
+  deleting: string;
+  removeSelected: string;
+  cancel: string;
+  close: string;
+  confirmDelete: (count: number) => string;
+  uploadingFiles: (count: number) => string;
+  uploadProgress: string;
+  actionFailed: string;
+  uploadFailed: (failed: number, total: number) => string;
+  totalSize: (size: string) => string;
+  formatRejections: (rejections: readonly UploadRejection[]) => string;
+};
