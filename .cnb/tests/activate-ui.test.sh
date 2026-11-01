@@ -18,6 +18,11 @@ echo "$*" >> "$PM2_LOG"
 case "$1" in
   describe) test -f "$PM2_STATE" ;;
   startOrRestart)
+    # Model PM2 retaining the old executable/cwd when restarting by name.
+    if [[ ! -f "$PM2_STATE" ]]; then printf '%s\n' "$2" > "$PM2_STATE"; fi
+    ;;
+  start)
+    [[ ! -f "$PM2_STATE" ]]
     [[ -z "${FAIL_RELEASE:-}" || "$2" != *"$FAIL_RELEASE"* ]]
     printf '%s\n' "$2" > "$PM2_STATE"
     ;;
@@ -62,7 +67,7 @@ activate() {
 setup first-release
 activate
 [[ "$(readlink "$deploy_root/current")" = "$deploy_root/releases/$new_id" ]]
-grep -F "startOrRestart $deploy_root/releases/$new_id/ecosystem.config.cjs" "$PM2_LOG"
+grep -F "start $deploy_root/releases/$new_id/ecosystem.config.cjs" "$PM2_LOG"
 grep -x save "$PM2_LOG"
 echo 'PASS: first artifact deployment starts and persists PM2'
 
@@ -72,6 +77,7 @@ echo "$deploy_root/releases/$old_id/ecosystem.config.cjs" > "$PM2_STATE"
 activate
 [[ "$(readlink "$deploy_root/current")" = "$deploy_root/releases/$new_id" ]]
 [[ "$(cat "$PM2_STATE")" = "$deploy_root/releases/$new_id/ecosystem.config.cjs" ]]
+grep -qx 'delete ycoj-ui' "$PM2_LOG"
 echo 'PASS: subsequent deployment updates the PM2 script and current release'
 
 setup existing-source

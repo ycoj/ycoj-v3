@@ -36,6 +36,15 @@ switch_current() {
   mv -Tf "$deploy_root/.current-$$" "$deploy_root/current"
 }
 
+start_release() {
+  # PM2 restart can retain pm_exec_path/pm_cwd from the existing process even
+  # when the ecosystem's script/cwd point to a different release directory.
+  if pm2 describe ycoj-ui > /dev/null 2>&1; then
+    pm2 delete ycoj-ui || return
+  fi
+  pm2 start "$1/ecosystem.config.cjs" --only ycoj-ui --update-env
+}
+
 rollback() {
   status=${1:-$?}
   trap - ERR HUP INT TERM
@@ -43,7 +52,7 @@ rollback() {
   echo 'Activation failed; restoring the previous release.' >&2
   if [[ -n "$previous" ]]; then
     switch_current "$previous"
-    pm2 startOrRestart "$previous/ecosystem.config.cjs" --only ycoj-ui --update-env || true
+    start_release "$previous" || true
     pm2 save || true
   else
     pm2 delete ycoj-ui || true
@@ -56,7 +65,7 @@ rollback() {
 trap rollback ERR
 trap 'rollback 1' HUP INT TERM
 switch_current "$release"
-pm2 startOrRestart "$release/ecosystem.config.cjs" --only ycoj-ui --update-env
+start_release "$release"
 
 # A release-specific URL proves PM2 is serving this build, rather than an old
 # process still answering on the same port. Bypass outbound proxy variables.
