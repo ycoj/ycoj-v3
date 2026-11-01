@@ -3,6 +3,7 @@ import AccountExpiration from '@/api/client/method/account-expiration';
 import AiProvider from '@/api/client/method/ai-provider';
 import Auth from '@/api/client/method/auth';
 import Award from '@/api/client/method/award';
+import Branding from '@/api/client/method/branding';
 import * as Checkin from '@/api/client/method/checkin';
 import Contest from '@/api/client/method/contest';
 import Discussion from '@/api/client/method/discussion';
@@ -24,6 +25,7 @@ const ClientApis = {
   Account,
   AccountExpiration,
   AiProvider,
+  Branding,
   Award,
   Auth,
   Checkin,

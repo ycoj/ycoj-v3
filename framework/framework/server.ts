@@ -17,6 +17,7 @@ import {
     Counter, errorMessage, isClass, Logger, parseMemoryMB,
 } from '@hydrooj/utils/lib/utils';
 import base from './base';
+import { isCorsOriginAllowed } from './cors';
 import * as decorators from './decorators';
 import {
     CsrfTokenError, HydroError, InvalidOperationError,
@@ -364,6 +365,7 @@ export class WebService extends Service<never> {
     private wsLayers: LayerEntry[] = [];
     private captureAllRoutes = Object.create(null);
     private customDefaultContext: CordisContext;
+    corsOrigins?: () => string[];
     private activeHandlers: Map<Handler, { start: number, name: string }> = new Map();
 
     renderers: Record<string, Renderer> = Object.create(null);
@@ -394,20 +396,22 @@ export class WebService extends Service<never> {
         ctx.mixin('server', ['Route', 'Connection', 'withHandlerClass']);
         this.server.keys = this.config.keys;
         this.server.proxy = this.config.proxy;
-        const corsAllowHeaders = 'x-requested-with, accept, origin, content-type, upgrade-insecure-requests';
+        const corsAllowHeaders = 'x-requested-with, accept, origin, content-type, upgrade-insecure-requests, authorization, range';
         this.server.use(Compress());
         this.server.use(async (c, next) => {
-            if ((c.request.headers.origin || c.request.headers.referer) && this.config.cors) {
+            c.vary('Origin');
+            c.vary('Referer');
+            if (c.request.headers.origin || c.request.headers.referer) {
                 try {
-                    const host = new URL(c.request.headers.origin || c.request.headers.referer).host;
-                    if (host !== c.request.headers.host && `,${this.config.cors},`.includes(`,${host},`)) {
+                    const origin = c.request.headers.origin || new URL(c.request.headers.referer).origin;
+                    const entries = [...(this.config.cors || '').split(','), ...(this.corsOrigins?.() || [])];
+                    if (isCorsOriginAllowed(origin, entries)) {
                         c.set('Access-Control-Allow-Credentials', 'true');
                         c.set('Access-Control-Allow-Headers', corsAllowHeaders);
+                        c.set('Access-Control-Allow-Methods', 'GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS');
+                        c.set('Access-Control-Expose-Headers', 'Content-Disposition, Content-Length, Content-Range, Accept-Ranges, ETag, Location');
                         if (c.request.headers.origin) {
                             c.set('Access-Control-Allow-Origin', c.request.headers.origin);
-                            c.set('Vary', 'Origin');
-                        } else {
-                            c.set('Vary', 'Referer');
                         }
                         c.cors = true;
                     }

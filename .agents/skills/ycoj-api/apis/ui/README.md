@@ -1,6 +1,7 @@
 # UI assets, rendering, and miscellaneous routes
 
 - [Strict UI and utility endpoint contracts](endpoints.md)
+- [Domain brand resolution, system brand settings and CORS](branding.md)
 
 ## UI and document presentation
 

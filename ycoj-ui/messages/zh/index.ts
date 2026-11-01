@@ -4,6 +4,7 @@ import aiProvider from './ai-provider.json';
 import auth from './auth.json';
 import autoComplete from './auto-complete.json';
 import award from './award.json';
+import branding from './branding.json';
 import checkin from './checkin.json';
 import common from './common.json';
 import contestCreate from './contest-create.json';
@@ -84,6 +85,7 @@ const catalog = {
   user,
   accountSettings,
   aiProvider,
+  branding,
   messages,
   homepage,
   checkin,

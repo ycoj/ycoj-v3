@@ -1,3 +1,4 @@
+import { getSiteBrand } from '@/features/branding/get-brand';
 import DrawBoard from '@/features/draw/draw-board';
 import ThemeLogo from '@/shared/components/theme-logo';
 import { Button } from '@/shared/components/ui/button';
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function DrawPage() {
   const t = await getTranslations('common');
   const misc = await getTranslations('misc');
-  const siteName = process.env.SITE_NAME ?? '';
+  const { name: siteName } = await getSiteBrand();
   return (
     // Excalidraw sizes itself from its container, so the viewport height has
     // to reach the canvas through a full-height chain.

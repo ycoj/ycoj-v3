@@ -8,11 +8,10 @@ const CLANGD_ISOLATION_PARAM = 'clangd';
 
 const backendBaseUrl = process.env.BACKEND_BASEURL?.replace(/\/+$/, '');
 const uploadBaseUrl =
-  process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ??
-  backendBaseUrl ??
-  '';
-const printAssetPrefix =
-  process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '';
+  process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ?? '';
+const staticAssetPrefix =
+  process.env.NEXT_PUBLIC_STATIC_ASSET_PREFIX?.replace(/\/+$/, '') ??
+  (process.env.NODE_ENV === 'production' ? 'https://next-cdn.ycoj.cc' : '');
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['@resvg/resvg-js'],
@@ -27,11 +26,10 @@ const nextConfig: NextConfig = {
   experimental: {
     // proxy.ts makes Next buffer request bodies before the backend rewrites;
     // keep /api file uploads (imports, bulk submits) above the 10MB default.
-    // Bodies past this size are silently truncated, not rejected. Problem-file
-    // uploads POST straight to NEXT_PUBLIC_UPLOAD_BASEURL (the absolute
-    // backend URL by default) and bypass the proxy; on referer rejections,
-    // set NEXT_PUBLIC_UPLOAD_BASEURL='' to route them through /api.
-    proxyClientMaxBodySize: '100mb',
+    // Bodies past this size are silently truncated, not rejected. Uploads use
+    // the visiting origin by default so branded domains retain their session.
+    // NEXT_PUBLIC_UPLOAD_BASEURL can opt into direct cross-origin uploads.
+    proxyClientMaxBodySize: '256mb',
   },
   outputFileTracingIncludes: {
     '/scoreboard-export/*/*': [
@@ -40,9 +38,10 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    // Static print resources can use the CDN; worker scripts must share the
-    // page's origin, so Next chunks and the clangd worker stay same-origin.
-    NEXT_PUBLIC_PRINT_ASSET_PREFIX: printAssetPrefix,
+    // Static dependencies and print resources use the CDN. Application worker
+    // entry points and Next chunks retain their same-origin loading paths.
+    NEXT_PUBLIC_PRINT_ASSET_PREFIX: staticAssetPrefix,
+    NEXT_PUBLIC_STATIC_ASSET_PREFIX: staticAssetPrefix,
     NEXT_PUBLIC_UPLOAD_BASEURL: uploadBaseUrl,
     SITE_NAME: process.env.SITE_NAME ?? '',
   },
@@ -61,6 +60,17 @@ const nextConfig: NextConfig = {
       { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
     ];
     return [
+      {
+        source: '/vendor/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
       // Cross-origin isolation is only required by the optional clangd Wasm
       // mode, so it is gated on the opt-in query parameter. `has` query
       // matching applies to full document loads only; client-side soft
