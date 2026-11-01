@@ -7,6 +7,9 @@ import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
 vi.mock('@/shared/components/markdown', () => ({
   default: ({ children }: { children: string }) => <div>{children}</div>,
 }));
