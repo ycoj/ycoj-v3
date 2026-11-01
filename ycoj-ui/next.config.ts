@@ -32,6 +32,10 @@ const nextConfig: NextConfig = {
     proxyClientMaxBodySize: '256mb',
   },
   outputFileTracingIncludes: {
+    '/*': [
+      './node_modules/vscode-oniguruma/release/onig.wasm',
+      './node_modules/.pnpm/vscode-oniguruma@*/node_modules/vscode-oniguruma/release/onig.wasm',
+    ],
     '/scoreboard-export/*/*': [
       './assets/fonts/NotoSansCJKsc-Regular.otf',
       './assets/fonts/noto-sans-cjk-OFL.txt',

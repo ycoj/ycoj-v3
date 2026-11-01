@@ -41,6 +41,14 @@ echo secret > ycoj-ui/.next/standalone/.env.production
 echo traced > ycoj-ui/.next/standalone/public/traced.txt
 echo asset > ycoj-ui/public/vendor/asset.js
 echo chunk > ycoj-ui/.next/static/chunk.js
+wasm_package=node_modules/.pnpm/vscode-oniguruma@2.0.1/node_modules/vscode-oniguruma
+mkdir -p "ycoj-ui/$wasm_package/release" "ycoj-ui/.next/standalone/$wasm_package/release" ycoj-ui/node_modules
+printf '{"main":"release/main.js"}\n' > "ycoj-ui/$wasm_package/package.json"
+touch "ycoj-ui/$wasm_package/release/main.js"
+# Use a real module-resolution path, including pnpm's nested layout.
+node -e 'require("node:fs").symlinkSync(require("node:path").resolve(process.argv[1]), process.argv[2], "junction")' \
+  "ycoj-ui/$wasm_package" ycoj-ui/node_modules/vscode-oniguruma
+printf '\000asm\001\000\000\000' > "ycoj-ui/.next/standalone/$wasm_package/release/onig.wasm"
 bash .cnb/package-ui.sh
 release_id=$(cat .build/ui-release-id)
 tar -tzf .build/ui-release.tar.gz > "$fixture/contents"
@@ -48,11 +56,17 @@ grep -x './public/vendor/asset.js' "$fixture/contents"
 grep -x './public/traced.txt' "$fixture/contents"
 grep -x './.next/static/chunk.js' "$fixture/contents"
 grep -x "./.next/static/deployments/$release_id.txt" "$fixture/contents"
+grep -x "./$wasm_package/release/onig.wasm" "$fixture/contents"
 if grep -E '/\.env|/public/public/' "$fixture/contents"; then
   echo 'Unexpected environment file or nested public directory in release' >&2
   exit 1
 fi
 echo 'PASS: package contains generated assets and release marker without env secrets'
+
+mv "ycoj-ui/.next/standalone/$wasm_package/release/onig.wasm" "$fixture/onig.wasm"
+if bash .cnb/package-ui.sh; then echo 'Expected missing WASM failure' >&2; exit 1; fi
+mv "$fixture/onig.wasm" "ycoj-ui/.next/standalone/$wasm_package/release/onig.wasm"
+echo 'PASS: missing server-side highlighter WASM prevents publishing'
 
 : > "$TRANSFER_LOG"
 bash .cnb/deploy-ui.sh
