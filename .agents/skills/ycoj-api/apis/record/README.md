@@ -25,4 +25,6 @@ These `ctx.Connection` routes use Hydro's WebSocket connection handshake (the in
 * `{ udoc, pdoc, rdoc }` when `noTemplate=true`;
 * `{ rdoc }` with code/input omitted when `pretest=true`.
 
+When `allDomain` is false and `pretest` is not enabled, updates whose `rdoc.contest` equals `000000000000000000000000` are excluded, even when `input` is absent or not a string. An ordinary submission is not classified as pretest merely because it contains string `input`. All existing domain/user/contest/permission filters still apply; this guard does not change the privileged `allDomain` branch. See [the detailed filtering examples](endpoints.md#websocket-record-conn).
+
 `/record-detail-conn` sends `{ status, status_html, summary_html }` by default, or `{ rdoc }` with `noTemplate=true`. Code and compiler text are blanked unless the viewer is the submitter or has `PRIV_READ_RECORD_CODE`, `PERM_READ_RECORD_CODE`, or accepted-record code permission. Completed records close after 30 seconds (close code `4001`, reason `Ended`). Example detail event: `{ "status":1, "status_html":"<div>Accepted</div>", "summary_html":"<section>...</section>" }`.

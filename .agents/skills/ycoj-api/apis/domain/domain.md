@@ -34,7 +34,10 @@ Description: list and administer domain users. GET request `type Query={format?:
 ### POST `setUsers`
 Description: assign a role to selected members and optionally mark them joined. Request `type Input={operation:"setUsers";uids:number[];role:string;join?:boolean}`, example `{"operation":"setUsers","uids":[12,13],"role":"member","join":true}`. Response `Redirect`, example `{"url":"/domain/user"}`. The base POST rejects including the domain owner; sudo is required. Inviting when `server.allowInvite` is off additionally needs `PRIV_MANAGE_ALL_DOMAIN`.
 
+For `setUsers`, the existing request/redirect types are unchanged. Each distinct requested uid is now upserted independently, including users with no existing domain-user record; duplicate uids are processed once, and an empty uid array makes no role writes. For example, `{"operation":"setUsers","uids":[12,13,12],"role":"member","join":true}` creates/updates the role for both 12 and 13 (and marks both joined), even if one has never joined the domain. Permission, owner protection, sudo, validation, audit logging, and invitation checks still apply.
+
 ### POST `kick`
+
 Description: revoke joined members and return them to `guest`. Request `type Input={operation:"kick";uids:number[]}`, example `{"operation":"kick","uids":[12,13]}`. Response `Redirect`, example `{"url":"/domain/user"}`; if none are joined it returns without a redirect/body. The base POST rejects the owner and sudo is required; affected users receive a message.
 
 ## `GET|POST /domain/permission`

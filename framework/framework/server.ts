@@ -14,7 +14,7 @@ import Schema from 'schemastery';
 import { Shorty } from 'shorty.js';
 import { WebSocket, WebSocketServer } from 'ws';
 import {
-    Counter, errorMessage, isClass, Logger, parseMemoryMB,
+    Counter, errorMessage, isClass, Logger, parseMemoryMB, unwrapAggregateError,
 } from '@hydrooj/utils/lib/utils';
 import base from './base';
 import { isCorsOriginAllowed } from './cors';
@@ -55,10 +55,6 @@ async function forkContextWithScope(ctx: CordisContext) {
         dispose,
         [Symbol.asyncDispose]: dispose,
     };
-}
-
-function unwrapAggregateError(error: any) {
-    return error instanceof AggregateError ? error.errors[0] : error;
 }
 
 export interface HydroRequest {
@@ -260,6 +256,7 @@ export class Handler extends HandlerCommon {
     }
 
     async onerror(error: HydroError) {
+        error = unwrapAggregateError(error);
         error.msg ||= () => error.message;
         console.error(`Error on user request: ${error.msg()}\n`, error);
         if (error instanceof UserFacingError && !process.env.DEV) error.stack = '';
