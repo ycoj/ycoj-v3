@@ -42,7 +42,7 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 
 创建专用 SSH 部署密钥，将公钥加入上述 PM2 用户的 `~/.ssh/authorized_keys`。服务器需允许 CNB 构建节点访问其 SSH 端口。
 
-在 CNB 创建**密钥仓库** `ycoj-ui/deploy-secrets`，在其 `main` 分支创建 `ycoj-ui.yml`，以 `.cnb/deploy-secrets.example.yml` 为模板。这个 `main` 是密钥仓库分支；业务仓库发布分支仍为 `master`。若使用其他仓库地址，修改 `.cnb.yml` 的 `imports`。
+在 CNB 的**密钥仓库** `ycoj-ui/ycoj-secrets` 中，在其 `main` 分支创建 `ycoj-ui.yml`，以 `.cnb/deploy-secrets.example.yml` 为模板。这个 `main` 是密钥仓库分支；业务仓库发布分支仍为 `master`。若使用其他仓库地址，修改 `.cnb.yml` 的 `imports`。
 
 填写：
 

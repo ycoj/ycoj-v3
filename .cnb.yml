@@ -14,7 +14,7 @@ master:
       env:
         npm_config_registry: https://mirrors.cloud.tencent.com/npm/
       imports:
-        - https://cnb.cool/ycoj-ui/deploy-secrets/-/blob/main/ycoj-ui.yml
+        - https://cnb.cool/ycoj-ui/ycoj-secrets/-/blob/main/ycoj-ui.yml
       stages:
         - name: Prepare build tools
           script: |
