@@ -13,7 +13,7 @@ This workflow uses [problem-create-edit.md](../apis/problem/problem-create-edit.
    {"title":"A + B","content":"## Description\nCompute A+B.","pid":"P1000","hidden":true,"difficulty":1,"tag":"math"}
    ```
 
-   Stop if creation returns a duplicate-PID validation error. The response is `{"pid":"P1000","url":"/p/P1000/files"}`; use that exact path ID below.
+   Stop if creation returns a duplicate-PID validation error or HTTP 403 with `problem_create` rate-limit parameters. Creation defaults to 2 attempts per 5 seconds per user across domains; pace multi-problem imports accordingly, and do not automatically retry an ambiguous non-idempotent response. The response is `{"pid":"P1000","url":"/p/P1000/files"}`; use that exact path ID below.
 
 2. Upload every local test file with one multipart request per file. Field `file` contains file bytes; `filename` is the target name and `type=testdata` selects test data:
 

@@ -15,6 +15,7 @@ import { Value } from '../typeutils';
 import { ArgMethod, buildProjection, randomstring, sleep } from '../utils';
 import { PERM, PRIV } from './builtin';
 import domain from './domain';
+import type { } from './rewards';
 import * as setting from './setting';
 import system from './system';
 import token from './token';

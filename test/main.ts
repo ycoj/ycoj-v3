@@ -164,14 +164,25 @@ describe('App', () => {
         assert.equal(rankedUser.nAccept, 7);
     });
 
-    it('Account settings expose the hideRank leaderboard opt-out', async () => {
+    it('Account settings expose hideRank only to domain administrators', async () => {
         const settings = await agent.get('/home/settings/account')
             .set('Accept', 'application/json')
             .expect(200);
-        const hideRank = (settings.body.settings || []).find((setting: { key: string }) => setting.key === 'hideRank');
+        assert.equal((settings.body.settings || []).some((setting: { key: string }) => setting.key === 'hideRank'), false);
 
-        assert.ok(hideRank, 'hideRank must be registered as an account setting');
-        assert.equal(hideRank.type, 'boolean');
+        const domainModel = global.Hydro.model.domain;
+        const original = await domainModel.collUser.findOne({ domainId: 'system', uid: 2 });
+        try {
+            await domainModel.setUserRole('system', 2, 'root');
+            const administrator = await agent.get('/home/settings/account')
+                .set('Accept', 'application/json')
+                .expect(200);
+            const hideRank = (administrator.body.settings || []).find((setting: { key: string }) => setting.key === 'hideRank');
+            assert.ok(hideRank, 'hideRank must be exposed to domain administrators');
+            assert.equal(hideRank.type, 'boolean');
+        } finally {
+            await domainModel.setUserRole('system', 2, original?.role || 'default');
+        }
     });
 
     it('Ranking JSON hides a user who opted out while keeping their RP', async () => {
