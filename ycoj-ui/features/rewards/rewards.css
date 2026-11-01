@@ -16,10 +16,12 @@
 
 .dark [data-reward-accent='accent-forest'] {
   --primary: oklch(0.68 0.12 160);
+  --primary-foreground: oklch(0.3 0.05 230);
   --ring: oklch(0.68 0.12 160);
 }
 
 .dark [data-reward-accent='accent-violet'] {
   --primary: oklch(0.7 0.15 295);
+  --primary-foreground: oklch(0.3 0.05 230);
   --ring: oklch(0.7 0.15 295);
 }
