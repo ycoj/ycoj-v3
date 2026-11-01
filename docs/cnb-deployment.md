@@ -1,24 +1,28 @@
-# CNB 前端持续部署
+# CNB 前后端持续部署
 
-`master` 推送到 GitHub 后，现有 `.github/workflows/mirror-cnb.yml` 同步代码和 LFS 对象到 `cnb.cool/ycoj-ui/ycoj-v3`。CNB 根据根目录 `.cnb.yml` 在 Linux x86_64、Node.js 22 环境中构建 `ycoj-ui/`，通过 SSH 上传 standalone 产物，然后由 PM2 重启前端。
+`master` 推送到 GitHub 后，现有 `.github/workflows/mirror-cnb.yml` 同步代码和 LFS 对象到 `cnb.cool/ycoj-ui/ycoj-v3`。CNB 根据根目录 `.cnb.yml` 在 Linux x86_64、Node.js 22 环境中构建 `ycoj-ui/`。构建成功后，通过 SSH 更新服务器上的后端源码并重启 PM2，再上传前端 standalone 产物并按配置激活。
 
 ## 与当前部署的对应关系
 
-后端保留在 `/srv/ycoj-v3`，仍使用原有 PM2 进程。后端更新时，继续按现有方式执行 `git pull --ff-only`、`yarn install`、`yarn build ui` 并重启后端。
+后端保留在 `/srv/ycoj-v3`，仍使用原有 PM2 进程 `ycoj`。流水线在服务器执行 `git fetch origin master`，将本地 `master` 快进到本次构建的准确提交，然后执行 `yarn install`、加载器检查、`pm2 restart ycoj`、健康检查和 `pm2 save`。后端启动时通过 `@hydrooj/register` 加载 TypeScript，不需要独立编译；不会执行 `yarn build ui`、`yarn build:ui` 或其他旧 UI 构建。
 
-前端改为运行 `/srv/ycoj-ui/releases/<版本>/server.js`。完成首次迁移后，前端发布不再需要在生产服务器上执行 `pnpm install` 或 `pnpm build`，也不用随着前端发布重启后端。暂时保留 `/srv/ycoj-v3/ycoj-ui` 和原来的构建产物，供首次迁移回退使用。
+服务器沿用已有 Git `origin` 和读取凭据，需能无交互拉取代码。源码必须位于 `master`，没有已跟踪文件的本地修改，且可快进到目标提交；服务器已有更新提交时会拒绝降级。未跟踪且不与新源码冲突的配置、插件和原有旧 UI 产物保留。首次运行前用 `git -C /srv/ycoj-v3 status` 检查；发现修改时先自行备份并处理，脚本不会自动清除。
 
-只有 CNB 构建设置 `YCOJ_STANDALONE=1`，原来的源码构建与 `pnpm start` 仍可使用。CNB 的前端产物不包含后端；涉及后端接口变化时，需要协调前后端发布顺序。
+前端改为运行 `/srv/ycoj-ui/releases/<版本>/server.js`。完成首次迁移后，前端发布不再需要在生产服务器上执行 `pnpm install` 或 `pnpm build`。当前每次推送都会更新后端并重启 `ycoj`。暂时保留 `/srv/ycoj-v3/ycoj-ui` 和原来的构建产物，供首次迁移回退使用。
+
+只有 CNB 构建设置 `YCOJ_STANDALONE=1`，原来的源码构建与 `pnpm start` 仍可使用。前后端发布共享 CNB 部署锁，后端成功后才发布前端；接口变更需兼容切换期间仍在运行的旧前端。
 
 ## 1. 准备服务器
 
-以下操作使用**当前管理 PM2 的同一 Linux 用户**执行。该账户的 SSH 登录 shell 需要能找到 Node.js 22 和 `pm2`；同时需要 Bash、GNU tar/coreutils、curl 和提供 `flock` 的 util-linux。服务器应为 Linux x86_64、glibc 环境，不能将此产物直接用于 Alpine/musl。
+以下操作使用**当前管理 PM2 的同一 Linux 用户**执行。该账户的 SSH 登录 shell 需要能找到 Node.js 22.19 及以上、现有 Yarn 和 `pm2`；同时需要 Git、Bash、GNU tar/coreutils、curl 和提供 `flock` 的 util-linux。服务器应为 Linux x86_64、glibc 环境，不能将此产物直接用于 Alpine/musl。
 
 ```bash
 node --version
 pm2 list
 uname -m
-command -v curl flock
+command -v git yarn curl flock
+pm2 describe ycoj
+git -C /srv/ycoj-v3 status
 
 # 若该目录尚不存在且当前用户无权在 /opt 创建目录，由管理员执行这两行。
 sudo mkdir -p /srv/ycoj-ui
@@ -46,18 +50,21 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 
 填写：
 
-| 变量                 | 配置                                                           |
-| -------------------- | -------------------------------------------------------------- |
-| `DEPLOY_HOST`        | 服务器域名或 IPv4 地址，不带协议和端口                         |
-| `DEPLOY_PORT`        | SSH 端口，默认 `22`                                            |
-| `DEPLOY_USER`        | 当前 PM2 所属 Linux 用户                                       |
-| `DEPLOY_ROOT`        | 默认 `/srv/ycoj-ui`，使用不含空格和点号的绝对路径              |
-| `DEPLOY_SSH_KEY`     | 专用部署私钥的完整多行内容，无交互式口令                       |
-| `DEPLOY_KNOWN_HOSTS` | 经独立核对指纹的 SSH 主机公钥记录                              |
-| `DEPLOY_ACTIVATE`    | 首次为字符串 `'false'`，迁移成功后改为 `'true'`                |
-| `BACKEND_BASEURL`    | 与生产服务器一致的后端地址，同时配置在服务器 `runtime.env`     |
-| `NEXT_PUBLIC_*`      | 沿用实际生产值；这些配置需要在构建时提供                       |
-| `SITE_NAME`          | 未匹配到 branding 或后端不可用时的默认名称，构建时提供，可省略 |
+| 变量                        | 配置                                                                                                                  |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `DEPLOY_HOST`               | 服务器域名或 IPv4 地址，不带协议和端口                                                                                |
+| `DEPLOY_PORT`               | SSH 端口，默认 `22`                                                                                                   |
+| `DEPLOY_USER`               | 当前 PM2 所属 Linux 用户                                                                                              |
+| `DEPLOY_ROOT`               | 默认 `/srv/ycoj-ui`，使用不含空格和点号的绝对路径                                                                     |
+| `DEPLOY_BACKEND_ROOT`       | 后端源码目录，默认 `/srv/ycoj-v3`                                                                                     |
+| `DEPLOY_BACKEND_PM2_NAME`   | 后端已有 PM2 进程名称，默认 `ycoj`，只重启该进程                                                                      |
+| `DEPLOY_BACKEND_HEALTH_URL` | 可选，默认 `BACKEND_BASEURL` 后接 `/branding?origin=http%3A%2F%2Flocalhost`，须能从生产服务器无认证访问并返回成功状态 |
+| `DEPLOY_SSH_KEY`            | 专用部署私钥的完整多行内容，无交互式口令                                                                              |
+| `DEPLOY_KNOWN_HOSTS`        | 经独立核对指纹的 SSH 主机公钥记录                                                                                     |
+| `DEPLOY_ACTIVATE`           | 首次为字符串 `'false'`，迁移成功后改为 `'true'`                                                                       |
+| `BACKEND_BASEURL`           | 与生产服务器一致的后端地址，同时配置在服务器 `runtime.env`                                                            |
+| `NEXT_PUBLIC_*`             | 沿用实际生产值；这些配置需要在构建时提供                                                                              |
+| `SITE_NAME`                 | 未匹配到 branding 或后端不可用时的默认名称，构建时提供，可省略                                                        |
 
 主机公钥可用 `ssh-keyscan -p <端口> <服务器>` 收集，并与服务器上 `/etc/ssh/ssh_host_*_key.pub` 的指纹核对。非标准端口的 known_hosts 名称应为 `[主机]:端口`。流水线启用严格主机验证，不会自动信任扫描结果。
 
@@ -71,7 +78,7 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 
 ## 3. 首次上传并迁移 PM2
 
-先保持 `DEPLOY_ACTIVATE: 'false'`。将配置合并到业务仓库的 `master` 并推送，等待 GitHub 同步及 CNB 构建。CNB 上传成功后，日志会打印具体版本的激活命令，例如：
+先保持 `DEPLOY_ACTIVATE: 'false'`，此设置只控制前端；后端仍会自动更新并重启 `ycoj`。将配置合并到业务仓库的 `master` 并推送，等待 GitHub 同步及 CNB 构建。CNB 上传成功后，日志会打印具体版本的激活命令，例如：
 
 ```bash
 bash /srv/ycoj-ui/releases/<版本>/activate-ui.sh /srv/ycoj-ui <版本>
@@ -109,7 +116,9 @@ pm2 show ycoj-ui
 
 ## 自动部署与回退
 
-- 构建失败不会触碰运行中的服务。上传后校验 SHA-256，再解压到独立版本目录。
+- CNB 前端构建失败不会开始发布。后端依赖安装或检查失败时，不执行 PM2 重启和前端上传。后端重启后检查指定进程均为 online，且 HTTP 健康检查成功，最多等待约 150 秒。
+- 后端是原目录源码更新，并非原子发布；安装失败时源码可能已更新，运行中的进程也可能读取新文件。失败后需要检查 `pm2 logs ycoj`，手动恢复源码和依赖。脚本不会自动回滚源码、依赖或数据库。后端成功但前端上传/激活失败时，后端保持新版本。
+- 前端上传后校验 SHA-256，再解压到独立版本目录。
 - 构建前校验并检出 `CNB_COMMIT`，Git 和 LFS 下载失败时分别重试，避免 CNB 检出服务遇到 HTTP 429 却留下空仓库后继续构建。各步骤通过 `CNB_BUILD_WORKSPACE` 定位源码。
 - CNB 的部署步骤使用锁串行执行，并在锁内检查当前 `master`，跳过已经过时的构建；服务器再通过 `flock` 防止手动激活和自动部署相互覆盖。
 - 更新时将 `current` 原子切换到新版本，以明确的版本路径更新 PM2 的脚本和工作目录；只执行 `pm2 restart ycoj-ui` 不足以修改旧进程的启动路径。
@@ -128,6 +137,7 @@ bash /srv/ycoj-ui/releases/<旧版本>/activate-ui.sh /srv/ycoj-ui <旧版本>
 bash .cnb/tests/deploy-ui.test.sh
 bash .cnb/tests/activate-ui.test.sh
 bash .cnb/tests/checkout-ui.test.sh
+bash .cnb/tests/deploy-backend.test.sh
 ```
 
 在 Git for Windows 中运行上述模拟测试时，可以设置 `MSYS=winsymlinks:lnk`，避免测试目录的符号链接被复制为普通目录。实际生产部署及发布包必须使用 Linux 构建。

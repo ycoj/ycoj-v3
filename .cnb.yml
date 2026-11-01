@@ -1,6 +1,6 @@
 master:
   push:
-    - name: deploy-ui
+    - name: deploy-production
       runner:
         tags: cnb:arch:amd64
         cpus: 8
@@ -61,11 +61,14 @@ master:
             YCOJ_STANDALONE=1 pnpm build
         - name: Package UI
           script: bash "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/.cnb/package-ui.sh"
-        - name: Upload and deploy UI
+        - name: Deploy backend and UI
           timeout: 30m
           lock:
             key: production-ui
             wait: true
             expires: 1800
             timeout: 3600
-          script: bash "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/.cnb/deploy-ui.sh"
+          script: |
+            set -eu
+            bash "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/.cnb/deploy-backend.sh"
+            bash "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/.cnb/deploy-ui.sh"

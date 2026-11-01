@@ -78,6 +78,7 @@ jobs:
           bash .cnb/tests/activate-ui.test.sh
           bash .cnb/tests/deploy-ui.test.sh
           bash .cnb/tests/checkout-ui.test.sh
+          bash .cnb/tests/deploy-backend.test.sh
           bash .cnb/package-ui.sh
 
       - name: Install Playwright browsers
