@@ -22,11 +22,6 @@ if [[ "$(git symbolic-ref --short HEAD)" != master ]]; then
   echo 'Backend source must be on the master branch.' >&2
   exit 1
 fi
-if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
-  echo 'Backend has tracked local changes; refusing to overwrite them.' >&2
-  git status --short --untracked-files=no >&2
-  exit 1
-fi
 pm2 describe "$process_name" > /dev/null
 
 retry() {
@@ -44,6 +39,31 @@ GIT_TERMINAL_PROMPT=0 retry git fetch origin master
 git cat-file -e "$commit^{commit}"
 git merge-base --is-ancestor "$commit" FETCH_HEAD
 git merge-base --is-ancestor HEAD "$commit"
+
+# Local production fixes can become tracked upstream. Only stage files whose
+# current contents already match the target commit; never discard local edits.
+matching=()
+while IFS= read -r -d '' path; do
+  if ! git diff --quiet "$commit" -- "$path"; then
+    echo "Backend has local changes not included in this release: $path" >&2
+    exit 1
+  fi
+  matching+=("$path")
+done < <(git diff --name-only -z HEAD)
+while IFS= read -r -d '' path; do
+  if ! expected=$(git rev-parse --verify "$commit:$path" 2>/dev/null); then continue; fi
+  if [[ ! -f "$path" || -L "$path" ]] || \
+    [[ "$(git hash-object --path="$path" -- "$path")" != "$expected" ]]; then
+    echo "Untracked server file conflicts with this release: $path" >&2
+    exit 1
+  fi
+  matching+=("$path")
+done < <(git ls-files --others --exclude-standard -z)
+if [[ "${#matching[@]}" -gt 0 ]]; then
+  git --literal-pathspecs add -- "${matching[@]}"
+  git --literal-pathspecs diff --cached --quiet "$commit" -- "${matching[@]}"
+  echo 'Preserving server changes already included in this release.'
+fi
 git merge --ff-only "$commit"
 test "$(git rev-parse HEAD)" = "$commit"
 

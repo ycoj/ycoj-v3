@@ -16,6 +16,9 @@ git -C "$fixture/upstream" add source.txt
 git -C "$fixture/upstream" commit -qm initial
 base=$(git -C "$fixture/upstream" rev-parse HEAD)
 echo next > "$fixture/upstream/source.txt"
+mkdir -p "$fixture/upstream/.yarn/releases"
+echo bundled-yarn > "$fixture/upstream/.yarn/releases/yarn.cjs"
+git -C "$fixture/upstream" add .yarn/releases/yarn.cjs
 git -C "$fixture/upstream" commit -qam next
 target=$(git -C "$fixture/upstream" rev-parse HEAD)
 echo future > "$fixture/upstream/source.txt"
@@ -76,11 +79,28 @@ grep -qx 'pm2 save' "$BACKEND_TEST_LOG"
 [[ "$(grep -c '^yarn ' "$BACKEND_TEST_LOG")" = 1 ]]
 echo 'PASS: exact triggering commit is deployed, config preserved, only ycoj restarts, no UI build'
 
+setup matching-changes
+echo next > "$server/source.txt"
+mkdir -p "$server/.yarn/releases"
+echo bundled-yarn > "$server/.yarn/releases/yarn.cjs"
+deploy
+[[ "$(git -C "$server" rev-parse HEAD)" = "$target" ]]
+[[ -z "$(git -C "$server" status --porcelain)" ]]
+echo 'PASS: matching tracked fixes and untracked Yarn release are preserved and become clean'
+
+setup conflicting-untracked
+mkdir -p "$server/.yarn/releases"
+echo server-custom-yarn > "$server/.yarn/releases/yarn.cjs"
+if deploy; then echo 'Expected untracked conflict rejection' >&2; exit 1; fi
+[[ "$(cat "$server/.yarn/releases/yarn.cjs")" = server-custom-yarn ]]
+if grep -q '^pm2 restart\|^yarn ' "$BACKEND_TEST_LOG"; then exit 1; fi
+echo 'PASS: conflicting untracked server files are preserved and block deployment'
+
 setup dirty
 echo local > "$server/source.txt"
 if deploy; then echo 'Expected dirty tree rejection' >&2; exit 1; fi
 [[ "$(cat "$server/source.txt")" = local ]]
-[[ ! -s "$BACKEND_TEST_LOG" || "$(cat "$BACKEND_TEST_LOG")" = flock ]]
+if grep -q '^pm2 restart\|^yarn ' "$BACKEND_TEST_LOG"; then exit 1; fi
 echo 'PASS: tracked server changes prevent update and restart'
 
 setup newer

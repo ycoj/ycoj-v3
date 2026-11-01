@@ -35,7 +35,7 @@ export default class JudgeClientProvider implements IBasicProvider {
         this.baseUrl = normalizeBaseUrl(account.endpoint || '');
         this.token = String((account.password || SystemModel.get('judgeserver.token') || '')).replace(/`/g, '').trim();
         this.client = axios.create({
-            baseURL: this.baseUrl || 'https://zshfoj.com/',
+            baseURL: this.baseUrl || 'https://lvj-serverless-blbamlbfxi.cn-hangzhou.fcapp.run/',
             headers: {
                 Accept: 'application/json',
                 'User-Agent': account.UA || getDefaultUA(),
