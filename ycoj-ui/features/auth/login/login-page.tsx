@@ -2,6 +2,7 @@
 
 import { resolveLoginRedirect } from './resolve-login-redirect';
 import ClientApis from '@/api/client/method';
+import { useBrand } from '@/features/branding/brand-provider';
 import ThemeLogo from '@/shared/components/theme-logo';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -31,9 +32,8 @@ type LoginFormValues = {
   rememberme: boolean;
 };
 
-const siteName = process.env.SITE_NAME ?? '';
-
 export function LoginPage() {
+  const { name: siteName } = useBrand();
   const t = useTranslations();
   const searchParams = useSearchParams();
   const [submitError, setSubmitError] = useState<string | null>(null);

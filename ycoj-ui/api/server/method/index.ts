@@ -5,6 +5,7 @@ import AccountExpiration from '@/api/server/method/account-expiration';
 import AiProvider from '@/api/server/method/ai-provider';
 import Auth from '@/api/server/method/auth';
 import Award from '@/api/server/method/award';
+import Branding from '@/api/server/method/branding';
 import Contests from '@/api/server/method/contests';
 import Discussion from '@/api/server/method/discussion';
 import Homework from '@/api/server/method/homework';
@@ -23,6 +24,7 @@ const ServerApis = {
   Account,
   AccountExpiration,
   AiProvider,
+  Branding,
   Award,
   Auth,
   UI,

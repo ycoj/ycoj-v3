@@ -25,6 +25,8 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 
 Within a group, use its `README.md` only as an index and open the linked endpoint document. A registered path can expose GET, POST, multiple POST `operation` values, or a connection; follow the contract for the exact variant being called.
 
+Domain branding: [`GET /branding` and `GET|POST /manage/branding`](ui/branding.md), including exact-origin CORS grants, defaults and deployment requirements.
+
 Contest Rating fields, scoreboard results, profile summaries/history and automatic replay: [Contest Rating](contest/rating.md).
 
 Default contest/homework scoreboard dictionaries include published domain Rating summaries for username coloring, gated by `PERM_VIEW_CONTEST_SCOREBOARD`; global administrator styling uses existing `priv` fields. See [the scoreboard summary contract](contest/rating.md#scoreboard-result).

@@ -9,6 +9,7 @@ import { PRIV } from '@/features/user/lib/priv';
 import { cn } from '@/shared/lib/utils';
 import {
   Award,
+  Globe,
   CalendarClock,
   Sparkles,
   UserCheck,
@@ -36,6 +37,7 @@ export default function ManageSidebar({ priv }: { priv: number }) {
       : []),
     ...(canEditSystem({ priv })
       ? [
+          { href: '/manage/branding', label: t('branding'), icon: Globe },
           { href: '/manage/award', label: t('award'), icon: Award },
           {
             href: '/manage/ai-provider',
