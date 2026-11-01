@@ -110,6 +110,7 @@ pm2 show ycoj-ui
 ## 自动部署与回退
 
 - 构建失败不会触碰运行中的服务。上传后校验 SHA-256，再解压到独立版本目录。
+- 构建前校验并检出 `CNB_COMMIT`，Git 和 LFS 下载失败时分别重试，避免 CNB 检出服务遇到 HTTP 429 却留下空仓库后继续构建。各步骤通过 `CNB_BUILD_WORKSPACE` 定位源码。
 - CNB 的部署步骤使用锁串行执行，并在锁内检查当前 `master`，跳过已经过时的构建；服务器再通过 `flock` 防止手动激活和自动部署相互覆盖。
 - 更新时将 `current` 原子切换到新版本，以明确的版本路径更新 PM2 的脚本和工作目录；只执行 `pm2 restart ycoj-ui` 不足以修改旧进程的启动路径。
 - 健康检查访问本机前端端口的版本专属静态文件，确认该进程正在服务新产物；这不替代完整的后端和业务功能检查。重启或健康检查失败时，恢复上一版本的链接及 PM2 启动配置。
@@ -126,6 +127,7 @@ bash /srv/ycoj-ui/releases/<旧版本>/activate-ui.sh /srv/ycoj-ui <旧版本>
 ```bash
 bash .cnb/tests/deploy-ui.test.sh
 bash .cnb/tests/activate-ui.test.sh
+bash .cnb/tests/checkout-ui.test.sh
 ```
 
 在 Git for Windows 中运行上述模拟测试时，可以设置 `MSYS=winsymlinks:lnk`，避免测试目录的符号链接被复制为普通目录。实际生产部署及发布包必须使用 Linux 构建。
