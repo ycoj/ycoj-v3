@@ -86,9 +86,12 @@ describe('learning rewards', () => {
             assert.equal(wallet.equipped[item.slot], item.id);
         }
         const balance = wallet.balance;
+        const equipped = { ...wallet.equipped };
         wallet = applyRewardAction(wallet, { action: 'unequip', id: 'title' }, complete, now);
         assert.equal(wallet.equipped.title, undefined);
-        assert.equal(wallet.equipped.frame, 'frame-starlight');
+        assert.equal(wallet.equipped.frame, equipped.frame);
+        assert.equal(wallet.equipped.background, equipped.background);
+        assert.equal(wallet.equipped.accent, equipped.accent);
         assert.equal(wallet.owned.length, REWARD_CATALOG.length);
         assert.equal(wallet.balance, balance);
     });
