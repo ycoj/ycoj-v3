@@ -231,6 +231,8 @@
     "fileActionFailed": "The file operation failed.",
     "noTestdata": "No test data has been uploaded."
   },
+  "title": "Problems",
+  "subtitle": "Browse the problem set, filter by topic or difficulty, and pick your next challenge.",
   "searchPlaceholder": "Search problems...",
   "createOrImport": "Create or import",
   "addProblem": "Add problems",

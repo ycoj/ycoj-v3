@@ -8,6 +8,7 @@ import {
   type ProblemFilterSearchParams,
 } from '@/features/problem/list/problem-filter-utils';
 import ProblemList from '@/features/problem/list/problem-list';
+import ProblemListHeader from '@/features/problem/list/problem-list-header';
 import ProblemSearch from '@/features/problem/list/problem-search';
 import { getUser } from '@/features/user/lib/get-user';
 import { hasPerm, PERM } from '@/features/user/lib/priv';
@@ -43,19 +44,21 @@ export default async function ProblemListPage({
   const namespaces = Object.keys(domain?.namespaces ?? {});
 
   return (
-    <div className="space-y-4">
-      <ProblemSearch
+    <div className="space-y-5">
+      <ProblemListHeader
         canCreate={hasPerm(user, PERM.PERM_CREATE_PROBLEM)}
         canReview={hasPerm(user, PERM.PERM_DELETE_PROBLEM_SOLUTION)}
         pendingSolutionCount={data.pendingSolutionCount}
         canManageFeedback={canEditSystem(user)}
-        filters={filters}
       />
-      <ProblemFilterBar
-        filters={filters}
-        categories={tags}
-        namespaces={namespaces}
-      />
+      <div className="space-y-3">
+        <ProblemSearch filters={filters} />
+        <ProblemFilterBar
+          filters={filters}
+          categories={tags}
+          namespaces={namespaces}
+        />
+      </div>
       <ProblemList
         data={data}
         showTags={filters.showTags}

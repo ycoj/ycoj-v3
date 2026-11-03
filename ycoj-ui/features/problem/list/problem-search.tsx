@@ -1,43 +1,24 @@
 'use client';
 
-import ProblemCreateOrImportDialog from './problem-create-or-import-dialog';
 import {
   applyProblemSearchInput,
   problemFilterHref,
   type ProblemFilters,
 } from '@/features/problem/list/problem-filter-utils';
-import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { ListChecks, MessageSquareWarning, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 
 type Props = {
-  canCreate: boolean;
-  canReview?: boolean;
-  pendingSolutionCount?: number;
-  canManageFeedback?: boolean;
   filters: ProblemFilters;
 };
 
-export default function ProblemSearch({
-  canCreate,
-  canReview = false,
-  pendingSolutionCount = 0,
-  canManageFeedback = false,
-  filters,
-}: Props) {
+export default function ProblemSearch({ filters }: Props) {
   const t = useTranslations('problem');
-  const reviewT = useTranslations('solution.review');
   const router = useRouter();
   const [query, setQuery] = useState(filters.q);
-
-  const reviewLabel =
-    pendingSolutionCount > 0
-      ? reviewT('pendingCount', { count: pendingSolutionCount })
-      : reviewT('title');
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -47,57 +28,18 @@ export default function ProblemSearch({
   };
 
   return (
-    <div className="flex items-stretch gap-2">
-      <form onSubmit={handleSubmit} className="min-w-0 flex-1">
-        <div className="relative">
-          <Input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('searchPlaceholder')}
-            aria-label={t('searchPlaceholder')}
-            className="pl-10 pr-4 text-sm"
-          />
-          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        </div>
-      </form>
-
-      {canCreate && <ProblemCreateOrImportDialog />}
-      {canReview && (
-        <Button
-          asChild
-          variant="outline"
-          size="icon"
-          className="relative"
-          aria-label={reviewLabel}
-          title={reviewLabel}
-        >
-          <Link href="/problem/solution-review" prefetch={false}>
-            <ListChecks />
-            {pendingSolutionCount > 0 && (
-              <span
-                aria-hidden="true"
-                className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none font-semibold text-white tabular-nums"
-              >
-                {pendingSolutionCount}
-              </span>
-            )}
-          </Link>
-        </Button>
-      )}
-      {canManageFeedback && (
-        <Button
-          asChild
-          variant="outline"
-          size="icon"
-          aria-label={t('feedbackManage')}
-          title={t('feedbackManage')}
-        >
-          <Link href="/problem/feedback" prefetch={false}>
-            <MessageSquareWarning />
-          </Link>
-        </Button>
-      )}
-    </div>
+    <form onSubmit={handleSubmit} className="min-w-0">
+      <div className="relative">
+        <Input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('searchPlaceholder')}
+          aria-label={t('searchPlaceholder')}
+          className="pl-10 pr-4 text-sm"
+        />
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+      </div>
+    </form>
   );
 }

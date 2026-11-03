@@ -78,6 +78,11 @@ export default function ProblemList({
   );
   const checkState = selectionCheckState(effectiveSelection, editableIds);
   const columnCount = editing ? 7 : 6;
+  // An open-ended count ("gte") is only a lower bound, so it is not shown.
+  const resultSummary =
+    data.pcountRelation === 'eq'
+      ? common('problems', { count: data.pcount })
+      : '';
 
   const leaveEditMode = () => {
     setEditing(false);
@@ -91,17 +96,24 @@ export default function ProblemList({
 
   return (
     <div className="space-y-3">
-      {canEdit && !editing && (
-        <div>
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            onClick={() => setEditing(true)}
+      {!editing && (
+        <div className="flex min-h-9 items-center justify-between gap-3">
+          <p
+            className="text-muted-foreground text-sm"
+            data-llm-text={resultSummary}
           >
-            <Pencil className="text-muted-foreground" />
-            <span data-llm-text={editT('enter')}>{editT('enter')}</span>
-          </Button>
+            {resultSummary}
+          </p>
+          {canEdit && (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil className="text-muted-foreground" />
+              <span data-llm-text={editT('enter')}>{editT('enter')}</span>
+            </Button>
+          )}
         </div>
       )}
 

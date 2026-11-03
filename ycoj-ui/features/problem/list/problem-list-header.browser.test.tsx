@@ -1,5 +1,5 @@
 import '@/app/globals.css';
-import ProblemSearch from './problem-search';
+import ProblemListHeader from './problem-list-header';
 import messages from '@/messages/en';
 import zhMessages from '@/messages/zh';
 import { render, screen } from '@testing-library/react';
@@ -29,17 +29,6 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-const defaultFilters = {
-  q: '',
-  category: [],
-  difficulty: [],
-  namespace: '',
-  sort: 'default' as const,
-  dir: 'asc' as const,
-  showTags: false,
-  page: 1,
-};
-
 function mount(count?: number, canReview = true, locale = 'en') {
   return render(
     <NextIntlClientProvider
@@ -47,17 +36,40 @@ function mount(count?: number, canReview = true, locale = 'en') {
       messages={locale === 'zh' ? zhMessages : messages}
     >
       <div className="p-4">
-        <ProblemSearch
+        <ProblemListHeader
           canCreate
           canReview={canReview}
           canManageFeedback
           pendingSolutionCount={count}
-          filters={defaultFilters}
         />
       </div>
     </NextIntlClientProvider>
   );
 }
+
+describe('problem list header', () => {
+  it('shows the page title, description and create action', () => {
+    mount();
+    expect(screen.getByRole('heading', { name: 'Problems' })).toBeVisible();
+    expect(
+      screen.getByText(/Browse the problem set, filter by topic/)
+    ).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Create or import' })
+    ).toBeVisible();
+  });
+
+  it('omits the action area for users without any permission', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <ProblemListHeader canCreate={false} />
+      </NextIntlClientProvider>
+    );
+    expect(screen.getByRole('heading', { name: 'Problems' })).toBeVisible();
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+});
 
 describe('problem list solution review notification', () => {
   it.each([undefined, 0])('hides the badge when the count is %s', (count) => {
