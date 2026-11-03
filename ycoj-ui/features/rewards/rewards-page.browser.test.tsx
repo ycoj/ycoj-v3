@@ -9,6 +9,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
@@ -111,6 +112,8 @@ function fixture(): RewardsData {
     catalog: [
       { id: 'frame-sprout', slot: 'frame', price: 60 },
       { id: 'frame-starlight', slot: 'frame', price: 180 },
+      { id: 'frame-tiger', slot: 'frame', price: 200 },
+      { id: 'frame-pixel', slot: 'frame', price: 200 },
       { id: 'title-explorer', slot: 'title', price: 80 },
       { id: 'background-sky', slot: 'background', price: 120 },
       { id: 'accent-forest', slot: 'accent', price: 160 },
@@ -260,6 +263,61 @@ describe('learning rewards page', () => {
     expect(
       screen.queryByRole('button', { name: 'Equip' })
     ).not.toBeInTheDocument();
+  });
+
+  it('groups shop items by category and filters to a single category', async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
+    for (const name of [
+      'Avatar frame',
+      'Name background',
+      'Personal title',
+      'Interface accent',
+    ]) {
+      expect(await screen.findByRole('region', { name })).toBeVisible();
+    }
+    const frames = screen.getByRole('region', { name: 'Avatar frame' });
+    expect(
+      within(frames).getByRole('button', { name: 'Preview Little tiger frame' })
+    ).toBeVisible();
+    expect(
+      within(frames).getByRole('button', {
+        name: 'Preview Pixel explorer frame',
+      })
+    ).toBeVisible();
+    expect(within(frames).getByText('0 of 4 owned')).toBeVisible();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Personal title' })
+    );
+    expect(
+      screen.queryByRole('region', { name: 'Avatar frame' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Personal title' })
+    ).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'All' }));
+    expect(screen.getByRole('region', { name: 'Avatar frame' })).toBeVisible();
+  });
+
+  it('draws the tiger and pixel frames around the previewed avatar', async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Preview Little tiger frame' })
+    );
+    const preview = screen.getByRole('complementary', {
+      name: 'Appearance preview',
+    });
+    expect(
+      preview.querySelector('[data-reward-frame="frame-tiger"]')
+    ).toBeVisible();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Preview Pixel explorer frame' })
+    );
+    expect(
+      preview.querySelector('[data-reward-frame="frame-pixel"]')
+    ).toBeVisible();
   });
 
   it.each([375, 1280])(

@@ -5,6 +5,8 @@ export interface RewardItem { id: string, slot: RewardSlot, price: number }
 export const REWARD_CATALOG: RewardItem[] = [
     { id: 'frame-sprout', slot: 'frame', price: 60 },
     { id: 'frame-starlight', slot: 'frame', price: 180 },
+    { id: 'frame-tiger', slot: 'frame', price: 200 },
+    { id: 'frame-pixel', slot: 'frame', price: 200 },
     { id: 'background-sky', slot: 'background', price: 120 },
     { id: 'background-peach', slot: 'background', price: 120 },
     { id: 'title-explorer', slot: 'title', price: 80 },

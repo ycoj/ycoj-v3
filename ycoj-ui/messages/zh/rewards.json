@@ -91,6 +91,14 @@
       "name": "星光头像框",
       "description": "把认真攒成星光，让头像多一点明亮。"
     },
+    "frame-tiger": {
+      "name": "小老虎头像框",
+      "description": "立起耳朵，绘上虎纹，为勇敢解题的你加油。"
+    },
+    "frame-pixel": {
+      "name": "像素探险家头像框",
+      "description": "草方块与泥土拼成的像素边框，献给热爱探索的建造者。"
+    },
     "background-sky": {
       "name": "晴空名字背景",
       "description": "为名字铺上一片晴空，在个人页与用户列表展示。"
@@ -122,5 +130,14 @@
     "task-incomplete": "任务还未完成，或已经跨过重置时间。请刷新进度后再试。",
     "item-not-owned": "请先兑换这件装扮，再进行佩戴。",
     "busy": "操作有些频繁，请刷新进度后重试。"
+  },
+  "allCategories": "全部",
+  "categoriesLabel": "物品分类",
+  "categoryOwned": "已拥有 {owned}/{total}",
+  "slotHints": {
+    "frame": "环绕在头像周围的装饰。",
+    "background": "用户名背后的彩色底纹。",
+    "title": "显示在用户名旁的称号。",
+    "accent": "按钮和高亮处的主题色。"
   }
 }

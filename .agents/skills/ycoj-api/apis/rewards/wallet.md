@@ -130,6 +130,8 @@ Catalog:
 | --- | --- | --- |
 | `frame-sprout` | frame | 60 |
 | `frame-starlight` | frame | 180 |
+| `frame-tiger` | frame | 200 |
+| `frame-pixel` | frame | 200 |
 | `background-sky` | background | 120 |
 | `background-peach` | background | 120 |
 | `title-explorer` | title | 80 |

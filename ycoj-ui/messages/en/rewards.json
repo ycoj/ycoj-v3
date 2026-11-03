@@ -91,6 +91,14 @@
       "name": "Starlight frame",
       "description": "Turn your thoughtful practice into a bright golden frame."
     },
+    "frame-tiger": {
+      "name": "Little tiger frame",
+      "description": "Pointed ears and bold stripes for a fearless problem solver."
+    },
+    "frame-pixel": {
+      "name": "Pixel explorer frame",
+      "description": "A blocky grass-and-dirt border for builders who love to explore."
+    },
     "background-sky": {
       "name": "Clear sky name",
       "description": "A soft blue background for your name on profiles and user lists."
@@ -122,5 +130,14 @@
     "task-incomplete": "This task is incomplete or its period has reset. Refresh progress and try again.",
     "item-not-owned": "Redeem this item before equipping it.",
     "busy": "Too many actions at once. Refresh progress and try again."
+  },
+  "allCategories": "All",
+  "categoriesLabel": "Item categories",
+  "categoryOwned": "{owned} of {total} owned",
+  "slotHints": {
+    "frame": "Decorations that surround your avatar.",
+    "background": "A colored highlight behind your name.",
+    "title": "A label shown next to your name.",
+    "accent": "A color theme for buttons and highlights."
   }
 }

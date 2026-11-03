@@ -35,6 +35,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
+const SLOT_ORDER: RewardSlot[] = ['frame', 'background', 'title', 'accent'];
+
 type Props = { initialData: RewardsData; user: BaseUser };
 
 export default function RewardsPage({ initialData, user }: Props) {
@@ -44,6 +46,7 @@ export default function RewardsPage({ initialData, user }: Props) {
   const [data, setData] = useState(initialData);
   const [selectedId, setSelectedId] = useState(initialData.catalog[0]?.id);
   const [ownedOnly, setOwnedOnly] = useState(false);
+  const [category, setCategory] = useState<'all' | RewardSlot>('all');
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
@@ -64,6 +67,16 @@ export default function RewardsPage({ initialData, user }: Props) {
   const ready = data.tasks.filter(
     (task) => !task.claimed && task.progress >= task.target
   ).length;
+
+  const shopGroups = SLOT_ORDER.map((slot) => ({
+    slot,
+    items: data.catalog.filter(
+      (item) =>
+        item.slot === slot &&
+        (category === 'all' || category === slot) &&
+        (!ownedOnly || data.wallet.owned.includes(item.id))
+    ),
+  })).filter((group) => group.items.length > 0);
 
   const run = async (key: string, action?: RewardAction) => {
     if (inFlight.current) return;
@@ -157,19 +170,25 @@ export default function RewardsPage({ initialData, user }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 pb-8" data-llm-visible="true">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl space-y-2">
-          <h1 className="text-2xl font-semibold">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('description')}</p>
+    <div className="space-y-5" data-llm-visible="true">
+      <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+        <div className="min-w-0 max-w-2xl space-y-1">
+          <h1 className="text-xl leading-tight font-semibold md:text-2xl">
+            {t('title')}
+          </h1>
+          <p className="text-muted-foreground text-sm">{t('description')}</p>
         </div>
-        <div className="flex items-center gap-4 rounded-xl bg-amber-50 px-4 py-3 text-amber-950 dark:bg-amber-950 dark:text-amber-100">
-          <Coins className="size-6" aria-hidden="true" />
+        <div className="bg-card flex items-center gap-3 rounded-xl border px-4 py-3">
+          <span className="flex size-10 items-center justify-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+            <Coins className="size-5" aria-hidden="true" />
+          </span>
           <div>
-            <p className="text-xs">{t('balance')}</p>
-            <p className="text-xl font-semibold tabular-nums">
+            <p className="text-muted-foreground text-xs">{t('balance')}</p>
+            <p className="text-xl leading-tight font-semibold tabular-nums">
               {format.number(data.wallet.balance)}{' '}
-              <span className="text-sm font-normal">{t('coins')}</span>
+              <span className="text-muted-foreground text-sm font-normal">
+                {t('coins')}
+              </span>
             </p>
           </div>
         </div>
@@ -208,8 +227,8 @@ export default function RewardsPage({ initialData, user }: Props) {
             {t('refresh')}
           </Button>
         </div>
-        <TabsContent value="tasks" className="mt-6 space-y-8">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/50 p-4">
+        <TabsContent value="tasks" className="mt-5 space-y-6">
+          <div className="bg-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
             <div className="space-y-1">
               <h2 className="font-medium">{t('gentleGoal')}</h2>
               <p className="text-sm text-muted-foreground">
@@ -223,7 +242,7 @@ export default function RewardsPage({ initialData, user }: Props) {
           {(['daily', 'weekly'] as const).map((period) => (
             <section key={period} aria-label={t(period)}>
               <h2 className="mb-3 text-lg font-semibold">{t(period)}</h2>
-              <div className="divide-y rounded-xl border px-4">
+              <div className="bg-card divide-y rounded-xl border px-4">
                 {data.tasks
                   .filter((task) => task.period === period)
                   .map((task) => (
@@ -320,11 +339,11 @@ export default function RewardsPage({ initialData, user }: Props) {
             <p className="max-w-3xl leading-relaxed">{t('contestHint')}</p>
           </section>
         </TabsContent>
-        <TabsContent value="shop" className="mt-6">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <TabsContent value="shop" className="mt-5 space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold">{t('shopTitle')}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-sm">
                 {t('shopHint')}
               </p>
             </div>
@@ -345,88 +364,138 @@ export default function RewardsPage({ initialData, user }: Props) {
               {t('ownedOnly')}
             </label>
           </div>
+          <div
+            role="group"
+            aria-label={t('categoriesLabel')}
+            className="flex flex-wrap gap-2"
+          >
+            {(['all', ...SLOT_ORDER] as const).map((slot) => (
+              <button
+                type="button"
+                key={slot}
+                aria-pressed={category === slot}
+                onClick={() => setCategory(slot)}
+                className={cn(
+                  'hover:bg-muted rounded-full border px-3 py-1 text-sm transition-colors',
+                  category === slot
+                    ? 'border-primary bg-primary/10 text-foreground font-medium'
+                    : 'border-border text-muted-foreground'
+                )}
+              >
+                {slot === 'all' ? t('allCategories') : t(`slots.${slot}`)}
+              </button>
+            ))}
+          </div>
           <div className="grid items-start gap-6 lg:grid-cols-[1fr_19rem]">
-            <div className="grid gap-3 sm:grid-cols-2">
-              {data.catalog
-                .filter(
-                  (item) => !ownedOnly || data.wallet.owned.includes(item.id)
-                )
-                .map((item) => (
-                  <button
-                    type="button"
-                    key={item.id}
-                    onClick={() => setSelectedId(item.id)}
-                    aria-pressed={selectedId === item.id}
-                    aria-label={t('previewItem', { item: itemName(item.id) })}
-                    className={cn(
-                      'space-y-3 rounded-xl border p-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
-                      selectedId === item.id && 'border-primary bg-primary/5'
-                    )}
-                  >
-                    <div
-                      className="flex h-16 items-center justify-center gap-3 rounded-lg bg-muted/40"
-                      data-reward-accent={
-                        item.slot === 'accent' ? item.id : undefined
-                      }
-                    >
-                      {item.slot === 'accent' ? (
-                        <>
-                          <span className="size-8 rounded-full bg-primary" />
-                          <span className="text-sm text-primary">YCOJ</span>
-                        </>
-                      ) : item.slot === 'title' ? (
-                        <RewardTitle id={item.id} />
-                      ) : (
-                        <>
-                          <UserAvatar
-                            user={{
-                              ...user,
-                              rewardEquipment: { [item.slot]: item.id },
-                            }}
-                            className="size-9"
-                          />
-                          {item.slot === 'background' && (
-                            <Username
-                              user={{
-                                ...user,
-                                rewardEquipment: { background: item.id },
-                              }}
-                            />
-                          )}
-                        </>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap justify-between gap-2">
-                      <h3 className="font-medium">{itemName(item.id)}</h3>
-                      <span className="text-sm tabular-nums">
-                        {data.wallet.owned.includes(item.id)
-                          ? t(
-                              data.wallet.equipped[item.slot] === item.id
-                                ? 'equipped'
-                                : 'owned'
-                            )
-                          : t('price', { coins: item.price })}
+            <div className="space-y-8">
+              {shopGroups.map(({ slot, items }) => {
+                const slotItems = data.catalog.filter(
+                  (item) => item.slot === slot
+                );
+                const slotOwned = slotItems.filter((item) =>
+                  data.wallet.owned.includes(item.id)
+                ).length;
+                return (
+                  <section key={slot} aria-label={t(`slots.${slot}`)}>
+                    <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                      <div className="flex flex-wrap items-baseline gap-x-3">
+                        <h3 className="font-semibold">{t(`slots.${slot}`)}</h3>
+                        <p className="text-muted-foreground text-xs">
+                          {t(`slotHints.${slot}`)}
+                        </p>
+                      </div>
+                      <span className="text-muted-foreground text-xs tabular-nums">
+                        {t('categoryOwned', {
+                          owned: slotOwned,
+                          total: slotItems.length,
+                        })}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t(`slots.${item.slot}`)}
-                    </p>
-                  </button>
-                ))}
-              {ownedOnly && !data.wallet.owned.length && (
-                <p className="col-span-full py-12 text-center text-sm text-muted-foreground">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {items.map((item) => (
+                        <button
+                          type="button"
+                          key={item.id}
+                          onClick={() => setSelectedId(item.id)}
+                          aria-pressed={selectedId === item.id}
+                          aria-label={t('previewItem', {
+                            item: itemName(item.id),
+                          })}
+                          className={cn(
+                            'bg-card hover:bg-muted/40 focus-visible:outline-ring space-y-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
+                            selectedId === item.id &&
+                              'border-primary bg-primary/5'
+                          )}
+                        >
+                          <div
+                            className="bg-muted/40 flex h-20 items-center justify-center gap-3 rounded-lg"
+                            data-reward-accent={
+                              item.slot === 'accent' ? item.id : undefined
+                            }
+                          >
+                            {item.slot === 'accent' ? (
+                              <>
+                                <span className="bg-primary size-8 rounded-full" />
+                                <span className="text-primary text-sm">
+                                  YCOJ
+                                </span>
+                              </>
+                            ) : item.slot === 'title' ? (
+                              <RewardTitle id={item.id} />
+                            ) : (
+                              <>
+                                <UserAvatar
+                                  user={{
+                                    ...user,
+                                    rewardEquipment: { [item.slot]: item.id },
+                                  }}
+                                  className={
+                                    item.slot === 'frame' ? 'size-11' : 'size-9'
+                                  }
+                                />
+                                {item.slot === 'background' && (
+                                  <Username
+                                    user={{
+                                      ...user,
+                                      rewardEquipment: { background: item.id },
+                                    }}
+                                  />
+                                )}
+                              </>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap justify-between gap-2">
+                            <h4 className="font-medium">{itemName(item.id)}</h4>
+                            <span className="text-sm tabular-nums">
+                              {data.wallet.owned.includes(item.id)
+                                ? t(
+                                    data.wallet.equipped[item.slot] === item.id
+                                      ? 'equipped'
+                                      : 'owned'
+                                  )
+                                : t('price', { coins: item.price })}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+              {shopGroups.length === 0 && (
+                <p className="text-muted-foreground col-span-full py-12 text-center text-sm">
                   {t('emptyInventory')}
                 </p>
               )}
             </div>
             <aside
-              className="order-first space-y-5 rounded-xl border p-5 lg:order-last lg:sticky lg:top-6"
+              className="bg-card order-first space-y-5 rounded-xl border p-5 lg:sticky lg:top-6 lg:order-last"
               aria-label={t('preview')}
               data-reward-accent={previewUser.rewardEquipment.accent}
             >
               <h2 className="font-semibold">{t('preview')}</h2>
               <div className="flex flex-wrap items-center gap-4 rounded-lg bg-muted/40 p-4">
-                <UserAvatar user={previewUser} className="size-12" />
+                <UserAvatar user={previewUser} className="size-14" />
                 <div className="min-w-0 space-y-2">
                   <Username user={previewUser} className="break-all" />
                   <div>
@@ -447,9 +516,7 @@ export default function RewardsPage({ initialData, user }: Props) {
               )}
               <div className="space-y-2 border-t pt-4">
                 <h3 className="text-sm font-medium">{t('wearing')}</h3>
-                {(
-                  ['frame', 'background', 'title', 'accent'] as RewardSlot[]
-                ).map((slot) => (
+                {SLOT_ORDER.map((slot) => (
                   <div
                     key={slot}
                     className="flex items-center justify-between gap-2 text-xs"
@@ -483,7 +550,7 @@ export default function RewardsPage({ initialData, user }: Props) {
             </aside>
           </div>
         </TabsContent>
-        <TabsContent value="history" className="mt-6 space-y-5">
+        <TabsContent value="history" className="mt-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold">{t('historyTitle')}</h2>
             <p className="text-sm text-muted-foreground">
@@ -494,7 +561,7 @@ export default function RewardsPage({ initialData, user }: Props) {
             </p>
           </div>
           <p className="text-xs text-muted-foreground">{t('historyHint')}</p>
-          <ul className="divide-y rounded-xl border px-4">
+          <ul className="bg-card divide-y rounded-xl border px-4">
             {data.wallet.ledger.map((entry) => (
               <li key={entry.id} className="flex items-center gap-3 py-4">
                 {entry.amount > 0 ? (
