@@ -130,6 +130,7 @@ function mount(
         udict={udict}
         page={1}
         pcount={1}
+        replyCount={2}
         currentUser={udict[42]}
         viewerId={viewerId}
         permissions={permissions(overrides)}
@@ -228,10 +229,59 @@ describe('discussion reply actions', () => {
     mount({ canReply: true }, { topicLocked: true });
     expect(screen.getByText(messages.discussion.replies.locked)).toBeVisible();
     expect(
-      screen.queryByRole('button', {
-        name: messages.discussion.replies.comment,
+      screen.queryByRole('textbox', {
+        name: messages.discussion.replies.commentLabel,
       })
     ).not.toBeInTheDocument();
+  });
+
+  it('shows the reply count above the thread', () => {
+    mount();
+    expect(screen.getByRole('heading', { name: '2 replies' })).toBeVisible();
+  });
+
+  it('keeps the composer open and clears it after publishing', async () => {
+    mocks.send.mockResolvedValue({ url: '/discuss/did-1' });
+    mount({ canReply: true });
+    const composer = screen.getByRole('textbox', {
+      name: messages.discussion.replies.commentLabel,
+    });
+    await userEvent.type(composer, 'Hello there');
+    await userEvent.click(
+      screen.getByRole('button', { name: messages.discussion.replies.publish })
+    );
+    await waitFor(() =>
+      expect(mocks.reply).toHaveBeenCalledWith('did-1', 'Hello there')
+    );
+    await waitFor(() => expect(composer).toHaveValue(''));
+    expect(composer).toBeVisible();
+  });
+
+  it('keeps the draft and reports a failure only in the editor that failed', async () => {
+    mocks.send.mockRejectedValue(new Error('Rate limited'));
+    mount({ canReply: true });
+    const composer = screen.getByRole('textbox', {
+      name: messages.discussion.replies.commentLabel,
+    });
+    await userEvent.click(
+      screen.getAllByRole('button', {
+        name: messages.discussion.replies.reply,
+      })[0]
+    );
+    const replyBox = screen.getByRole('textbox', {
+      name: messages.discussion.replies.replyFormLabel,
+    });
+    await userEvent.type(composer, 'Draft');
+    await userEvent.type(replyBox, 'Tail');
+    await userEvent.click(
+      within(replyBox.closest('div')!.parentElement!).getByRole('button', {
+        name: messages.discussion.replies.reply,
+      })
+    );
+    expect(await screen.findByText('Rate limited')).toBeVisible();
+    expect(screen.getAllByText('Rate limited')).toHaveLength(1);
+    expect(replyBox).toHaveValue('Tail');
+    expect(composer).toHaveValue('Draft');
   });
 
   it('toggles an existing reaction and refreshes', async () => {

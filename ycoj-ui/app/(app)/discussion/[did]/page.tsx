@@ -58,32 +58,38 @@ export default async function DiscussionPage({
   const canStar = !!user?._id;
 
   return (
-    <div className="space-y-6">
-      <DiscussionTitle
-        ddoc={data.ddoc}
-        owner={owner}
-        vnode={data.vnode}
-        drcount={data.drcount}
-      />
-      <DiscussionContent content={data.ddoc.content} />
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <DiscussionActions
-          ddoc={data.ddoc}
-          viewerId={user?._id}
-          permissions={permissions}
-          starred={!!data.dsdoc?.star}
-          canStar={canStar}
-        />
-        {data.ddoc.edited && <DiscussionHistoryPopover did={did} />}
-      </div>
-      <DiscussionReactions
-        did={did}
-        nodeType="did"
-        id={did}
-        reactions={data.ddoc.react ?? {}}
-        ownReactions={data.reactions[did] ?? {}}
-        canReact={permissions.canReact}
-      />
+    <div className="space-y-8">
+      <article className="bg-card rounded-xl border">
+        <div className="space-y-5 p-5 sm:p-6">
+          <DiscussionTitle
+            ddoc={data.ddoc}
+            owner={owner}
+            vnode={data.vnode}
+            drcount={data.drcount}
+          />
+          <DiscussionContent content={data.ddoc.content} />
+        </div>
+        <footer className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t px-5 py-3 sm:px-6">
+          <DiscussionReactions
+            did={did}
+            nodeType="did"
+            id={did}
+            reactions={data.ddoc.react ?? {}}
+            ownReactions={data.reactions[did] ?? {}}
+            canReact={permissions.canReact}
+          />
+          <div className="ml-auto flex flex-wrap items-center gap-1">
+            {data.ddoc.edited && <DiscussionHistoryPopover did={did} />}
+            <DiscussionActions
+              ddoc={data.ddoc}
+              viewerId={user?._id}
+              permissions={permissions}
+              starred={!!data.dsdoc?.star}
+              canStar={canStar}
+            />
+          </div>
+        </footer>
+      </article>
       <DiscussionReplies
         did={did}
         ddoc={data.ddoc}
@@ -91,6 +97,7 @@ export default async function DiscussionPage({
         udict={data.udict}
         page={data.page}
         pcount={data.pcount}
+        replyCount={data.drcount}
         reactions={data.reactions}
       />
     </div>

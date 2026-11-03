@@ -14,6 +14,7 @@ type Props = {
   udict: BaseUserDict;
   page: number;
   pcount: number;
+  replyCount: number;
   reactions: Record<string, Record<string, number>>;
 };
 
@@ -24,6 +25,7 @@ export default async function DiscussionReplies({
   udict,
   page,
   pcount,
+  replyCount,
   reactions,
 }: Props) {
   const user = await getUser();
@@ -44,6 +46,7 @@ export default async function DiscussionReplies({
       udict={udict}
       page={page}
       pcount={pcount}
+      replyCount={replyCount}
       currentUser={currentUser}
       viewerId={user?._id}
       permissions={permissions}
