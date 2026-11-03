@@ -11,6 +11,8 @@ import {
   AvatarImage,
 } from '@/shared/components/ui/avatar';
 import { SidebarMenuButton } from '@/shared/components/ui/sidebar';
+import { useClipboardCopy } from '@/shared/hooks/use-clipboard-copy';
+import { buildInfo, type BuildInfo } from '@/shared/lib/build-info';
 import { cn } from '@/shared/lib/utils';
 import type { BaseUser } from '@/shared/types/user';
 import {
@@ -30,6 +32,7 @@ import {
   Sun,
   UserRound,
   Award,
+  GitCommitHorizontal,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
@@ -260,6 +263,9 @@ export default function SidebarUserMenu({
             )}
             <span data-llm-text={t('logout')}>{t('logout')}</span>
           </DropdownMenuPrimitive.Item>
+          {buildInfo.commit && (
+            <BuildVersionItem commit={buildInfo.commit} date={buildInfo.date} />
+          )}
         </DropdownMenuPrimitive.Content>
       </DropdownMenuPrimitive.Portal>
     </DropdownMenuPrimitive.Root>
@@ -277,5 +283,33 @@ function LanguageItem({ value, label }: { value: Locale; label: string }) {
         <Check aria-hidden="true" />
       </DropdownMenuPrimitive.ItemIndicator>
     </DropdownMenuPrimitive.RadioItem>
+  );
+}
+
+function BuildVersionItem({ commit, date }: BuildInfo) {
+  const t = useTranslations('common');
+  const version = date ? `${commit} · ${date}` : commit;
+  const { copied, onCopy } = useClipboardCopy(version);
+  const label = t('version', { version });
+
+  return (
+    <>
+      <DropdownMenuPrimitive.Separator className="bg-foreground/10 -mx-1 my-1 h-px" />
+      <DropdownMenuPrimitive.Item
+        className={cn(menuItemClassName, 'text-xs text-muted-foreground')}
+        title={t('copy')}
+        onSelect={(event) => {
+          // Keep the menu open so the copied confirmation is visible
+          event.preventDefault();
+          void onCopy();
+        }}
+      >
+        <GitCommitHorizontal aria-hidden="true" />
+        <span className="truncate" data-llm-text={label}>
+          {label}
+        </span>
+        {copied && <span className="ml-auto shrink-0">{t('copied')}</span>}
+      </DropdownMenuPrimitive.Item>
+    </>
   );
 }

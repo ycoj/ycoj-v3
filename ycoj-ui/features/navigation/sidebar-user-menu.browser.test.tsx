@@ -24,6 +24,10 @@ vi.mock('next-themes', () => ({
   }),
 }));
 
+vi.mock('@/shared/lib/build-info', () => ({
+  buildInfo: { commit: 'c5576bf', date: '2026-11-03' },
+}));
+
 vi.mock('@/shared/components/ui/sidebar', async () => {
   const { forwardRef } = await import('react');
 
@@ -153,5 +157,34 @@ describe('SidebarUserMenu theme toggle', () => {
     expect(
       screen.getByRole('menuitemcheckbox', { name: '深色模式' })
     ).toBeInTheDocument();
+  });
+});
+
+describe('SidebarUserMenu build version', () => {
+  it.each([
+    ['en', 'Version c5576bf · 2026-11-03'],
+    ['zh', '版本 c5576bf · 2026-11-03'],
+  ] as const)('shows the running version in %s', async (locale, label) => {
+    renderMenu(locale);
+    await openMenu();
+    expect(screen.getByRole('menuitem', { name: label })).toBeVisible();
+  });
+
+  it('copies the version and keeps the menu open', async () => {
+    const writeText = vi
+      .spyOn(navigator.clipboard, 'writeText')
+      .mockResolvedValue();
+    renderMenu();
+    const user = await openMenu();
+
+    await user.click(
+      screen.getByRole('menuitem', { name: /^Version c5576bf/ })
+    );
+
+    expect(writeText).toHaveBeenCalledWith('c5576bf · 2026-11-03');
+    expect(
+      await screen.findByRole('menuitem', { name: /Copied$/ })
+    ).toBeVisible();
+    writeText.mockRestore();
   });
 });

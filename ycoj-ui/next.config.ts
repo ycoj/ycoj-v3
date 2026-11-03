@@ -1,6 +1,7 @@
 import withNextIntl from './next-intl.config';
 import { buildLegacyRedirects } from './shared/lib/legacy-routes';
 import type { NextConfig } from 'next';
+import { execFileSync } from 'node:child_process';
 
 // keep in sync with CLANGD_ISOLATION_PARAM in
 // features/problem/scratchpad/clangd/clangd-support.ts (feature TS is not
@@ -11,6 +12,25 @@ const standalone = process.env.YCOJ_STANDALONE === '1';
 const backendBaseUrl = process.env.BACKEND_BASEURL?.replace(/\/+$/, '');
 const uploadBaseUrl =
   process.env.NEXT_PUBLIC_UPLOAD_BASEURL?.replace(/\/+$/, '') ?? '';
+
+// Commit of the checkout being built. It is inlined into the client bundle so
+// users on a stale cached bundle report the code they actually run.
+// BUILD_COMMIT/BUILD_DATE override it for builds without a Git checkout.
+const readBuildCommit = () => {
+  try {
+    const [commit = '', date = ''] = execFileSync(
+      'git',
+      ['log', '-1', '--format=%h %cs'],
+      { cwd: __dirname, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
+    )
+      .trim()
+      .split(' ');
+    return { commit, date };
+  } catch {
+    return { commit: '', date: '' };
+  }
+};
+const buildCommit = readBuildCommit();
 
 const nextConfig: NextConfig = {
   output: standalone ? 'standalone' : undefined,
@@ -45,6 +65,8 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_UPLOAD_BASEURL: uploadBaseUrl,
     SITE_NAME: process.env.SITE_NAME ?? '',
+    BUILD_COMMIT: process.env.BUILD_COMMIT ?? buildCommit.commit,
+    BUILD_DATE: process.env.BUILD_DATE ?? buildCommit.date,
   },
   async redirects() {
     // Legacy page deep links → new UI routes. The table lives in
