@@ -1,6 +1,7 @@
 import type { DiscussionMainResponse } from '@/api/server/method/discussion/main';
+import DiscussionTime from '@/features/discussion/discussion-time';
 import UserAvatar from '@/features/user/user-avatar';
-import { Badge } from '@/shared/components/ui/badge';
+import UserSpan from '@/features/user/user-span';
 import {
   Empty,
   EmptyDescription,
@@ -8,13 +9,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/shared/components/ui/empty';
-import { Separator } from '@/shared/components/ui/separator';
+import { cn } from '@/shared/lib/utils';
 import type { Discussion } from '@/shared/types/discussion';
-import dayjs from 'dayjs';
-import { MessageCircle, Eye, Pin, Search, Star } from 'lucide-react';
+import { Eye, MessageCircle, Pin, Search, Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Fragment } from 'react';
 
 type Props = {
   data: DiscussionMainResponse;
@@ -42,76 +41,95 @@ function DiscussionItem({
   const t = useTranslations('discussion');
   const owner = udict[discussion.owner];
   const nodeTitle = getNodeTitle(discussion, vndict, t('unknownNode'));
-  const discussionHref = `/discussion/${discussion.docId}`;
-  const updatedAt = dayjs(discussion.updateAt).format('YYYY-MM-DD HH:mm');
 
   return (
-    <div data-llm-visible="true" className="space-y-2">
-      <div className="flex items-start gap-3">
-        {owner && (
-          <UserAvatar user={owner} className="size-11 shrink-0 self-center" />
-        )}
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex items-start justify-between gap-3">
-            <Link
-              href={discussionHref}
-              prefetch={false}
-              data-llm-text={discussion.title}
-              className="text-sm font-medium text-foreground hover:text-primary hover:underline md:text-base"
-            >
-              {discussion.pin && (
-                <Badge
-                  variant="secondary"
-                  className="mr-2 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400"
-                >
-                  <Pin data-icon="inline-start" />
-                  {t('pinned')}
-                </Badge>
-              )}
-              {discussion.highlight && (
-                <Badge
-                  variant="secondary"
-                  className="mr-2 bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400"
-                >
-                  <Star data-icon="inline-start" />
-                  {t('featured')}
-                </Badge>
-              )}
-              {discussion.title}
-            </Link>
-          </div>
+    <li
+      data-llm-visible="true"
+      className={cn(
+        'hover:bg-accent/40 flex items-center gap-3 px-4 py-3.5 transition-colors sm:gap-4 sm:px-5',
+        discussion.pin && 'bg-amber-50/70 dark:bg-amber-500/5'
+      )}
+    >
+      {owner && (
+        <UserAvatar user={owner} className="size-10 shrink-0 self-start" />
+      )}
 
-          <div className="flex items-center gap-3 text-xs">
-            <div className="text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-              <Badge variant="secondary" title={t('node')}>
-                <span data-llm-text={nodeTitle}>{nodeTitle}</span>
-              </Badge>
-              <Badge variant="secondary" title={t('replyCount')}>
-                <MessageCircle data-icon="inline-start" />
-                <span
-                  data-llm-text={String(discussion.nReply)}
-                  className="tabular-nums"
-                >
-                  {discussion.nReply}
-                </span>
-              </Badge>
-              <Badge variant="secondary" title={t('views')}>
-                <Eye data-icon="inline-start" />
-                <span
-                  data-llm-text={String(discussion.views)}
-                  className="tabular-nums"
-                >
-                  {discussion.views}
-                </span>
-              </Badge>
-              <span className="text-muted-foreground" title={t('updatedAt')}>
-                {updatedAt}
-              </span>
-            </div>
-          </div>
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex items-center gap-2">
+          {discussion.pin && (
+            <Pin
+              className="size-4 shrink-0 text-amber-600 dark:text-amber-400"
+              aria-label={t('pinned')}
+            />
+          )}
+          {discussion.highlight && (
+            <Star
+              className="size-4 shrink-0 text-blue-600 dark:text-blue-400"
+              aria-label={t('featured')}
+            />
+          )}
+          <Link
+            href={`/discussion/${discussion.docId}`}
+            prefetch={false}
+            data-llm-text={discussion.title}
+            className="text-foreground hover:text-primary min-w-0 truncate text-sm font-medium md:text-base"
+          >
+            {discussion.title}
+          </Link>
+        </div>
+
+        <div className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+          {owner && (
+            <>
+              <UserSpan user={owner} showAvatar={false} />
+              <span aria-hidden="true">·</span>
+            </>
+          )}
+          <span
+            className="bg-secondary text-secondary-foreground max-w-40 truncate rounded px-1.5 py-0.5"
+            title={t('node')}
+            data-llm-text={nodeTitle}
+          >
+            {nodeTitle}
+          </span>
+          <span aria-hidden="true">·</span>
+          <DiscussionTime value={discussion.updateAt} />
+          <span
+            className="inline-flex items-center gap-1 tabular-nums sm:hidden"
+            title={t('replyCount')}
+          >
+            <MessageCircle className="size-3.5" />
+            {discussion.nReply}
+          </span>
         </div>
       </div>
-    </div>
+
+      <dl className="text-muted-foreground hidden shrink-0 items-center gap-5 text-xs sm:flex">
+        <div className="flex w-12 flex-col items-center gap-0.5">
+          <dt className="sr-only">{t('replyCount')}</dt>
+          <dd
+            className={cn(
+              'text-foreground inline-flex items-center gap-1 text-base font-medium tabular-nums',
+              discussion.nReply === 0 && 'text-muted-foreground font-normal'
+            )}
+            data-llm-text={String(discussion.nReply)}
+          >
+            <MessageCircle className="size-4" />
+            {discussion.nReply}
+          </dd>
+        </div>
+        <div className="flex w-14 flex-col items-center gap-0.5">
+          <dt className="sr-only">{t('views')}</dt>
+          <dd
+            className="inline-flex items-center gap-1 tabular-nums"
+            data-llm-text={String(discussion.views)}
+          >
+            <Eye className="size-3.5" />
+            {discussion.views}
+          </dd>
+        </div>
+      </dl>
+    </li>
   );
 }
 
@@ -134,22 +152,18 @@ export default function DiscussionList({ data }: Props) {
   }
 
   return (
-    <div
-      className="overflow-hidden rounded-xl border bg-card/40"
+    <ul
+      className="bg-card divide-y overflow-hidden rounded-xl border"
       data-llm-visible="true"
     >
-      {data.ddocs.map((discussion, index) => (
-        <Fragment key={discussion.docId}>
-          <div className="px-4 py-4 transition-colors hover:bg-accent/30 sm:px-5">
-            <DiscussionItem
-              discussion={discussion}
-              udict={data.udict}
-              vndict={data.vndict}
-            />
-          </div>
-          {index < data.ddocs.length - 1 && <Separator />}
-        </Fragment>
+      {data.ddocs.map((discussion) => (
+        <DiscussionItem
+          key={discussion.docId}
+          discussion={discussion}
+          udict={data.udict}
+          vndict={data.vndict}
+        />
       ))}
-    </div>
+    </ul>
   );
 }

@@ -1,4 +1,7 @@
 {
+  "title": "讨论",
+  "subtitle": "提问、分享想法，与社区交流。",
+  "backToList": "返回讨论列表",
   "node": "讨论节点",
   "allNodes": "全部节点",
   "unknownNode": "未知节点",
@@ -105,6 +108,8 @@
     "deleteFailed": "删除回复失败。",
     "editFormLabel": "回复内容",
     "replyFormLabel": "回复内容",
-    "commentFormLabel": "评论内容"
+    "commentFormLabel": "评论内容",
+    "heading": "{count} 条回复",
+    "author": "楼主"
   }
 }

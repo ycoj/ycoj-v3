@@ -1,4 +1,7 @@
 {
+  "title": "Discussions",
+  "subtitle": "Ask questions, share ideas and talk with the community.",
+  "backToList": "Back to discussions",
   "node": "Discussion node",
   "allNodes": "All nodes",
   "unknownNode": "Unknown node",
@@ -105,6 +108,8 @@
     "deleteFailed": "Could not delete the reply.",
     "editFormLabel": "Edit reply content",
     "replyFormLabel": "Reply content",
-    "commentFormLabel": "Comment content"
+    "commentFormLabel": "Comment content",
+    "heading": "{count, plural, one {# reply} other {# replies}}",
+    "author": "Author"
   }
 }

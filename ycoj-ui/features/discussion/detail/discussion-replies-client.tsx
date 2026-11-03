@@ -3,6 +3,7 @@
 import DiscussionHistoryPopover from './discussion-history-popover';
 import DiscussionReactions from './discussion-reactions';
 import ClientApis from '@/api/client/method';
+import DiscussionTime from '@/features/discussion/discussion-time';
 import {
   canDeleteTopicReply,
   canDeleteTopicTailReply,
@@ -16,6 +17,7 @@ import DeleteConfirmPopover from '@/shared/components/delete-confirm-popover';
 import parseErrorMessage from '@/shared/components/errored/parse-message';
 import ClientMarkdown from '@/shared/components/markdown/client-markdown';
 import Pagination from '@/shared/components/pagination';
+import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
   Empty,
@@ -24,7 +26,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/shared/components/ui/empty';
-import { Separator } from '@/shared/components/ui/separator';
 import { Textarea } from '@/shared/components/ui/textarea';
 import oid2ts from '@/shared/lib/oid2ts';
 import type {
@@ -33,11 +34,10 @@ import type {
 } from '@/shared/types/discussion';
 import type { ObjectId } from '@/shared/types/shared';
 import type { BaseUser, BaseUserDict } from '@/shared/types/user';
-import dayjs from 'dayjs';
-import { Check, MessageCircle, Pencil, X } from 'lucide-react';
+import { Check, Lock, MessageCircle, Pencil, Reply, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Fragment, useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 type Props = {
   did: string;
@@ -45,6 +45,8 @@ type Props = {
   udict: BaseUserDict;
   page: number;
   pcount: number;
+  /** Total number of top-level replies across all pages. */
+  replyCount: number;
   currentUser: BaseUser | null;
   viewerId?: number;
   permissions: DiscussionPermissionFlags;
@@ -54,19 +56,20 @@ type Props = {
   reactions: Record<string, Record<string, number>>;
 };
 
-type ReplyTarget =
-  'root' | { drid: ObjectId } | { drid: ObjectId; drrid: ObjectId };
-
 type EditTarget =
   | { kind: 'topic-reply'; drid: ObjectId }
   | { kind: 'tail-reply'; drid: ObjectId; drrid: ObjectId };
 
-function formatObjectIdTime(value?: ObjectId) {
-  if (!value) return '';
+/** Identifies the editor a failure message belongs to. */
+type ErrorScope = 'root' | `reply:${string}` | `edit:${string}`;
+
+type Failure = { scope: ErrorScope; message: string };
+
+/** Replies carry no timestamp field; the creation time is in the ObjectId. */
+function objectIdDate(value?: ObjectId): Date | null {
+  if (!value) return null;
   const ts = oid2ts(value);
-  if (!Number.isFinite(ts)) return '';
-  const date = dayjs(ts);
-  return date.isValid() ? date.format('YYYY-MM-DD HH:mm') : '';
+  return Number.isFinite(ts) ? new Date(ts) : null;
 }
 
 function getFloorReplyId(reply: DiscussionReplyDoc): ObjectId | undefined {
@@ -80,8 +83,10 @@ type ReplyEditorProps = {
   submitLabel: string;
   submitting: boolean;
   error: string;
-  onCancel: () => void;
-  onSubmit: (content: string) => Promise<void>;
+  /** Omit for the always-open composer, which has nothing to dismiss. */
+  onCancel?: () => void;
+  /** Resolves to whether the content was accepted. */
+  onSubmit: (content: string) => Promise<boolean>;
 };
 
 function ReplyEditor({
@@ -105,8 +110,10 @@ function ReplyEditor({
       return;
     }
     setLocalError('');
-    await onSubmit(content);
+    if (await onSubmit(content)) setContent(initialContent);
   };
+
+  const message = localError || error;
 
   return (
     <div className="space-y-2" data-llm-visible="true">
@@ -120,22 +127,25 @@ function ReplyEditor({
       />
       <div className="flex items-center justify-between gap-2">
         <p
+          role={message ? 'alert' : undefined}
           className="text-destructive min-h-5 text-xs"
-          data-llm-text={localError || error}
+          data-llm-text={message}
         >
-          {localError || error}
+          {message}
         </p>
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="xs"
-            onClick={onCancel}
-            disabled={submitting}
-          >
-            <X strokeWidth={2} />
-            <span data-llm-text={t('cancel')}>{t('cancel')}</span>
-          </Button>
+          {onCancel && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="xs"
+              onClick={onCancel}
+              disabled={submitting}
+            >
+              <X strokeWidth={2} />
+              <span data-llm-text={t('cancel')}>{t('cancel')}</span>
+            </Button>
+          )}
           <Button
             type="button"
             size="xs"
@@ -154,12 +164,50 @@ function ReplyEditor({
   );
 }
 
+type ReplyHeaderProps = {
+  owner?: BaseUser;
+  isTopicOwner: boolean;
+  time: Date | null;
+  /** Shows the avatar beside the name; floor replies draw it separately. */
+  withAvatar?: boolean;
+  history?: ReactNode;
+  actions?: ReactNode;
+};
+
+function ReplyHeader({
+  owner,
+  isTopicOwner,
+  time,
+  withAvatar = false,
+  history,
+  actions,
+}: ReplyHeaderProps) {
+  const t = useTranslations('discussion.replies');
+
+  return (
+    <div className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      {owner && <UserSpan user={owner} showAvatar={withAvatar} />}
+      {isTopicOwner && (
+        <Badge variant="secondary" data-llm-text={t('author')}>
+          {t('author')}
+        </Badge>
+      )}
+      {time && <DiscussionTime value={time} />}
+      {history}
+      {actions && (
+        <div className="ml-auto flex items-center gap-1">{actions}</div>
+      )}
+    </div>
+  );
+}
+
 export default function DiscussionRepliesClient({
   did,
   drdocs,
   udict,
   page,
   pcount,
+  replyCount,
   currentUser,
   viewerId,
   permissions,
@@ -169,16 +217,21 @@ export default function DiscussionRepliesClient({
 }: Props) {
   const t = useTranslations('discussion.replies');
   const router = useRouter();
-  const [target, setTarget] = useState<ReplyTarget | null>(null);
+  const [replyingTo, setReplyingTo] = useState<ObjectId | null>(null);
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [failure, setFailure] = useState<Failure | null>(null);
 
   const canReply = permissions.canReply && !topicLocked;
+  const errorFor = (scope: ErrorScope) =>
+    failure?.scope === scope ? failure.message : '';
 
-  const perform = async (action: () => Promise<unknown>): Promise<string> => {
+  const perform = async (
+    scope: ErrorScope,
+    action: () => Promise<unknown>
+  ): Promise<boolean> => {
     setSubmitting(true);
-    setError('');
+    setFailure(null);
     try {
       const response = await action();
       if (
@@ -187,52 +240,47 @@ export default function DiscussionRepliesClient({
         'error' in response &&
         response.error
       ) {
-        return parseErrorMessage(
-          response.error as Parameters<typeof parseErrorMessage>[0]
-        );
+        setFailure({
+          scope,
+          message: parseErrorMessage(
+            response.error as Parameters<typeof parseErrorMessage>[0]
+          ),
+        });
+        return false;
       }
       router.refresh();
-      return '';
+      return true;
     } catch (err) {
-      return err instanceof Error && err.message
-        ? err.message
-        : t('replyFailed');
+      setFailure({
+        scope,
+        message:
+          err instanceof Error && err.message ? err.message : t('replyFailed'),
+      });
+      return false;
     } finally {
       setSubmitting(false);
     }
   };
 
-  const submitRootReply = async (content: string) => {
-    const failure = await perform(() =>
+  const submitRootReply = (content: string) =>
+    perform('root', () =>
       ClientApis.Discussion.replyDiscussion(did, content).send()
     );
-    if (failure) {
-      setError(failure);
-      return;
-    }
-    setTarget(null);
-  };
 
   const submitTailReply = async (drid: ObjectId, content: string) => {
-    const failure = await perform(() =>
+    const ok = await perform(`reply:${drid}`, () =>
       ClientApis.Discussion.replyDiscussionTail(did, drid, content).send()
     );
-    if (failure) {
-      setError(failure);
-      return;
-    }
-    setTarget(null);
+    if (ok) setReplyingTo(null);
+    return ok;
   };
 
   const submitEditReply = async (drid: ObjectId, content: string) => {
-    const failure = await perform(() =>
+    const ok = await perform(`edit:${drid}`, () =>
       ClientApis.Discussion.editDiscussionReply(did, drid, content).send()
     );
-    if (failure) {
-      setError(failure);
-      return;
-    }
-    setEditTarget(null);
+    if (ok) setEditTarget(null);
+    return ok;
   };
 
   const submitEditTailReply = async (
@@ -240,7 +288,7 @@ export default function DiscussionRepliesClient({
     drrid: ObjectId,
     content: string
   ) => {
-    const failure = await perform(() =>
+    const ok = await perform(`edit:${drrid}`, () =>
       ClientApis.Discussion.editDiscussionTailReply(
         did,
         drid,
@@ -248,55 +296,42 @@ export default function DiscussionRepliesClient({
         content
       ).send()
     );
-    if (failure) {
-      setError(failure);
-      return;
-    }
-    setEditTarget(null);
+    if (ok) setEditTarget(null);
+    return ok;
   };
 
   return (
-    <section className="space-y-6" data-llm-visible="true">
-      <Separator />
+    <section className="space-y-5" data-llm-visible="true">
+      <h2
+        className="text-lg font-semibold"
+        data-llm-text={t('heading', { count: replyCount })}
+      >
+        {t('heading', { count: replyCount })}
+      </h2>
 
       {canReply ? (
-        target === 'root' ? (
-          <ReplyEditor
-            label={t('commentLabel')}
-            submitLabel={t('publish')}
-            submittingLabel={t('publishing')}
-            submitting={submitting}
-            error={error}
-            onCancel={() => setTarget(null)}
-            onSubmit={submitRootReply}
-          />
-        ) : (
-          <div className="text-foreground flex items-center gap-3">
-            {currentUser && (
-              <UserAvatar user={currentUser} className="size-10 shrink-0" />
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => {
-                setError('');
-                setTarget('root');
-              }}
-            >
-              <MessageCircle strokeWidth={2} />
-              <span data-llm-text={t('comment')}>{t('comment')}</span>
-            </Button>
+        <div className="bg-card flex gap-3 rounded-xl border p-4">
+          {currentUser && (
+            <UserAvatar user={currentUser} className="size-10 shrink-0" />
+          )}
+          <div className="min-w-0 flex-1">
+            <ReplyEditor
+              label={t('commentLabel')}
+              submitLabel={t('publish')}
+              submittingLabel={t('publishing')}
+              submitting={submitting}
+              error={errorFor('root')}
+              onSubmit={submitRootReply}
+            />
           </div>
-        )
-      ) : topicLocked ? (
-        <p role="status" className="text-muted-foreground text-sm">
-          {t('locked')}
-        </p>
+        </div>
       ) : (
-        <p role="status" className="text-muted-foreground text-sm">
-          {t('noPermission')}
+        <p
+          role="status"
+          className="text-muted-foreground bg-muted/40 flex items-center gap-2 rounded-xl border border-dashed px-4 py-3 text-sm"
+        >
+          {topicLocked && <Lock className="size-4 shrink-0" />}
+          <span>{topicLocked ? t('locked') : t('noPermission')}</span>
         </p>
       )}
 
@@ -313,13 +348,10 @@ export default function DiscussionRepliesClient({
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="space-y-0" data-llm-visible="true">
+        <div className="space-y-3" data-llm-visible="true">
           {drdocs.map((floorReply) => {
             const floorId = getFloorReplyId(floorReply);
             const owner = udict[floorReply.owner!];
-            const floorTime = formatObjectIdTime(
-              floorReply._id || floorReply.docId
-            );
             const floorTailReplies = floorReply.reply ?? [];
             const canEditReply = floorId
               ? canEditTopicReply(permissions, viewerId, floorReply.owner)
@@ -336,34 +368,32 @@ export default function DiscussionRepliesClient({
               !!floorId &&
               editTarget?.kind === 'topic-reply' &&
               editTarget.drid === floorId;
-            const isReplying =
-              !!floorId &&
-              target !== null &&
-              target !== 'root' &&
-              target.drid === floorId &&
-              !('drrid' in target);
+            const isReplying = !!floorId && replyingTo === floorId;
 
             return (
-              <Fragment key={floorReply.docId}>
-                <article
-                  id={floorId ? `reply-${floorId}` : undefined}
-                  className="scroll-mt-24 space-y-3 border-t py-4"
-                >
-                  <div className="flex items-start gap-3">
-                    {owner && (
-                      <UserAvatar user={owner} className="size-10 shrink-0" />
-                    )}
+              <article
+                key={floorReply.docId}
+                id={floorId ? `reply-${floorId}` : undefined}
+                className="bg-card scroll-mt-24 rounded-xl border p-4 sm:p-5"
+              >
+                <div className="flex items-start gap-3">
+                  {owner && (
+                    <UserAvatar user={owner} className="size-10 shrink-0" />
+                  )}
 
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-                        {owner && <UserSpan user={owner} showAvatar={false} />}
-                        {floorTime && (
-                          <span data-llm-text={floorTime}>{floorTime}</span>
-                        )}
-                        {floorReply.edited && floorId && (
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <ReplyHeader
+                      owner={owner}
+                      isTopicOwner={floorReply.owner === topicOwner}
+                      time={objectIdDate(floorReply._id || floorReply.docId)}
+                      history={
+                        floorReply.edited &&
+                        floorId && (
                           <DiscussionHistoryPopover did={did} drid={floorId} />
-                        )}
-                        <div className="ml-auto flex items-center gap-1">
+                        )
+                      }
+                      actions={
+                        <>
                           {canEditReply && floorId && (
                             <Button
                               type="button"
@@ -373,7 +403,7 @@ export default function DiscussionRepliesClient({
                               aria-label={t('edit')}
                               title={t('edit')}
                               onClick={() => {
-                                setError('');
+                                setFailure(null);
                                 setEditTarget({
                                   kind: 'topic-reply',
                                   drid: floorId,
@@ -402,29 +432,31 @@ export default function DiscussionRepliesClient({
                               deleteFailedLabel={t('deleteFailed')}
                             />
                           )}
-                        </div>
+                        </>
+                      }
+                    />
+
+                    {isEditing && floorId ? (
+                      <ReplyEditor
+                        label={t('editFormLabel')}
+                        initialContent={floorReply.content}
+                        submitLabel={t('save')}
+                        submittingLabel={t('saving')}
+                        submitting={submitting}
+                        error={errorFor(`edit:${floorId}`)}
+                        onCancel={() => setEditTarget(null)}
+                        onSubmit={(content) =>
+                          submitEditReply(floorId, content)
+                        }
+                      />
+                    ) : (
+                      <div className="text-sm leading-6">
+                        <ClientMarkdown>{floorReply.content}</ClientMarkdown>
                       </div>
+                    )}
 
-                      {isEditing && floorId ? (
-                        <ReplyEditor
-                          label={t('editFormLabel')}
-                          initialContent={floorReply.content}
-                          submitLabel={t('save')}
-                          submittingLabel={t('saving')}
-                          submitting={submitting}
-                          error={error}
-                          onCancel={() => setEditTarget(null)}
-                          onSubmit={(content) =>
-                            submitEditReply(floorId, content)
-                          }
-                        />
-                      ) : (
-                        <div className="text-sm leading-6">
-                          <ClientMarkdown>{floorReply.content}</ClientMarkdown>
-                        </div>
-                      )}
-
-                      {floorId && (
+                    {floorId && (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <DiscussionReactions
                           did={did}
                           nodeType="drid"
@@ -433,19 +465,18 @@ export default function DiscussionRepliesClient({
                           ownReactions={reactions[floorId] ?? {}}
                           canReact={permissions.canReact}
                         />
-                      )}
-
-                      <div className="flex items-center gap-3">
-                        {floorId && canReply && (
+                        {canReply && (
                           <Button
                             type="button"
                             size="xs"
                             variant="ghost"
+                            className="text-muted-foreground ml-auto gap-1.5"
                             onClick={() => {
-                              setError('');
-                              setTarget(isReplying ? null : { drid: floorId });
+                              setFailure(null);
+                              setReplyingTo(isReplying ? null : floorId);
                             }}
                           >
+                            <Reply strokeWidth={2} />
                             <span
                               data-llm-text={
                                 isReplying ? t('cancelReply') : t('reply')
@@ -456,59 +487,66 @@ export default function DiscussionRepliesClient({
                           </Button>
                         )}
                       </div>
-                    </div>
+                    )}
+
+                    {floorId && (floorTailReplies.length > 0 || isReplying) && (
+                      <div className="bg-muted/40 space-y-3 rounded-lg p-3">
+                        {floorTailReplies.map((tailReply) => (
+                          <div
+                            key={tailReply._id}
+                            className="not-first:border-t not-first:pt-3"
+                          >
+                            <TailReplyItem
+                              did={did}
+                              drid={floorId}
+                              tailReply={tailReply}
+                              owner={udict[tailReply.owner]}
+                              isTopicOwner={tailReply.owner === topicOwner}
+                              permissions={permissions}
+                              viewerId={viewerId}
+                              submitting={submitting}
+                              error={errorFor(`edit:${tailReply._id}`)}
+                              editTarget={editTarget}
+                              onCancelEdit={() => setEditTarget(null)}
+                              onEdit={(content) =>
+                                submitEditTailReply(
+                                  floorId,
+                                  tailReply._id,
+                                  content
+                                )
+                              }
+                              onStartEdit={() => {
+                                setFailure(null);
+                                setEditTarget({
+                                  kind: 'tail-reply',
+                                  drid: floorId,
+                                  drrid: tailReply._id,
+                                });
+                              }}
+                            />
+                          </div>
+                        ))}
+
+                        {isReplying && (
+                          <div className="not-first:border-t not-first:pt-3">
+                            <ReplyEditor
+                              label={t('replyFormLabel')}
+                              submitLabel={t('reply')}
+                              submittingLabel={t('replying')}
+                              submitting={submitting}
+                              error={errorFor(`reply:${floorId}`)}
+                              onCancel={() => setReplyingTo(null)}
+                              onSubmit={(content) =>
+                                submitTailReply(floorId, content)
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-
-                  {(floorTailReplies.length > 0 || isReplying) && (
-                    <div className="ml-12 space-y-3 border-l-2 border-dashed pl-4">
-                      {floorTailReplies.map((tailReply) => (
-                        <TailReplyItem
-                          key={tailReply._id}
-                          did={did}
-                          drid={floorId!}
-                          tailReply={tailReply}
-                          owner={udict[tailReply.owner]}
-                          permissions={permissions}
-                          viewerId={viewerId}
-                          submitting={submitting}
-                          error={error}
-                          editTarget={editTarget}
-                          onCancelEdit={() => setEditTarget(null)}
-                          onEdit={(content) =>
-                            submitEditTailReply(
-                              floorId!,
-                              tailReply._id,
-                              content
-                            )
-                          }
-                          onStartEdit={() => {
-                            setError('');
-                            setEditTarget({
-                              kind: 'tail-reply',
-                              drid: floorId!,
-                              drrid: tailReply._id,
-                            });
-                          }}
-                        />
-                      ))}
-
-                      {isReplying && floorId && (
-                        <ReplyEditor
-                          label={t('replyFormLabel')}
-                          submitLabel={t('reply')}
-                          submittingLabel={t('replying')}
-                          submitting={submitting}
-                          error={error}
-                          onCancel={() => setTarget(null)}
-                          onSubmit={(content) =>
-                            submitTailReply(floorId, content)
-                          }
-                        />
-                      )}
-                    </div>
-                  )}
-                </article>
-              </Fragment>
+                </div>
+              </article>
             );
           })}
         </div>
@@ -526,13 +564,14 @@ type TailReplyItemProps = {
   drid: ObjectId;
   tailReply: DiscussionTailReplyDoc;
   owner?: BaseUser;
+  isTopicOwner: boolean;
   permissions: DiscussionPermissionFlags;
   viewerId?: number;
   submitting: boolean;
   error: string;
   editTarget: EditTarget | null;
   onCancelEdit: () => void;
-  onEdit: (content: string) => Promise<void>;
+  onEdit: (content: string) => Promise<boolean>;
   onStartEdit: () => void;
 };
 
@@ -541,6 +580,7 @@ function TailReplyItem({
   drid,
   tailReply,
   owner,
+  isTopicOwner,
   permissions,
   viewerId,
   submitting,
@@ -552,7 +592,6 @@ function TailReplyItem({
 }: TailReplyItemProps) {
   const t = useTranslations('discussion.replies');
   const router = useRouter();
-  const tailTime = formatObjectIdTime(tailReply._id);
   const canEdit = canEditTopicTailReply(permissions, viewerId, tailReply.owner);
   const canDelete = canDeleteTopicTailReply(
     permissions,
@@ -564,52 +603,58 @@ function TailReplyItem({
 
   return (
     <div className="space-y-1.5" data-llm-visible="true">
-      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-        {owner && <UserSpan user={owner} />}
-        {tailTime && <span data-llm-text={tailTime}>{tailTime}</span>}
-        {tailReply.edited && (
-          <DiscussionHistoryPopover
-            did={did}
-            drid={drid}
-            drrid={tailReply._id}
-          />
-        )}
-        <div className="ml-auto flex items-center gap-1">
-          {canEdit && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              className="text-muted-foreground"
-              aria-label={t('edit')}
-              title={t('edit')}
-              onClick={onStartEdit}
-            >
-              <Pencil strokeWidth={2} />
-            </Button>
-          )}
-          {canDelete && (
-            <DeleteConfirmPopover
-              onDelete={async () => {
-                const response =
-                  await ClientApis.Discussion.deleteDiscussionTailReply(
-                    did,
-                    drid,
-                    tailReply._id
-                  ).send();
-                router.refresh();
-                return response;
-              }}
-              deleteLabel={t('delete')}
-              confirmDeleteLabel={t('confirmDelete')}
-              cancelLabel={t('cancel')}
-              confirmLabel={t('confirm')}
-              deletingLabel={t('deleting')}
-              deleteFailedLabel={t('deleteFailed')}
+      <ReplyHeader
+        owner={owner}
+        isTopicOwner={isTopicOwner}
+        time={objectIdDate(tailReply._id)}
+        withAvatar
+        history={
+          tailReply.edited && (
+            <DiscussionHistoryPopover
+              did={did}
+              drid={drid}
+              drrid={tailReply._id}
             />
-          )}
-        </div>
-      </div>
+          )
+        }
+        actions={
+          <>
+            {canEdit && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="text-muted-foreground"
+                aria-label={t('edit')}
+                title={t('edit')}
+                onClick={onStartEdit}
+              >
+                <Pencil strokeWidth={2} />
+              </Button>
+            )}
+            {canDelete && (
+              <DeleteConfirmPopover
+                onDelete={async () => {
+                  const response =
+                    await ClientApis.Discussion.deleteDiscussionTailReply(
+                      did,
+                      drid,
+                      tailReply._id
+                    ).send();
+                  router.refresh();
+                  return response;
+                }}
+                deleteLabel={t('delete')}
+                confirmDeleteLabel={t('confirmDelete')}
+                cancelLabel={t('cancel')}
+                confirmLabel={t('confirm')}
+                deletingLabel={t('deleting')}
+                deleteFailedLabel={t('deleteFailed')}
+              />
+            )}
+          </>
+        }
+      />
       {isEditing ? (
         <ReplyEditor
           label={t('editFormLabel')}

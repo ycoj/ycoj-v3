@@ -1,96 +1,56 @@
-'use client';
-
-import { discussionCreatePath } from '@/features/discussion/lib/node';
-import { Button } from '@/shared/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select';
+import { cn } from '@/shared/lib/utils';
 import type { Node } from '@/shared/types/discussion';
-import { Plus, Tag } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo } from 'react';
 
 type Props = {
   vnodes: Node[];
-  /** Resource node currently shown, when the page is scoped to one. */
+  /** Id of the node currently shown; omit for all nodes. */
   selectedNodeId?: string;
-  /** Path of the resource create page, for `/discussion/:type/:name`. */
-  createHref?: string;
-  /** Whether to show the create entry for the selected node. */
-  canCreate?: boolean;
 };
 
 export default function DiscussionNodeFilter({
   vnodes,
   selectedNodeId,
-  createHref,
-  canCreate = true,
 }: Props) {
   const t = useTranslations('discussion');
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentNode = selectedNodeId ?? searchParams.get('node') ?? 'all';
+  if (!vnodes.length) return null;
 
-  const nodeOptions = useMemo(() => {
-    return vnodes.map((vnode) => ({
+  const items = [
+    { id: undefined, title: t('allNodes'), href: '/discussion' },
+    ...vnodes.map((vnode) => ({
       id: vnode.docId,
-      title: vnode.title ?? vnode.docId,
-    }));
-  }, [vnodes]);
-
-  const handleNodeChange = (value: string) => {
-    if (value === 'all') {
-      router.push('/discussion');
-      return;
-    }
-    if (selectedNodeId) {
-      // A resource node is not part of the plain node select; keep this page.
-      return;
-    }
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('node', value);
-    params.delete('page');
-    router.push(`${pathname}?${params.toString()}`);
-  };
+      title: vnode.title || vnode.docId,
+      href: `/discussion?node=${encodeURIComponent(vnode.docId)}`,
+    })),
+  ];
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Select value={currentNode} onValueChange={handleNodeChange}>
-        <SelectTrigger className="w-64 min-w-[256px]">
-          <div className="flex items-center gap-2">
-            <Tag className="size-4 text-muted-foreground" />
-            <SelectValue placeholder={t('node')} />
-          </div>
-        </SelectTrigger>
-        <SelectContent position="popper">
-          <SelectItem value="all">{t('allNodes')}</SelectItem>
-          {nodeOptions.map((option) => (
-            <SelectItem key={option.id} value={option.id}>
-              {option.title}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {currentNode !== 'all' && canCreate && (
-        <Button asChild className="ml-auto">
+    <nav
+      aria-label={t('node')}
+      className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+      data-llm-visible="true"
+    >
+      {items.map((item) => {
+        const active = item.id === selectedNodeId;
+        return (
           <Link
-            href={createHref ?? discussionCreatePath('node', currentNode)}
-            className="gap-2"
+            key={item.id ?? 'all'}
+            href={item.href}
             prefetch={false}
+            aria-current={active ? 'page' : undefined}
+            data-llm-text={item.title}
+            className={cn(
+              'shrink-0 rounded-full border px-3 py-1 text-sm whitespace-nowrap transition-colors',
+              active
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'bg-card text-muted-foreground hover:bg-accent hover:text-foreground'
+            )}
           >
-            <Plus strokeWidth={2} />
-            {t('create')}
+            {item.title}
           </Link>
-        </Button>
-      )}
-    </div>
+        );
+      })}
+    </nav>
   );
 }
