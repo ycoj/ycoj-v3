@@ -231,8 +231,6 @@
     "fileActionFailed": "文件操作失败",
     "noTestdata": "尚未上传测试数据"
   },
-  "title": "题库",
-  "subtitle": "浏览题目，按标签或难度筛选，挑选下一道要练习的题。",
   "searchPlaceholder": "搜索题目...",
   "createOrImport": "创建或导入",
   "addProblem": "添加题目",

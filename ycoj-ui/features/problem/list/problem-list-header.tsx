@@ -3,8 +3,11 @@ import { Button } from '@/shared/components/ui/button';
 import { ListChecks, MessageSquareWarning } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 type Props = {
+  /** Main toolbar content, such as the problem search, shown before the actions. */
+  children?: ReactNode;
   canCreate: boolean;
   canReview?: boolean;
   pendingSolutionCount?: number;
@@ -12,6 +15,7 @@ type Props = {
 };
 
 export default function ProblemListHeader({
+  children,
   canCreate,
   canReview = false,
   pendingSolutionCount = 0,
@@ -27,26 +31,10 @@ export default function ProblemListHeader({
   const hasActions = canCreate || canReview || canManageFeedback;
 
   return (
-    <header
-      className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3"
-      data-llm-visible="true"
-    >
-      <div className="min-w-0 space-y-1">
-        <h1
-          className="text-xl leading-tight font-semibold md:text-2xl"
-          data-llm-text={t('title')}
-        >
-          {t('title')}
-        </h1>
-        <p
-          className="text-muted-foreground text-sm"
-          data-llm-text={t('subtitle')}
-        >
-          {t('subtitle')}
-        </p>
-      </div>
+    <header className="flex items-center gap-2" data-llm-visible="true">
+      <div className="min-w-0 flex-1">{children}</div>
       {hasActions && (
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {canReview && (
             <Button
               asChild

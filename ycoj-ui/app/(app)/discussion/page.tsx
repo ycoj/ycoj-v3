@@ -44,7 +44,6 @@ export default async function DiscussionPage({
     getUser(),
   ]);
   const permissions = resolveDiscussionPermissions(user);
-  const t = await getTranslations('discussion');
 
   const createHref = nodeId
     ? discussionCreatePath('node', nodeId)
@@ -53,11 +52,10 @@ export default async function DiscussionPage({
   return (
     <div className="space-y-5">
       <DiscussionListHeader
-        title={t('title')}
-        subtitle={t('subtitle')}
         createHref={permissions.canCreate ? createHref : undefined}
-      />
-      <DiscussionNodeFilter vnodes={data.vnodes} selectedNodeId={nodeId} />
+      >
+        <DiscussionNodeFilter vnodes={data.vnodes} selectedNodeId={nodeId} />
+      </DiscussionListHeader>
       <DiscussionList data={data} />
       <div className="pt-1">
         <Pagination page={data.page} totalPages={data.dpcount} />

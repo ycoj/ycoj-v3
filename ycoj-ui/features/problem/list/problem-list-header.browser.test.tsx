@@ -48,15 +48,26 @@ function mount(count?: number, canReview = true, locale = 'en') {
 }
 
 describe('problem list header', () => {
-  it('shows the page title, description and create action', () => {
-    mount();
-    expect(screen.getByRole('heading', { name: 'Problems' })).toBeVisible();
-    expect(
-      screen.getByText(/Browse the problem set, filter by topic/)
-    ).toBeVisible();
-    expect(
-      screen.getByRole('button', { name: 'Create or import' })
-    ).toBeVisible();
+  it('shows the toolbar content and actions on one row without a page title', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <div className="w-[1024px] p-4">
+          <ProblemListHeader canCreate canReview canManageFeedback>
+            <input aria-label="Search problems" />
+          </ProblemListHeader>
+        </div>
+      </NextIntlClientProvider>
+    );
+    expect(screen.queryByRole('heading')).toBeNull();
+    const search = screen.getByRole('textbox', { name: 'Search problems' });
+    const create = screen.getByRole('button', { name: 'Create or import' });
+    expect(search).toBeVisible();
+    expect(create).toBeVisible();
+    const searchBounds = search.getBoundingClientRect();
+    const createBounds = create.getBoundingClientRect();
+    expect(searchBounds.right).toBeLessThanOrEqual(createBounds.left);
+    expect(createBounds.top).toBeLessThan(searchBounds.bottom);
+    expect(createBounds.bottom).toBeGreaterThan(searchBounds.top);
   });
 
   it('omits the action area for users without any permission', () => {
@@ -65,7 +76,6 @@ describe('problem list header', () => {
         <ProblemListHeader canCreate={false} />
       </NextIntlClientProvider>
     );
-    expect(screen.getByRole('heading', { name: 'Problems' })).toBeVisible();
     expect(screen.queryByRole('button')).toBeNull();
     expect(screen.queryByRole('link')).toBeNull();
   });
