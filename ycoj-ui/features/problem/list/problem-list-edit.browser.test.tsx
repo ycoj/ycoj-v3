@@ -1,5 +1,5 @@
 import '@/app/globals.css';
-import ProblemList from './problem-list';
+import ProblemListBrowse from './problem-list-browse';
 import type { ProblemListResponse } from '@/api/server/method/problems/list';
 import type { ProblemFilters } from '@/features/problem/list/problem-filter-utils';
 import messages from '@/messages/en';
@@ -81,21 +81,25 @@ function makeData(pdocs: ProblemListResponse['pdocs']): ProblemListResponse {
 
 function renderList(
   data: ProblemListResponse,
-  props: Partial<Parameters<typeof ProblemList>[0]> = {}
+  props: Partial<Parameters<typeof ProblemListBrowse>[0]> = {}
 ) {
   return render(
-    <NextIntlClientProvider locale="en" messages={messages}>
-      <ProblemList
-        data={data}
-        showTags={false}
-        filters={filters}
-        domainId="system"
-        canManageAll
-        canManageOwn
-        userId={1}
-        {...props}
-      />
-    </NextIntlClientProvider>
+    <div className="w-[1100px]">
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <ProblemListBrowse
+          data={data}
+          showTags={false}
+          filters={filters}
+          categories={{}}
+          namespaces={[]}
+          domainId="system"
+          canManageAll
+          canManageOwn
+          userId={1}
+          {...props}
+        />
+      </NextIntlClientProvider>
+    </div>
   );
 }
 
@@ -114,13 +118,26 @@ describe('problem list edit mode', () => {
   });
 
   it('only offers edit mode to users who can manage problems', () => {
-    renderList(makeData([makeProblem(1000)]), {
+    renderList(makeData([makeProblem(1000), makeProblem(1001)]), {
       canManageAll: false,
       canManageOwn: false,
     });
     expect(
       screen.queryByRole('button', { name: 'Edit problems' })
     ).not.toBeInTheDocument();
+    expect(screen.queryByText('2 problems')).not.toBeInTheDocument();
+  });
+
+  it('puts edit mode on the filter row and omits the problem count', () => {
+    renderList(makeData([makeProblem(1000), makeProblem(1001)]));
+    const sort = screen.getByRole('combobox', { name: 'Sort' });
+    const edit = screen.getByRole('button', { name: 'Edit problems' });
+    const sortBox = sort.getBoundingClientRect();
+    const editBox = edit.getBoundingClientRect();
+
+    expect(screen.queryByText('2 problems')).not.toBeInTheDocument();
+    expect(Math.abs(sortBox.top - editBox.top)).toBeLessThan(2);
+    expect(editBox.left).toBeGreaterThan(sortBox.right);
   });
 
   it('selects problems and hides them in one action', async () => {

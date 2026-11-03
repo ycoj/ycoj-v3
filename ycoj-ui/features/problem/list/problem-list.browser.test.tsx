@@ -72,6 +72,10 @@ describe('ProblemList', () => {
     const problem = makeProblem({ docId: 1000, pid: 'P1000' });
     renderList(makeData([problem]));
     expect(screen.getByText('P1000')).toBeInTheDocument();
+    expect(screen.queryByText('1 problem')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Edit problems' })
+    ).not.toBeInTheDocument();
     expect(screen.getByText('P1000').closest('td')).toHaveAttribute(
       'data-llm-text',
       'P1000'

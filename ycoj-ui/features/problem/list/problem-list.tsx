@@ -28,7 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table';
-import { Pencil } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -43,6 +42,9 @@ type Props = {
   /** PERM_EDIT_PROBLEM_SELF: the user can manage problems they own. */
   canManageOwn: boolean;
   userId?: number;
+  /** Bulk-edit mode. The filter row owns the control that turns this on. */
+  editing?: boolean;
+  onLeaveEditMode?: () => void;
 };
 
 export default function ProblemList({
@@ -53,14 +55,14 @@ export default function ProblemList({
   canManageAll,
   canManageOwn,
   userId,
+  editing = false,
+  onLeaveEditMode,
 }: Props) {
   const t = useTranslations('problem');
   const common = useTranslations('common');
   const editT = useTranslations('problemList.edit');
-  const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState<number[]>([]);
 
-  const canEdit = canManageAll || canManageOwn;
   const editableIds = useMemo(
     () =>
       selectableProblemIds(data.pdocs, {
@@ -78,15 +80,10 @@ export default function ProblemList({
   );
   const checkState = selectionCheckState(effectiveSelection, editableIds);
   const columnCount = editing ? 7 : 6;
-  // An open-ended count ("gte") is only a lower bound, so it is not shown.
-  const resultSummary =
-    data.pcountRelation === 'eq'
-      ? common('problems', { count: data.pcount })
-      : '';
 
   const leaveEditMode = () => {
-    setEditing(false);
     setSelected([]);
+    onLeaveEditMode?.();
   };
 
   const toggleShowTagsHref = `/problem?${new URLSearchParams({
@@ -96,27 +93,6 @@ export default function ProblemList({
 
   return (
     <div className="space-y-3">
-      {!editing && (
-        <div className="flex min-h-9 items-center justify-between gap-3">
-          <p
-            className="text-muted-foreground text-sm"
-            data-llm-text={resultSummary}
-          >
-            {resultSummary}
-          </p>
-          {canEdit && (
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => setEditing(true)}
-            >
-              <Pencil className="text-muted-foreground" />
-              <span data-llm-text={editT('enter')}>{editT('enter')}</span>
-            </Button>
-          )}
-        </div>
-      )}
-
       {editing && (
         <ProblemBulkToolbar
           selected={effectiveSelection}
