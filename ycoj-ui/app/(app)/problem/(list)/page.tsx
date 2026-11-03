@@ -1,13 +1,12 @@
 import ServerApis from '@/api/server/method';
 import { getProblemDomainContext } from '@/api/server/method/problems/domain-context';
 import { canEditSystem } from '@/features/manage/manage-access';
-import ProblemFilterBar from '@/features/problem/list/problem-filter-bar';
 import {
   buildProblemQuery,
   parseProblemFilters,
   type ProblemFilterSearchParams,
 } from '@/features/problem/list/problem-filter-utils';
-import ProblemList from '@/features/problem/list/problem-list';
+import ProblemListBrowse from '@/features/problem/list/problem-list-browse';
 import ProblemListHeader from '@/features/problem/list/problem-list-header';
 import ProblemSearch from '@/features/problem/list/problem-search';
 import { getUser } from '@/features/user/lib/get-user';
@@ -45,25 +44,22 @@ export default async function ProblemListPage({
 
   return (
     <div className="space-y-5">
-      <div className="space-y-3">
-        <ProblemListHeader
-          canCreate={hasPerm(user, PERM.PERM_CREATE_PROBLEM)}
-          canReview={hasPerm(user, PERM.PERM_DELETE_PROBLEM_SOLUTION)}
-          pendingSolutionCount={data.pendingSolutionCount}
-          canManageFeedback={canEditSystem(user)}
-        >
-          <ProblemSearch filters={filters} />
-        </ProblemListHeader>
-        <ProblemFilterBar
-          filters={filters}
-          categories={tags}
-          namespaces={namespaces}
-        />
-      </div>
-      <ProblemList
+      <ProblemListBrowse
+        header={
+          <ProblemListHeader
+            canCreate={hasPerm(user, PERM.PERM_CREATE_PROBLEM)}
+            canReview={hasPerm(user, PERM.PERM_DELETE_PROBLEM_SOLUTION)}
+            pendingSolutionCount={data.pendingSolutionCount}
+            canManageFeedback={canEditSystem(user)}
+          >
+            <ProblemSearch filters={filters} />
+          </ProblemListHeader>
+        }
+        filters={filters}
+        categories={tags}
+        namespaces={namespaces}
         data={data}
         showTags={filters.showTags}
-        filters={filters}
         domainId={domainId}
         canManageAll={hasPerm(user, PERM.PERM_EDIT_PROBLEM)}
         canManageOwn={hasPerm(user, PERM.PERM_EDIT_PROBLEM_SELF)}

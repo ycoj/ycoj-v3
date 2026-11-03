@@ -91,6 +91,25 @@ describe('problem filter bar', () => {
     ).toHaveAttribute('aria-pressed', 'false');
   });
 
+  it('joins the sort menu to the direction button on a square right edge', () => {
+    renderBar();
+    const sort = screen.getByRole('combobox', { name: 'Sort' });
+    const direction = screen.getByRole('button', { name: 'Ascending' });
+    const sortStyle = getComputedStyle(sort);
+    const directionStyle = getComputedStyle(direction);
+
+    expect(sortStyle.borderTopRightRadius).toBe('0px');
+    expect(sortStyle.borderBottomRightRadius).toBe('0px');
+    expect(Number.parseFloat(sortStyle.borderTopLeftRadius)).toBeGreaterThan(0);
+    expect(directionStyle.borderTopLeftRadius).toBe('0px');
+    expect(directionStyle.borderBottomLeftRadius).toBe('0px');
+    expect(
+      Math.abs(
+        sort.getBoundingClientRect().top - direction.getBoundingClientRect().top
+      )
+    ).toBeLessThan(2);
+  });
+
   it('switches to the newest-first ordering', async () => {
     renderBar();
     await userEvent.click(screen.getByRole('combobox', { name: 'Sort' }));

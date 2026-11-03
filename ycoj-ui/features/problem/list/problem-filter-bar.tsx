@@ -45,13 +45,15 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 
 type Props = {
   filters: ProblemFilters;
   categories: Record<string, string[]>;
   namespaces: string[];
+  /** Extra control aligned to the end of the filter row, such as edit mode. */
+  trailing?: ReactNode;
 };
 
 const ALL = '__all__';
@@ -87,6 +89,7 @@ export default function ProblemFilterBar({
   filters,
   categories,
   namespaces,
+  trailing,
 }: Props) {
   const t = useTranslations('problemList.filters');
   const difficultyT = useTranslations('difficulty');
@@ -288,7 +291,7 @@ export default function ProblemFilterBar({
           value={filters.sort}
           onValueChange={(value) => apply({ sort: value as ProblemSortMetric })}
         >
-          <SelectTrigger aria-label={t('sort')}>
+          <SelectTrigger aria-label={t('sort')} className="rounded-r-none">
             <ArrowUpDown className="text-muted-foreground" />
             <SelectValue />
           </SelectTrigger>
@@ -337,6 +340,8 @@ export default function ProblemFilterBar({
           <span>{t('reset')}</span>
         </Button>
       )}
+
+      {trailing && <div className="ml-auto shrink-0">{trailing}</div>}
     </div>
   );
 }
