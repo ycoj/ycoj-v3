@@ -3,12 +3,9 @@ import type {
   DomainDashboardResponse,
   DomainEditResponse,
   DomainGroupsResponse,
-  DomainJoinResponse,
   DomainPermissionsResponse,
   DomainRolesResponse,
-  DomainSearchItem,
   DomainUsersResponse,
-  JoinApplicationsResponse,
 } from './types';
 import { alova } from '@/api/server';
 
@@ -40,24 +37,3 @@ export const getDomainPermissions = () =>
 
 export const getDomainGroups = () =>
   alova.Get<DomainGroupsResponse>('/domain/group', { cacheFor: 0 });
-
-export const getDomainJoinApplications = () =>
-  alova.Get<JoinApplicationsResponse>('/domain/join_applications', {
-    cacheFor: 0,
-  });
-
-export const getDomainJoin = (params: {
-  target?: string;
-  code?: string;
-  redirect?: string;
-}) =>
-  alova.Get<DomainJoinResponse>('/domain/join', {
-    params,
-    cacheFor: 0,
-  });
-
-export const searchDomains = (q?: string) =>
-  alova.Get<DomainSearchItem[]>('/domain/search', {
-    params: { q },
-    cacheFor: 0,
-  });

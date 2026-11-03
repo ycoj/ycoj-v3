@@ -17,7 +17,6 @@ import contest from './contest.json';
 import difficulty from './difficulty.json';
 import discussion from './discussion.json';
 import domainAdmin from './domain-admin.json';
-import domain from './domain.json';
 import draw from './draw.json';
 import error from './error.json';
 import file from './file.json';
@@ -121,7 +120,6 @@ const catalog = {
   userImport,
   blog,
   domainAdmin,
-  domain,
   file,
   help,
   preference,

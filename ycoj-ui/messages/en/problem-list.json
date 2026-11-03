@@ -29,7 +29,6 @@
     "unhide": "Unhide",
     "delete": "Delete",
     "download": "Download package",
-    "copy": "Copy to domain",
     "downloadName": "Package file name",
     "downloadNamePlaceholder": "Export",
     "downloadStart": "Download",
@@ -44,24 +43,8 @@
     "cancel": "Cancel",
     "failed": "The operation failed. Please try again."
   },
-  "copy": {
-    "title": "Copy problems",
-    "description": "{count, plural, one {Copy # problem to another domain.} other {Copy # problems to another domain.}}",
-    "target": "Target domain",
-    "targetPlaceholder": "Search domains",
-    "loading": "Loading domains...",
-    "noResults": "No domains found.",
-    "hidden": "Create as hidden",
-    "confirm": "Copy",
-    "copying": "Copying...",
-    "success": "{count, plural, one {# problem copied} other {# problems copied}}",
-    "failed": "Could not copy the problems. Please try again.",
-    "targetRequired": "Choose a target domain.",
-    "cancel": "Cancel"
-  },
   "package": {
     "download": "Download package",
-    "copy": "Copy to another domain",
     "ready": "The problem package is ready.",
     "failed": "Could not build the problem package."
   }

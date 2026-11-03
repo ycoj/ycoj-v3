@@ -34,16 +34,6 @@ export type DomainGroupDoc = {
   uids?: number[];
 };
 
-export type MyDomainsResponse = {
-  ddocs: DomainDoc[];
-  /** Whether the caller can manage each domain id. */
-  canManage: Record<string, boolean>;
-  /** Caller's role per domain id. */
-  role: Record<string, string>;
-  /** Domains the caller starred for quick access. */
-  pinnedDomains: string[];
-};
-
 export type DomainDashboardResponse = {
   domain: DomainDoc;
   owner: DomainOwner;
@@ -94,46 +84,6 @@ export type DomainPermissionsResponse = {
 export type DomainGroupsResponse = {
   domain: DomainDoc;
   groups: DomainGroupDoc[];
-};
-
-export type JoinMethod = 0 | 1 | 2;
-
-/** Stored join policy. `expire` is an ISO date string when finite. */
-export type JoinSettings = {
-  method: JoinMethod;
-  role?: string;
-  group?: string;
-  expire?: string | null;
-  code?: string;
-};
-
-export type JoinApplicationsResponse = {
-  rolesWithText?: [string, string][];
-  joinSettings?: JoinSettings;
-  /** Expiration preset hours mapped to the backend's English labels. */
-  expirations: Record<string, string>;
-  url_prefix?: string;
-};
-
-export type DomainJoinInfo = {
-  name: string;
-  owner: DomainOwner;
-  avatar?: string;
-  bulletin?: string;
-};
-
-export type DomainJoinResponse = {
-  joinSettings?: JoinSettings;
-  code: string;
-  redirect: string;
-  target: string;
-  domainInfo: DomainJoinInfo;
-};
-
-export type DomainSearchItem = {
-  _id: string;
-  name: string;
-  avatarUrl: string;
 };
 
 export type CurrentDomainResponse = {

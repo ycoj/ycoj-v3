@@ -4,14 +4,6 @@
   "aboutTitle": "About",
   "aboutEmpty": "The site has not configured an about page yet.",
   "sections": {
-    "domain": {
-      "title": "Domains",
-      "body": {
-        "1": "Any user can create a domain. A teacher can make one for a course and add problems and students to it; a team can use a domain as a shared space.",
-        "2": "Roles and permissions decide whether a domain is public or private. Each domain has its own problem set, discussions, trainings and contests.",
-        "3": "The default domain is system. Opening the main site address lands in this domain, and the logo returns to it from anywhere."
-      }
-    },
     "limits": {
       "title": "Time and memory limits",
       "body": {

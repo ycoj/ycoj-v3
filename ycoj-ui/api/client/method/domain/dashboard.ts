@@ -1,16 +1,10 @@
 import { clientRequest } from '@/api/client';
-import type { DomainMutationResponse } from '@/api/client/method/domain/account';
+import type { DomainMutationResponse } from '@/api/client/method/domain/mutation';
 
 /** Resets the active domain's discussion nodes from system configuration. */
 export const initDiscussionNodes = () =>
   clientRequest.Post<DomainMutationResponse>('/domain/dashboard', {
     operation: 'init_discussion_node',
-  });
-
-/** Owner-only domain deletion. Requires sudo confirmation. */
-export const deleteDomain = () =>
-  clientRequest.Post<DomainMutationResponse>('/domain/dashboard', {
-    operation: 'delete',
   });
 
 export type SaveDomainSettingsPayload = Record<

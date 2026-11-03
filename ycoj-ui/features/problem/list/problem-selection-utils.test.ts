@@ -121,7 +121,6 @@ describe('availableBulkActions', () => {
       canUnhide: true,
       canDelete: true,
       canDownload: true,
-      canCopy: true,
     });
   });
 
@@ -131,14 +130,12 @@ describe('availableBulkActions', () => {
       canUnhide: true,
       canDelete: true,
       canDownload: true,
-      canCopy: true,
     });
     expect(availableBulkActions([1000], rows)).toEqual({
       canHide: true,
       canUnhide: false,
       canDelete: true,
       canDownload: true,
-      canCopy: true,
     });
   });
 
@@ -148,7 +145,6 @@ describe('availableBulkActions', () => {
       canUnhide: false,
       canDelete: false,
       canDownload: false,
-      canCopy: false,
     });
   });
 });

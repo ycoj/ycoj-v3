@@ -5,7 +5,6 @@ import {
   type ProblemBulkOperation,
 } from '@/api/client/method/problem/batch';
 import type { ProblemListResponse } from '@/api/server/method/problems/list';
-import CopyProblemsDialog from '@/features/problem/copy/copy-problems-dialog';
 import { availableBulkActions } from '@/features/problem/list/problem-selection-utils';
 import { downloadProblemPackages } from '@/features/problem/package/download-problem-packages';
 import ConfirmActionDialog from '@/shared/components/confirm-action-dialog';
@@ -13,15 +12,7 @@ import parseErrorMessage from '@/shared/components/errored/parse-message';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import {
-  Copy,
-  Download,
-  Eye,
-  EyeOff,
-  LoaderCircle,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { Download, Eye, EyeOff, LoaderCircle, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Dialog } from 'radix-ui';
@@ -234,22 +225,6 @@ export default function ProblemBulkToolbar({
               </Dialog.Content>
             </Dialog.Portal>
           </Dialog.Root>
-        )}
-
-        {actions.canCopy && (
-          <CopyProblemsDialog
-            pids={selected}
-            onCopied={() => {
-              onClear();
-              router.refresh();
-            }}
-            trigger={
-              <Button variant="outline" size="sm" type="button" disabled={busy}>
-                <Copy />
-                <span data-llm-text={t('copy')}>{t('copy')}</span>
-              </Button>
-            }
-          />
         )}
 
         {actions.canDelete && (

@@ -7,7 +7,6 @@ import {
   ShieldCheck,
   Users,
   UserCog,
-  UserRoundPlus,
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -19,7 +18,6 @@ type Item = {
   labelKey:
     | 'console'
     | 'settings'
-    | 'joinPolicy'
     | 'roles'
     | 'members'
     | 'permissionMatrix'
@@ -30,11 +28,6 @@ type Item = {
 const ITEMS: Item[] = [
   { href: '/domain', labelKey: 'console', icon: Info },
   { href: '/domain/edit', labelKey: 'settings', icon: UserCog },
-  {
-    href: '/domain/join-applications',
-    labelKey: 'joinPolicy',
-    icon: UserRoundPlus,
-  },
   { href: '/domain/role', labelKey: 'roles', icon: KeyRound },
   { href: '/domain/user', labelKey: 'members', icon: Users },
   {

@@ -19,34 +19,10 @@ vi.mock('sonner', () => ({
   toast: { success: mocks.toastSuccess, error: mocks.toastError },
 }));
 
-vi.mock('@/features/problem/copy/copy-problems-dialog', () => ({
-  default: ({
-    pids,
-    trigger,
-  }: {
-    pids: number[];
-    trigger: React.ReactNode;
-  }) => (
-    <div data-testid="copy-dialog" data-pids={pids.join(',')}>
-      {trigger}
-    </div>
-  ),
-}));
-
-function renderActions(
-  props: {
-    allowDownload?: boolean;
-    allowCopy?: boolean;
-  } = {}
-) {
+function renderActions() {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <ProblemPackageActions
-        docId={1000}
-        domainId="system"
-        allowDownload={props.allowDownload ?? true}
-        allowCopy={props.allowCopy ?? true}
-      />
+      <ProblemPackageActions docId={1000} domainId="system" />
     </NextIntlClientProvider>
   );
 }
@@ -82,24 +58,5 @@ describe('ProblemPackageActions', () => {
     await waitFor(() =>
       expect(mocks.toastError).toHaveBeenCalledWith('No readable problems')
     );
-  });
-
-  it('opens the copy dialog for this problem only', () => {
-    renderActions();
-    expect(screen.getByTestId('copy-dialog')).toHaveAttribute(
-      'data-pids',
-      '1000'
-    );
-    expect(
-      screen.getByRole('button', { name: 'Copy to another domain' })
-    ).toBeVisible();
-  });
-
-  it('hides actions the user cannot use', () => {
-    renderActions({ allowDownload: false, allowCopy: false });
-    expect(
-      screen.queryByRole('button', { name: 'Download package' })
-    ).not.toBeInTheDocument();
-    expect(screen.queryByTestId('copy-dialog')).not.toBeInTheDocument();
   });
 });
