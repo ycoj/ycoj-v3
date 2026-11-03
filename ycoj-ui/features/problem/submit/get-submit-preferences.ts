@@ -7,8 +7,6 @@ import type { User } from '@/shared/types/user';
 export type SubmitPreferences = {
   /** Preferred code language, e.g. `cc.cc14o2` or a family key. */
   codeLang?: string;
-  /** Preferred starting source text. */
-  codeTemplate?: string;
 };
 
 /**
@@ -32,11 +30,7 @@ export async function getSubmitPreferences(
       typeof current.codeLang === 'string' && current.codeLang
         ? current.codeLang
         : undefined;
-    const codeTemplate =
-      typeof current.codeTemplate === 'string' && current.codeTemplate
-        ? current.codeTemplate
-        : undefined;
-    return { codeLang, codeTemplate };
+    return { codeLang };
   } catch {
     // Preferences are optional; the form falls back to its default language.
     return {};

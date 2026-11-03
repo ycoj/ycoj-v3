@@ -46,7 +46,6 @@ export default async function ProblemSubmitForm({
       problem={problem}
       languages={languagesRes.languages}
       preferredLanguage={preferences.codeLang}
-      codeTemplate={preferences.codeTemplate}
       contestEndedMode={contestEndedMode}
     />
   );

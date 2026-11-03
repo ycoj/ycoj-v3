@@ -47,7 +47,7 @@ export const createDiscussion = (
   );
 
 export const updateDiscussion = (did: ObjectId, input: DiscussionUpdateInput) =>
-  clientRequest.Post<DiscussionMutationResponse>(`/discuss/${did}`, {
+  clientRequest.Post<DiscussionMutationResponse>(`/discuss/${did}/edit`, {
     operation: 'update',
     did,
     title: input.title,
@@ -57,7 +57,7 @@ export const updateDiscussion = (did: ObjectId, input: DiscussionUpdateInput) =>
   });
 
 export const deleteDiscussion = (did: ObjectId) =>
-  clientRequest.Post<DiscussionMutationResponse>(`/discuss/${did}`, {
+  clientRequest.Post<DiscussionMutationResponse>(`/discuss/${did}/edit`, {
     operation: 'delete',
     did,
   });

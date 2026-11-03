@@ -52,8 +52,6 @@ type Props = {
   languages: Record<string, LanguageFamily>;
   /** Account preference from `UserContext.codeLang`. */
   preferredLanguage?: string;
-  /** Account preference from `UserContext.codeTemplate`. */
-  codeTemplate?: string;
   contestEndedMode?: ProblemDetailMode;
 };
 
@@ -70,7 +68,6 @@ export default function ProblemSubmitFormClient({
   problem,
   languages,
   preferredLanguage,
-  codeTemplate,
   contestEndedMode,
 }: Props) {
   const t = useTranslations('problem.submitForm');
@@ -168,7 +165,7 @@ export default function ProblemSubmitFormClient({
     defaultValues: {
       familyKey: defaultFamilyKey,
       lang: defaultLang,
-      code: codeTemplate ?? '',
+      code: '',
       fileName: '',
     },
   });

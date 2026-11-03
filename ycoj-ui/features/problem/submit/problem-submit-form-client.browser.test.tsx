@@ -83,11 +83,11 @@ beforeEach(() => {
 });
 
 describe('standalone submit form preferences', () => {
-  it('selects the account preferred language and template', async () => {
-    mount({ preferredLanguage: 'py.py3', codeTemplate: 'print(1)' });
+  it('selects the account preferred language without applying the code template', async () => {
+    mount({ preferredLanguage: 'py.py3' });
 
     expect(screen.getByLabelText('Version')).toHaveTextContent('Python 3');
-    expect(screen.getByLabelText('Code')).toHaveValue('print(1)');
+    expect(screen.getByLabelText('Code')).toHaveValue('');
   });
 
   it('falls back to C++ when the preference is unavailable', () => {
