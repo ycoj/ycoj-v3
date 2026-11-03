@@ -21,9 +21,6 @@ const DOMAIN_PAGE_ROUTES: Record<string, string> = {
   '/domain/role': '/domain/role',
   '/domain/permission': '/domain/permission',
   '/domain/group': '/domain/group',
-  '/domain/join_applications': '/domain/join-applications',
-  '/domain/join': '/domain/join',
-  '/home/domain': '/home/domain',
 };
 
 /**

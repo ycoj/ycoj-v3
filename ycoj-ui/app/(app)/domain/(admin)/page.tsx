@@ -24,8 +24,6 @@ export default async function DomainConsolePage() {
   return (
     <DomainDashboard
       data={state.data}
-      canDelete={state.data.domain.owner === viewer.id}
-      isSystemDomain={state.data.domain._id === 'system'}
       bulletin={
         state.data.domain.bulletin ? (
           <DomainBulletin content={state.data.domain.bulletin} />

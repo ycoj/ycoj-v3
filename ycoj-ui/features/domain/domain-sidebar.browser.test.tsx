@@ -20,7 +20,6 @@ describe('domain management sidebar', () => {
     for (const [label, href] of [
       ['Console', '/domain'],
       ['Settings', '/domain/edit'],
-      ['Join policy', '/domain/join-applications'],
       ['Roles', '/domain/role'],
       ['Members', '/domain/user'],
       ['Permissions', '/domain/permission'],

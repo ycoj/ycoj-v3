@@ -29,7 +29,6 @@
     "unhide": "取消隐藏",
     "delete": "删除",
     "download": "下载题目包",
-    "copy": "复制到领域",
     "downloadName": "题目包文件名",
     "downloadNamePlaceholder": "Export",
     "downloadStart": "下载",
@@ -44,24 +43,8 @@
     "cancel": "取消",
     "failed": "操作失败，请重试"
   },
-  "copy": {
-    "title": "复制题目",
-    "description": "将 {count} 道题目复制到其他领域。",
-    "target": "目标领域",
-    "targetPlaceholder": "搜索领域",
-    "loading": "正在加载领域...",
-    "noResults": "未找到领域",
-    "hidden": "以隐藏状态创建",
-    "confirm": "复制",
-    "copying": "正在复制...",
-    "success": "已复制 {count} 道题目",
-    "failed": "复制失败，请重试",
-    "targetRequired": "请选择目标领域",
-    "cancel": "取消"
-  },
   "package": {
     "download": "下载题目包",
-    "copy": "复制到其他领域",
     "ready": "题目包已生成",
     "failed": "无法生成题目包"
   }

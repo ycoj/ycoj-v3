@@ -16,14 +16,13 @@ type HelpSection = {
 /**
  * Only the parts of the legacy `wiki_help.html` that still describe how the
  * product works today. Anchors keep the ids business pages link to
- * (`#domain` from the domain page, `#contest`/`#training` from contest and
- * training sidebars, `#contact` from discussion and blog detail).
+ * (`#contest`/`#training` from contest and training sidebars, `#contact` from
+ * discussion and blog detail).
  *
  * The legacy page is a raw HTML template that is not localizable; this version
  * moves the same guidance into the translation catalogs.
  */
 const HELP_SECTIONS: HelpSection[] = [
-  { id: 'domain', bodyKeys: ['1', '2', '3'] },
   { id: 'limits', bodyKeys: ['1', '2'] },
   { id: 'io', bodyKeys: ['1'] },
   { id: 'judge', bodyKeys: ['1'] },

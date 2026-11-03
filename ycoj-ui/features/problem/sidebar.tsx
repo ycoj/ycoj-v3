@@ -52,8 +52,6 @@ type Props = {
   allowRejudge?: boolean;
   /** Shows the problem package download; backend also enforces access. */
   allowDownloadPackage?: boolean;
-  /** Shows the cross-domain copy action. */
-  allowCopyProblem?: boolean;
 };
 
 type SidebarButtonProps = {
@@ -105,7 +103,6 @@ export default function ProblemSidebar({
   allowFeedback,
   allowRejudge,
   allowDownloadPackage,
-  allowCopyProblem,
 }: Props) {
   const t = useTranslations('problem');
   const tProblemOps = useTranslations('problemOps');
@@ -233,12 +230,10 @@ export default function ProblemSidebar({
         {allowRejudge && !isContestMode && (
           <ProblemRejudgeButton docId={problem.docId} tid={tid} />
         )}
-        {!isContestMode && (allowDownloadPackage || allowCopyProblem) && (
+        {!isContestMode && allowDownloadPackage && (
           <ProblemPackageActions
             docId={problem.docId}
             domainId={problem.domainId}
-            allowDownload={Boolean(allowDownloadPackage)}
-            allowCopy={Boolean(allowCopyProblem)}
           />
         )}
         {allowFeedback && (

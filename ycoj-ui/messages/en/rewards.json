@@ -25,7 +25,7 @@
   "equipSuccess": "Appearance equipped.",
   "unequipSuccess": "Default appearance restored. Your item stays in your inventory.",
   "rulesTitle": "Thoughtful practice, steady rewards",
-  "rules": "Every account receives 100 welcome coins. Earn up to 50 coins daily and 100 extra from weekly tasks. New problems are problems you have never passed; references to the same source count once. Only normal submissions count, excluding test runs, data generation, and new passes from rejudging. A comeback requires a failed submission before your first pass. Your wallet and progress are shared across domains. Task rewards stack and use the submission date. Claim within the current day or week; expired rewards cannot be claimed later. Missing a day never costs coins. Cosmetics are permanent and do not affect scores, rankings, or permissions.",
+  "rules": "Every account receives 100 welcome coins. Earn up to 50 coins daily and 100 extra from weekly tasks. New problems are problems you have never passed; references to the same source count once. Only normal submissions count, excluding test runs, data generation, and new passes from rejudging. A comeback requires a failed submission before your first pass. Task rewards stack and use the submission date. Claim within the current day or week; expired rewards cannot be claimed later. Missing a day never costs coins. Cosmetics are permanent and do not affect scores, rankings, or permissions.",
   "contestHint": "Contest and homework submissions count after the event ends and results are public, to protect hidden verdicts. They still use their original submission dates.",
   "shopTitle": "A little reward for your effort",
   "shopHint": "Select an item to preview before redeeming. Every item is permanent.",

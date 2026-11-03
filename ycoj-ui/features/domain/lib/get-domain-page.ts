@@ -7,7 +7,6 @@ import type {
   DomainPermissionsResponse,
   DomainRolesResponse,
   DomainUsersResponse,
-  JoinApplicationsResponse,
 } from '@/api/server/method/domain/types';
 import { getUser } from '@/features/user/lib/get-user';
 import { hasPerm, PERM } from '@/features/user/lib/priv';
@@ -125,14 +124,6 @@ export async function getDomainGroupsPage() {
   const t = await getTranslations('domainAdmin');
   return loadDomainPage<DomainGroupsResponse>(
     () => ServerApis.Domain.getDomainGroups(),
-    t('loadFailed')
-  );
-}
-
-export async function getDomainJoinApplicationsPage() {
-  const t = await getTranslations('domainAdmin');
-  return loadDomainPage<JoinApplicationsResponse>(
-    () => ServerApis.Domain.getDomainJoinApplications(),
     t('loadFailed')
   );
 }

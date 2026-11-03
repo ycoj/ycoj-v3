@@ -1,5 +1,5 @@
 import { clientRequest } from '@/api/client';
-import type { DomainMutationResponse } from '@/api/client/method/domain/account';
+import type { DomainMutationResponse } from '@/api/client/method/domain/mutation';
 
 /** Assign a role to selected members, optionally marking them joined. */
 export const setDomainUsers = (uids: number[], role: string, join: boolean) =>

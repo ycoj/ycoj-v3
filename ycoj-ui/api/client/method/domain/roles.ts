@@ -1,5 +1,5 @@
 import { clientRequest } from '@/api/client';
-import type { DomainMutationResponse } from '@/api/client/method/domain/account';
+import type { DomainMutationResponse } from '@/api/client/method/domain/mutation';
 
 export const createDomainRole = (role: string) =>
   clientRequest.Post<DomainMutationResponse>('/domain/role', {

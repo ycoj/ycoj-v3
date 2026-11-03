@@ -117,7 +117,6 @@ export default async function ProblemDetailPage({
           hasPriv(user, PRIV.PRIV_READ_PROBLEM_DATA) ||
           hasPerm(user, PERM.PERM_READ_PROBLEM_DATA))
       }
-      canCopyProblem={Boolean(user?._id)}
       user={user}
       scratchpadLanguages={scratchpadLanguages}
     />
@@ -130,7 +129,6 @@ function ProblemDetailContent({
   canConfigure,
   canRejudge,
   canDownloadPackage,
-  canCopyProblem,
   user,
   scratchpadLanguages,
 }: {
@@ -139,7 +137,6 @@ function ProblemDetailContent({
   canConfigure: boolean;
   canRejudge: boolean;
   canDownloadPackage: boolean;
-  canCopyProblem: boolean;
   user: User | null;
   scratchpadLanguages: Record<string, LanguageFamily>;
 }) {
@@ -189,7 +186,6 @@ function ProblemDetailContent({
             allowConfigure={canConfigure}
             allowRejudge={canRejudge}
             allowDownloadPackage={canDownloadPackage}
-            allowCopyProblem={canCopyProblem}
             allowFeedback={Boolean(user?._id)}
             scratchpadSlot={
               flattenScratchpadLanguages(scratchpadLanguages).length ? (

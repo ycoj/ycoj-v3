@@ -89,6 +89,5 @@ export function availableBulkActions(
     canUnhide: hidden.size > 0,
     canDelete: selected.length > 0,
     canDownload: selected.length > 0,
-    canCopy: selected.length > 0,
   };
 }

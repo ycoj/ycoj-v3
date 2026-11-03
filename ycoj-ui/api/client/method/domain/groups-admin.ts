@@ -1,5 +1,5 @@
 import { clientRequest } from '@/api/client';
-import type { DomainMutationResponse } from '@/api/client/method/domain/account';
+import type { DomainMutationResponse } from '@/api/client/method/domain/mutation';
 
 /** Upsert a group and its full member list. Empty `uids` clears membership. */
 export const updateDomainGroup = (name: string, uids: number[]) =>

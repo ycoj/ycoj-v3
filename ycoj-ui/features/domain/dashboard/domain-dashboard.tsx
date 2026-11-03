@@ -22,35 +22,26 @@ import {
   TableHead,
   TableRow,
 } from '@/shared/components/ui/table';
-import { LoaderCircle, Trash2, Wrench } from 'lucide-react';
+import { LoaderCircle, Wrench } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { AlertDialog } from 'radix-ui';
 import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 
 type Props = {
   data: DomainDashboardResponse;
-  canDelete: boolean;
-  isSystemDomain: boolean;
   /** Pre-rendered server markup; the Markdown engine is server-only. */
   bulletin?: ReactNode;
 };
 
-export default function DomainDashboard({
-  data,
-  canDelete,
-  isSystemDomain,
-  bulletin,
-}: Props) {
+export default function DomainDashboard({ data, bulletin }: Props) {
   const t = useTranslations('domainAdmin');
   const router = useRouter();
-  const [busy, setBusy] = useState<'init' | 'delete' | null>(null);
-  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const initNodes = async () => {
     if (busy) return;
-    setBusy('init');
+    setBusy(true);
     try {
       const target = await submitDomainMutation(
         ClientApis.Domain.initDiscussionNodes(),
@@ -63,27 +54,7 @@ export default function DomainDashboard({
       if (isSudoRedirect(error)) return;
       toast.error(t('actionFailed'));
     } finally {
-      setBusy(null);
-    }
-  };
-
-  const remove = async () => {
-    if (busy) return;
-    setBusy('delete');
-    try {
-      const target = await submitDomainMutation(
-        ClientApis.Domain.deleteDomain(),
-        '/home/domain'
-      );
-      toast.success(t('deleteSuccess'));
-      router.push(target);
-      router.refresh();
-    } catch (error) {
-      if (isSudoRedirect(error)) return;
-      toast.error(t('deleteFailed'));
-    } finally {
-      setBusy(null);
-      setDeleteOpen(false);
+      setBusy(false);
     }
   };
 
@@ -109,10 +80,10 @@ export default function DomainDashboard({
             type="button"
             variant="outline"
             size="sm"
-            disabled={busy !== null}
+            disabled={busy}
             onClick={() => void initNodes()}
           >
-            {busy === 'init' ? (
+            {busy ? (
               <LoaderCircle className="animate-spin" aria-hidden="true" />
             ) : (
               <Wrench aria-hidden="true" />
@@ -161,74 +132,6 @@ export default function DomainDashboard({
           </p>
         </CardContent>
       </Card>
-
-      {canDelete && !isSystemDomain && (
-        <Card className="ring-destructive/30">
-          <CardHeader>
-            <CardTitle className="text-destructive">
-              <span data-llm-text={t('deleteDomain')}>{t('deleteDomain')}</span>
-            </CardTitle>
-          </CardHeader>
-          <Separator />
-          <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-4">
-            <p
-              className="max-w-prose text-sm text-muted-foreground"
-              data-llm-text={t('deleteDomainDescription')}
-            >
-              {t('deleteDomainDescription')}
-            </p>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={busy !== null}
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 aria-hidden="true" />
-              {t('deleteDomain')}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      <AlertDialog.Root
-        open={deleteOpen}
-        onOpenChange={(open) => {
-          if (!open && busy === null) setDeleteOpen(false);
-        }}
-      >
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="data-open:animate-in data-closed:animate-out fixed inset-0 z-50 bg-black/30 backdrop-blur-xs" />
-          <AlertDialog.Content className="bg-background fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border p-5 outline-none">
-            <AlertDialog.Title className="text-lg font-semibold">
-              {t('deleteDomainTitle')}
-            </AlertDialog.Title>
-            <AlertDialog.Description className="mt-2 text-sm text-muted-foreground">
-              {t('deleteDomainDescription')}
-            </AlertDialog.Description>
-            <div className="mt-5 flex justify-end gap-2">
-              <AlertDialog.Cancel asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy !== null}
-                >
-                  {t('cancel')}
-                </Button>
-              </AlertDialog.Cancel>
-              <AlertDialog.Action asChild>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  disabled={busy !== null}
-                  onClick={() => void remove()}
-                >
-                  {t('delete')}
-                </Button>
-              </AlertDialog.Action>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
     </div>
   );
 }
