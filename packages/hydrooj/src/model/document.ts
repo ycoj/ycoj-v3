@@ -471,6 +471,12 @@ export async function apply(ctx: Context) {
         { key: { domainId: 1, docType: 1, docId: 1, score: -1 }, name: 'contestRuleOI', sparse: true },
         { key: { domainId: 1, docType: 1, docId: 1, accept: -1, time: 1 }, name: 'contestRuleACM', sparse: true },
         { key: { domainId: 1, docType: 1, uid: 1, enroll: 1, docId: 1 }, name: 'training', sparse: true },
+        // Detail page lists who enrolled in one training. The `training` index is ordered for a user's enrollments.
+        {
+            key: { domainId: 1, docId: 1, uid: 1 },
+            name: 'trainingEnroll',
+            partialFilterExpression: { docType: TYPE_TRAINING, enroll: 1 },
+        },
     );
 }
 

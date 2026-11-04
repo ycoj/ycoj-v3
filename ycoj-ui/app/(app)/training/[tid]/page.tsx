@@ -53,7 +53,8 @@ export default async function TrainingDetailPage({
         <div className="md:col-span-2">
           <TrainingSidebar
             tid={tid}
-            data={data}
+            tdoc={data.tdoc}
+            tsdoc={data.tsdoc}
             owner={data.udoc}
             canEdit={canEditTraining(user, data.tdoc)}
           />

@@ -54,7 +54,13 @@ export default async function TrainingFilesPage({
         ratio="8-2"
         left={<TrainingFilesManager tid={tid} files={data.files} />}
         right={
-          <TrainingSidebar tid={tid} data={detail} owner={data.udoc} canEdit />
+          <TrainingSidebar
+            tid={tid}
+            tdoc={detail.tdoc}
+            tsdoc={detail.tsdoc}
+            owner={data.udoc}
+            canEdit
+          />
         }
       />
     </div>

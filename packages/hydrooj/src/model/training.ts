@@ -82,6 +82,30 @@ export function isOpen(node: TrainingNode, doneNids: Set<number> | number[], don
 export const isInvalid = (node: TrainingNode, doneNids: Set<number> | number[]) =>
     !new Set(doneNids).isSupersetOf(new Set(node.requireNids));
 
+function sameIdSet(stored: readonly number[] | undefined, next: readonly number[]) {
+    if (!stored || stored.length !== next.length) return false;
+    if (!next.length) return true;
+    const seen = new Set(stored);
+    if (seen.size !== next.length) return false;
+    for (const id of next) {
+        if (!seen.has(id)) return false;
+    }
+    return true;
+}
+
+/** True when the stored training status already records this progress. */
+export function isSameProgress(
+    tsdoc: Pick<TrainingStatusDoc, 'done' | 'doneNids' | 'donePids'> | null | undefined,
+    doneNids: number[],
+    donePids: number[],
+    done: boolean,
+) {
+    return !!tsdoc
+        && tsdoc.done === done
+        && sameIdSet(tsdoc.doneNids, doneNids)
+        && sameIdSet(tsdoc.donePids, donePids);
+}
+
 export async function count(domainId: string, query: Filter<TrainingDoc>) {
     return await document.count(domainId, document.TYPE_TRAINING, query);
 }
@@ -117,6 +141,7 @@ global.Hydro.model.training = {
     isProgress,
     isOpen,
     isInvalid,
+    isSameProgress,
     add,
     edit,
     del,
