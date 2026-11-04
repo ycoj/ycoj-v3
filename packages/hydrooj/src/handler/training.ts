@@ -5,7 +5,7 @@ import { sortFiles } from '@hydrooj/utils/lib/utils';
 import {
     FileLimitExceededError, FileUploadError, ProblemNotFoundError, ValidationError,
 } from '../error';
-import { Tdoc, TrainingDoc } from '../interface';
+import { ProblemDoc, Tdoc, TrainingDoc } from '../interface';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import * as oplog from '../model/oplog';
 import problem from '../model/problem';
@@ -96,32 +96,59 @@ class TrainingMainHandler extends Handler {
     }
 }
 
-class TrainingDetailHandler extends Handler {
+// Detail rows show title, counts, tags, and difficulty. `maintainer` stays so hidden problems
+// remain visible to their maintainers. Statements and testdata config are not rendered here,
+// and loading them parses every problem config (including one extra read per reference).
+const TRAINING_DETAIL_PROBLEM_PROJECTION: Array<keyof ProblemDoc> = [
+    ...problem.PROJECTION_LIST,
+    'maintainer',
+];
+
+function statusesForVisibleProblems(
+    psdict: Record<string, { status?: number }>,
+    visible: Set<number>,
+) {
+    const result: Record<string, { status?: number }> = {};
+    for (const key of Object.keys(psdict)) {
+        if (visible.has(+key)) result[key] = psdict[key];
+    }
+    return result;
+}
+
+export class TrainingDetailHandler extends Handler {
     @param('tid', Types.ObjectId)
     @param('uid', Types.PositiveInt, true)
-    async get(domainId: string, tid: ObjectId, uid = this.user._id) {
+    @param('brief', Types.Boolean, true)
+    async get(domainId: string, tid: ObjectId, uid = this.user._id, brief = false) {
         const tdoc = await training.get(domainId, tid);
         await this.ctx.parallel('training/get', tdoc, this);
-        let enrollUsers: number[] = [];
-        let shouldCompare = false;
         const pids = training.getPids(tdoc.dag);
-        if (this.user.hasPriv(PRIV.PRIV_USER_PROFILE) && this.ctx.setting.get('training.enrolled-users')) {
-            enrollUsers = (await training.getMultiStatus(domainId, { docId: tid, uid: { $gt: 1 }, enroll: 1 })
-                .project({ uid: 1 }).limit(500).toArray()).map((x) => +x.uid);
-            shouldCompare = uid !== this.user._id;
-        } else uid = this.user._id;
+        const canBrowseEnrolled = this.user.hasPriv(PRIV.PRIV_USER_PROFILE)
+            && this.ctx.setting.get('training.enrolled-users');
+        if (!canBrowseEnrolled) uid = this.user._id;
+        const shouldCompare = canBrowseEnrolled && uid !== this.user._id;
         const canViewHidden = this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN) || this.user._id;
-        const [udoc, udict, pdict] = await Promise.all([
+        const loadEnrolled = canBrowseEnrolled && !brief;
+        const [enrollDocs, udoc, pdict, psdictAll, selfPsdictAll, groups, prevStatus] = await Promise.all([
+            loadEnrolled
+                ? training.getMultiStatus(domainId, { docId: tid, uid: { $gt: 1 }, enroll: 1 })
+                    .project({ uid: 1 }).limit(500).toArray()
+                : [],
             user.getById(domainId, tdoc.owner),
-            user.getListForRender(domainId, enrollUsers, this.user.hasPerm(PERM.PERM_VIEW_USER_PRIVATE_INFO)),
-            problem.getList(domainId, pids, canViewHidden, false),
+            problem.getList(domainId, pids, canViewHidden, false, TRAINING_DETAIL_PROBLEM_PROJECTION),
+            pids.length ? problem.getListStatus(domainId, uid, pids) : {},
+            shouldCompare && pids.length ? problem.getListStatus(domainId, this.user._id, pids) : {},
+            !brief && this.user.hasPerm(PERM.PERM_EDIT_DOMAIN) ? user.listGroup(domainId) : [],
+            training.getStatus(domainId, tdoc.docId, uid),
         ]);
-        const missing = pids.filter((pid) => !pdict[pid]?.docId);
-        const exist = pids.filter((pid) => pdict[pid]?.docId);
-        const [psdict, selfPsdict] = await Promise.all([
-            problem.getListStatus(domainId, uid, exist),
-            shouldCompare ? problem.getListStatus(domainId, this.user._id, exist) : {},
-        ]);
+        const enrollUsers = enrollDocs.map((doc) => +doc.uid);
+        const udict = enrollUsers.length
+            ? await user.getListForRender(domainId, enrollUsers, this.user.hasPerm(PERM.PERM_VIEW_USER_PRIVATE_INFO))
+            : {};
+        const visible = new Set(pids.filter((pid) => pdict[pid]?.docId));
+        const psdict = statusesForVisibleProblems(psdictAll, visible);
+        const selfPsdict = statusesForVisibleProblems(selfPsdictAll, visible);
+        const missing = pids.filter((pid) => !visible.has(pid));
         const donePids = new Set<number>();
         const progPids = new Set<number>();
         for (const pid in psdict) {
@@ -149,13 +176,16 @@ class TrainingDetailHandler extends Handler {
             if (nsdoc.isDone) doneNids.add(node._id);
             nsdict[node._id] = nsdoc;
         }
-        const tsdoc = await training.setStatus(domainId, tdoc.docId, uid, {
-            doneNids: Array.from(doneNids),
-            donePids: Array.from(donePids),
-            done: doneNids.size === tdoc.dag.length,
-        });
-        const groups = this.user.hasPerm(PERM.PERM_EDIT_DOMAIN)
-            ? await user.listGroup(domainId) : [];
+        const doneNidsList = Array.from(doneNids);
+        const donePidsList = Array.from(donePids);
+        const done = doneNids.size === tdoc.dag.length;
+        const tsdoc = training.isSameProgress(prevStatus, doneNidsList, donePidsList, done)
+            ? prevStatus
+            : await training.setStatus(domainId, tdoc.docId, uid, {
+                doneNids: doneNidsList,
+                donePids: donePidsList,
+                done,
+            });
         this.response.body = {
             tdoc, tsdoc, pids, pdict, psdict, ndict, nsdict, udoc, udict, selfPsdict, groups, missing,
         };

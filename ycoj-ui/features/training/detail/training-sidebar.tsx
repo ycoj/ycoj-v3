@@ -1,7 +1,6 @@
 'use client';
 
 import ClientApis from '@/api/client/method';
-import type { TrainingDetailResponse } from '@/api/server/method/training/detail';
 import {
   getTrainingChapterAnchorId,
   getTrainingProblemCount,
@@ -9,6 +8,11 @@ import {
 import UserSpan from '@/features/user/user-span';
 import { Button } from '@/shared/components/ui/button';
 import { Separator } from '@/shared/components/ui/separator';
+import type {
+  StatusDocBase,
+  TrainingDoc,
+  TrainingStatusFields,
+} from '@/shared/types/training';
 import type { BaseUser } from '@/shared/types/user';
 import { Pencil, FileText, PlusSquare, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -18,7 +22,8 @@ import { useState } from 'react';
 
 type Props = {
   tid: string;
-  data: TrainingDetailResponse;
+  tdoc: TrainingDoc;
+  tsdoc?: (StatusDocBase & TrainingStatusFields) | null;
   owner?: BaseUser;
   canEdit: boolean;
 };
@@ -63,16 +68,22 @@ function InfoRow({
   );
 }
 
-export default function TrainingSidebar({ tid, data, owner, canEdit }: Props) {
+export default function TrainingSidebar({
+  tid,
+  tdoc,
+  tsdoc,
+  owner,
+  canEdit,
+}: Props) {
   const t = useTranslations('training');
   const common = useTranslations('common');
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-  const isEnrolled = Boolean(data.tsdoc?.enroll);
-  const sectionCount = data.tdoc.dag.length;
-  const problemCount = getTrainingProblemCount(data.tdoc.dag);
-  const doneProblemCount = data.tsdoc?.donePids?.length ?? 0;
-  const doneSectionCount = data.tsdoc?.doneNids?.length ?? 0;
+  const isEnrolled = Boolean(tsdoc?.enroll);
+  const sectionCount = tdoc.dag.length;
+  const problemCount = getTrainingProblemCount(tdoc.dag);
+  const doneProblemCount = tsdoc?.donePids?.length ?? 0;
+  const doneSectionCount = tsdoc?.doneNids?.length ?? 0;
   const progressText = problemCount
     ? `${doneProblemCount}/${problemCount}`
     : '0/0';
@@ -147,8 +158,8 @@ export default function TrainingSidebar({ tid, data, owner, canEdit }: Props) {
         />
         <InfoRow
           label={t('participants')}
-          value={<span className="tabular-nums">{data.tdoc.attend}</span>}
-          llmText={String(data.tdoc.attend)}
+          value={<span className="tabular-nums">{tdoc.attend}</span>}
+          llmText={String(tdoc.attend)}
         />
         <InfoRow
           label={t('progress')}
@@ -178,8 +189,8 @@ export default function TrainingSidebar({ tid, data, owner, canEdit }: Props) {
           {t('directory')}
         </h2>
         <div className="space-y-1 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
-          {data.tdoc.dag.length ? (
-            data.tdoc.dag.map((node, index) => {
+          {tdoc.dag.length ? (
+            tdoc.dag.map((node, index) => {
               const sectionTitle = node.title?.trim() || t('unnamedSection');
               const chapterLabel = t('chapter', {
                 number: index + 1,
