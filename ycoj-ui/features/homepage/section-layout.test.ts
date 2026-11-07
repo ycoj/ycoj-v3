@@ -1,6 +1,7 @@
 import {
   getColumnSpan,
   getColumnSpans,
+  isCheckinSectionShown,
   normalizeColumnWidth,
   normalizeHomepageColumns,
   placeCheckinColumn,
@@ -184,32 +185,116 @@ describe('getColumnSpans', () => {
   });
 });
 
-describe('placeCheckinColumn', () => {
-  it('adds the check-in to the last narrow column', () => {
-    const columns = normalizeHomepageColumns([CONTEST, SIDEBAR]).columns;
-    const placement = placeCheckinColumn(columns);
+describe('isCheckinSectionShown', () => {
+  it.each([
+    { payload: true, shown: true },
+    { payload: 1, shown: true },
+    { payload: { enabled: true }, shown: true },
+    { payload: { title: '签到' }, shown: true },
+    { payload: false, shown: false },
+    { payload: 0, shown: false },
+    { payload: null, shown: false },
+    { payload: { enabled: false, title: '签到' }, shown: false },
+  ])('treats $payload as shown=$shown', ({ payload, shown }) => {
+    expect(isCheckinSectionShown(payload)).toBe(shown);
+  });
+});
 
-    expect(placement.addedColumn).toBe(false);
-    expect(placement.checkinColumnIndex).toBe(1);
-    expect(placement.columns).toBe(columns);
+describe('placeCheckinColumn', () => {
+  it('appends check-in to the last narrow column when the config omits it', () => {
+    const columns = normalizeHomepageColumns([CONTEST, SIDEBAR]).columns;
+    const placed = placeCheckinColumn(columns);
+
+    expect(placed[0]).toBe(columns[0]);
+    expect(placed[1].width).toBe(3);
+    expect(placed[1].sections.map((section) => section.name)).toEqual([
+      'hitokoto',
+      'starred_problems',
+      'recent_problems',
+      'discussion_nodes',
+      'suggestion',
+      'checkin',
+    ]);
+    expect(placed[1].sections.at(-1)?.payload).toBe(true);
   });
 
-  it('uses the last column when every configured column is wide', () => {
+  it('treats a width of 6 as the sidebar', () => {
+    const columns = normalizeHomepageColumns([
+      { width: 7, sections: [['bulletin', true]] },
+      { width: 6, sections: [['hitokoto', true]] },
+    ]).columns;
+    const placed = placeCheckinColumn(columns);
+
+    expect(placed[0].sections.map((section) => section.name)).toEqual([
+      'bulletin',
+    ]);
+    expect(placed[1].sections.map((section) => section.name)).toEqual([
+      'hitokoto',
+      'checkin',
+    ]);
+  });
+
+  it('appends check-in to the last column when every configured column is wide', () => {
     const columns = normalizeHomepageColumns([
       { width: 12, sections: [['bulletin', true]] },
       { width: 12, sections: [['hitokoto', true]] },
     ]).columns;
-    const placement = placeCheckinColumn(columns);
+    const placed = placeCheckinColumn(columns);
 
-    expect(placement.addedColumn).toBe(false);
-    expect(placement.checkinColumnIndex).toBe(1);
-    expect(placement.columns).toBe(columns);
+    expect(placed[0]).toBe(columns[0]);
+    expect(placed[1].sections.map((section) => section.name)).toEqual([
+      'hitokoto',
+      'checkin',
+    ]);
   });
 
-  it('creates a column only for an empty homepage', () => {
-    const placement = placeCheckinColumn([]);
+  it('creates a full-width column only for an empty homepage', () => {
+    expect(placeCheckinColumn([])).toEqual([
+      { width: 12, sections: [{ name: 'checkin', payload: true }] },
+    ]);
+  });
 
-    expect(placement.addedColumn).toBe(true);
-    expect(placement.columns).toEqual([{ width: 12, sections: [] }]);
+  it('keeps a configured check-in in its column and order', () => {
+    const columns = normalizeHomepageColumns([
+      {
+        width: 8,
+        sections: [
+          ['bulletin', true],
+          ['checkin', true],
+          ['contest', [[], {}]],
+        ],
+      },
+      SIDEBAR,
+    ]).columns;
+    const placed = placeCheckinColumn(columns);
+
+    expect(placed).toBe(columns);
+    expect(placed[0].sections.map((section) => section.name)).toEqual([
+      'bulletin',
+      'checkin',
+      'contest',
+    ]);
+    expect(
+      placed[1].sections.some((section) => section.name === 'checkin')
+    ).toBe(false);
+  });
+
+  it('does not fall back when check-in is configured off', () => {
+    const columns = normalizeHomepageColumns([
+      {
+        width: 9,
+        sections: [
+          ['bulletin', true],
+          ['checkin', false],
+        ],
+      },
+      { width: 3, sections: [['checkin', { enabled: false }]] },
+    ]).columns;
+    const placed = placeCheckinColumn(columns);
+
+    expect(placed).toHaveLength(1);
+    expect(placed[0].sections.map((section) => section.name)).toEqual([
+      'bulletin',
+    ]);
   });
 });

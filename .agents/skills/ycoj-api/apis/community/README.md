@@ -10,7 +10,7 @@
 
 | Route | Request example | Response / permission |
 | --- | --- | --- |
-| `/` GET | no arguments | Homepage HTML assembled from the configured widgets; widget data respects each `PERM_VIEW_*`. |
+| `/` GET | no arguments | Homepage HTML from `hydrooj.homepage`, or JSON `{contents,udict,domain,checkin}` with `Accept: application/json`. A `checkin` key keeps its YAML value in `contents`; `checkin` on the body is always the card state. Widget lists respect each `PERM_VIEW_*`. |
 | `/home/security` GET/POST | POST operations update password, TFA, WebAuthn, connected identities, etc., using UI fields. | Security page/redirect; `PRIV_USER_PROFILE`, and sensitive mutations require sudo where decorated. |
 | `/home/settings/:category` GET/POST | `/home/settings/account`; `POST {category:"account", ...settings}`. | Category HTML/redirect; profile privilege. `category=account` exposes `hideRank` only to callers with `PERM_EDIT_DOMAIN` in the current domain. All POST categories require that permission when `hideRank` or `booleanKeys.hideRank` is submitted (403 `PermissionError` before persistence otherwise). It is stored as `true` only for `"on"`; omitted values are preserved. Core migration `99 → 100` clears all existing opt-outs. |
 | `/home/avatar` POST | `{input:"data:image/png;base64,…"}` | `{url:string}` after avatar validation/storage; profile privilege. |

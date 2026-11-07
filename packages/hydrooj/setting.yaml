@@ -1,6 +1,12 @@
 homepage:
   type: yaml
   desc: Homepage Config
+  # `checkin` is optional. The new UI renders the daily check-in card in the
+  # column and order of a `checkin` entry. `true` (or any value other than
+  # `false`, `0`, `null`, or `{enabled: false}`) shows the standard card.
+  # When every column omits `checkin`, the card stays where it did before this
+  # key existed: appended to the last column of width 6 or less, or the last
+  # column when all are wider.
   default:
     - width: 9
       bulletin: true

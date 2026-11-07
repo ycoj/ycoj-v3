@@ -64,6 +64,15 @@ export type CountdownConfig = {
 };
 export type Countdown = ['countdown', CountdownConfig];
 
+/**
+ * Payload of a `checkin` entry in `hydrooj.homepage`. The handler has no
+ * getter for this name, so the YAML value is forwarded unchanged. `false`,
+ * `0`, `null`, and `{ enabled: false }` hide the card; other values show it.
+ */
+export type CheckinSectionConfig =
+  boolean | number | { enabled?: boolean; [key: string]: unknown } | null;
+export type CheckinSection = ['checkin', CheckinSectionConfig];
+
 export type SectionType =
   | Banner
   | Bulletin
@@ -79,6 +88,7 @@ export type SectionType =
   | DiscussionNodes
   | Suggestions
   | Countdown
+  | CheckinSection
   | ErrorSection;
 
 /**

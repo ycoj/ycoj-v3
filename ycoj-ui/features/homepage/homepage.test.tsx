@@ -77,6 +77,10 @@ describe('Homepage access', () => {
   });
 });
 
+function sectionNames(column: { props: { section: { name: string } } }[]) {
+  return column.map((section) => section.props.section.name);
+}
+
 describe('Homepage layout', () => {
   const base = {
     udict: {},
@@ -106,12 +110,56 @@ describe('Homepage layout', () => {
     });
 
     const columns = page.props.columns;
-    // Two configured columns plus the sidebar check-in card.
-    expect(columns).toHaveLength(2);
-    expect(columns[0]).toHaveLength(2);
-    expect(columns[1]).toHaveLength(3);
+    // The omitted check-in card is appended to the narrow column.
+    expect(sectionNames(columns[0])).toEqual(['contest', 'homework']);
+    expect(sectionNames(columns[1])).toEqual([
+      'hitokoto',
+      'starred_problems',
+      'checkin',
+    ]);
     // 9/3 remains 9/3 on the 12-column grid.
     expect(page.props.spans).toEqual([9, 3]);
+  });
+
+  it('renders check-in in the configured column and order', async () => {
+    const page = await renderColumns({
+      ...base,
+      contents: [
+        {
+          width: 8,
+          sections: [
+            ['checkin', true],
+            ['bulletin', true],
+          ],
+        },
+        { width: 4, sections: [['hitokoto', true]] },
+      ],
+    });
+
+    const columns = page.props.columns;
+    expect(sectionNames(columns[0])).toEqual(['checkin', 'bulletin']);
+    expect(sectionNames(columns[1])).toEqual(['hitokoto']);
+    expect(page.props.spans).toEqual([8, 4]);
+  });
+
+  it('omits a disabled check-in without adding the historical card', async () => {
+    const page = await renderColumns({
+      ...base,
+      contents: [
+        {
+          width: 9,
+          sections: [
+            ['bulletin', true],
+            ['checkin', { enabled: false }],
+          ],
+        },
+        { width: 3, sections: [['hitokoto', true]] },
+      ],
+    });
+
+    const columns = page.props.columns;
+    expect(sectionNames(columns[0])).toEqual(['bulletin']);
+    expect(sectionNames(columns[1])).toEqual(['hitokoto']);
   });
 
   it('skips sections this UI cannot render', async () => {

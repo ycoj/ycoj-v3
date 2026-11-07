@@ -1,0 +1,14 @@
+{% if payload != false and payload != 0 and payload != none and payload.enabled != false %}
+<div class="section side">
+  <div class="section__header">
+    <h1 class="section__title">{{ _('Check In') }}</h1>
+  </div>
+  <div class="section__body typo">
+    {% if checkin.record and checkin.record.hitokoto %}
+      <p>{{ checkin.record.hitokoto.text }}</p>
+    {% elif checkin.date %}
+      <p>{{ checkin.date }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
