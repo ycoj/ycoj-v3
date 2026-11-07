@@ -152,6 +152,37 @@ describe('EntityHoverCard', () => {
     expect(screen.getByText(/42% complete/)).toBeVisible();
   });
 
+  it('shows a user name, equipped title, and a short stat line', async () => {
+    mocks.send.mockResolvedValue({
+      kind: 'user',
+      id: '12',
+      uname: 'alice',
+      displayName: 'Alice Chen',
+      avatar: '',
+      role: 'root',
+      badge: null,
+      bio: 'Writes short editorials.',
+      nAccept: 42,
+      rating: 1840,
+      rank: 7,
+      ccfLevel: 0,
+      priv: 0,
+      equipment: { background: 'background-sky', title: 'title-explorer' },
+    });
+    renderCard(
+      <EntityHoverLink href="/user/12" openDelay={0} closeDelay={0}>
+        alice
+      </EntityHoverLink>
+    );
+
+    await hoverLink('alice');
+    expect(await screen.findByText('Alice Chen')).toBeVisible();
+    expect(screen.getByText('Root')).toBeVisible();
+    expect(screen.getByText('Writes short editorials.')).toBeVisible();
+    expect(screen.getByText('Algorithm explorer')).toBeVisible();
+    expect(screen.getByText(/42 solved · Rating 1840/)).toBeVisible();
+  });
+
   it('keeps the link in place and explains a denied preview', async () => {
     mocks.send.mockResolvedValue({ error: { name: 'PermissionError' } });
     renderCard(

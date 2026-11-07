@@ -18,6 +18,24 @@ export const TRAINING_EXCERPT_SAMPLE = 160;
 /** Visible excerpt length after collapsing whitespace. */
 export const TRAINING_EXCERPT_LIMIT = 140;
 
+/** Characters sampled from a user bio before markdown is flattened. */
+export const USER_BIO_SAMPLE = 160;
+
+/** Global user fields read for a hover. Mail, secrets, and sessions stay out. */
+export const USER_PREVIEW_PROJECTION = {
+    _id: 1,
+    uname: 1,
+    avatar: 1,
+    priv: 1,
+    badge: 1,
+    ccfLevel: 1,
+    hideRank: 1,
+    bio: { $substrCP: [{ $ifNull: ['$bio', ''] }, 0, USER_BIO_SAMPLE] },
+} as const;
+
+/** Wallet read for equipped cosmetics. Balances and purchase history stay out. */
+export const USER_WALLET_PROJECTION = { equipped: 1 } as const;
+
 const HEAVY_PREVIEW_FIELDS = [
     'content', 'html', 'data', 'config', 'additional_file', 'reference',
     'description', 'files', 'privateFiles', 'stats',
@@ -72,7 +90,33 @@ export type TrainingPreview = {
     progress: number | null;
 };
 
-export type EntityPreview = ProblemPreview | ContestPreview | HomeworkPreview | TrainingPreview;
+export type UserPreviewEquipment = {
+    frame?: string;
+    background?: string;
+    title?: string;
+    accent?: string;
+};
+
+export type UserPreview = {
+    kind: 'user';
+    id: string;
+    uname: string;
+    displayName: string | null;
+    avatar: string;
+    role: string | null;
+    badge: string | null;
+    bio: string;
+    nAccept: number;
+    rating: number | null;
+    rank: number | null;
+    ccfLevel: number;
+    priv: number;
+    equipment: UserPreviewEquipment;
+};
+
+export type EntityPreview = ProblemPreview | ContestPreview | HomeworkPreview | TrainingPreview | UserPreview;
+
+const EQUIPMENT_SLOTS = ['frame', 'background', 'title', 'accent'] as const;
 
 type ProblemSource = {
     docId: number;
@@ -137,6 +181,25 @@ export function clipExcerpt(value: string | undefined, limit = TRAINING_EXCERPT_
     const collapsed = (value || '').replace(/\s+/g, ' ').trim();
     if (collapsed.length <= limit) return collapsed;
     return `${collapsed.slice(0, limit).trimEnd()}…`;
+}
+
+/** Flattens a short markdown bio into the same excerpt shape as a training summary. */
+export function plainExcerpt(value: string | undefined): string {
+    const plain = (value || '')
+        .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+        .replace(/\[([^\]]*)]\([^)]*\)/g, '$1')
+        .replace(/[#>*_`]/g, ' ');
+    return clipExcerpt(plain);
+}
+
+function equipmentOf(value: unknown): UserPreviewEquipment {
+    const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+    const equipment: UserPreviewEquipment = {};
+    for (const slot of EQUIPMENT_SLOTS) {
+        const item = source[slot];
+        if (typeof item === 'string' && item) equipment[slot] = item;
+    }
+    return equipment;
 }
 
 function docIdString(docId: ObjectId | string): string {
@@ -226,6 +289,58 @@ export function buildTrainingPreview(tdoc: TrainingSource, tsdoc: TrainingStatus
         attend: count(tdoc.attend),
         enrolled,
         progress: enrolled ? trainingProgress(problemIds, tsdoc?.donePids) : null,
+    };
+}
+
+type UserPreviewSource = {
+    _id: number;
+    uname: string;
+    avatar?: string;
+    priv?: number;
+    badge?: string;
+    ccfLevel?: number;
+    hideRank?: boolean;
+    bio?: string;
+};
+
+type UserMembershipSource = {
+    displayName?: string;
+    role?: string;
+    nAccept?: number;
+    rank?: number;
+};
+
+type UserRatingSource = { rating?: number } | null | undefined;
+
+export function buildUserPreview(
+    udoc: UserPreviewSource,
+    membership: UserMembershipSource,
+    options: {
+        equipment?: unknown;
+        rating?: UserRatingSource;
+        canSeePrivate?: boolean;
+    } = {},
+): UserPreview {
+    const displayName = options.canSeePrivate ? (membership.displayName || '').trim() : '';
+    const badge = (udoc.badge || '').trim();
+    const role = membership.role && membership.role !== 'default' ? membership.role : null;
+    const rank = !udoc.hideRank && count(membership.rank) > 0 ? count(membership.rank) : null;
+    const rating = Number.isFinite(options.rating?.rating) ? Number(options.rating?.rating) : null;
+    return {
+        kind: 'user',
+        id: String(udoc._id),
+        uname: udoc.uname,
+        displayName: displayName && displayName !== udoc.uname ? displayName : null,
+        avatar: udoc.avatar || '',
+        role,
+        badge: badge || null,
+        bio: plainExcerpt(udoc.bio),
+        nAccept: count(membership.nAccept),
+        rating,
+        rank,
+        ccfLevel: count(udoc.ccfLevel),
+        priv: count(udoc.priv),
+        equipment: equipmentOf(options.equipment),
     };
 }
 

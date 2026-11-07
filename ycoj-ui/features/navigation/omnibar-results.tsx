@@ -14,7 +14,6 @@ import {
 import { cn } from '@/shared/lib/utils';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 
 type Props = {
@@ -164,7 +163,7 @@ export default function OmnibarResults({
                   ? `${hit.user.uname} (${hit.user.displayName})`
                   : hit.user.uname;
                 return (
-                  <Link
+                  <EntityHoverLink
                     key={hit.id}
                     ref={highlighted ? highlightedRef : undefined}
                     id={`omnibar-${hit.id}`}
@@ -202,7 +201,7 @@ export default function OmnibarResults({
                         {userIdLabel('userId', { id: hit.user._id })}
                       </div>
                     </div>
-                  </Link>
+                  </EntityHoverLink>
                 );
               })}
           </div>

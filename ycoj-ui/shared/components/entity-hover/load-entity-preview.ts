@@ -17,6 +17,7 @@ const KINDS = new Set<EntityKind>([
   'contest',
   'homework',
   'training',
+  'user',
 ]);
 
 const cache = new Map<string, EntityPreviewResult>();
@@ -44,14 +45,12 @@ export function clearEntityPreviewCache() {
 }
 
 function isPreview(value: object): value is EntityPreview {
-  if (!('kind' in value) || !('title' in value)) return false;
-  const kind = value.kind;
-  const title = value.title;
-  return (
-    typeof kind === 'string' &&
-    KINDS.has(kind as EntityKind) &&
-    typeof title === 'string'
-  );
+  if (!('kind' in value) || typeof value.kind !== 'string') return false;
+  if (!KINDS.has(value.kind as EntityKind)) return false;
+  if (value.kind === 'user') {
+    return 'uname' in value && typeof value.uname === 'string';
+  }
+  return 'title' in value && typeof value.title === 'string';
 }
 
 export function classifyEntityPreview(data: unknown): EntityPreviewResult {

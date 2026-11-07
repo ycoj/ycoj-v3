@@ -3,9 +3,9 @@ import { ObjectId } from 'mongodb';
 import { describe, it } from 'node:test';
 
 const {
-    buildContestPreview, buildHomeworkPreview, buildProblemPreview, buildTrainingPreview,
+    buildContestPreview, buildHomeworkPreview, buildProblemPreview, buildTrainingPreview, buildUserPreview,
     clipExcerpt, CONTEST_PREVIEW_FIELDS, previewOmitsHeavyFields, PROBLEM_PREVIEW_FIELDS,
-    scheduleStatus, TRAINING_EXCERPT_SAMPLE,
+    scheduleStatus, TRAINING_EXCERPT_SAMPLE, USER_PREVIEW_PROJECTION, USER_WALLET_PROJECTION,
 } = require('../src/lib/entityPreview');
 
 const now = Date.parse('2026-06-01T12:00:00.000Z');
@@ -117,6 +117,48 @@ describe('entity preview builders', () => {
         assert.equal(guest.enrolled, false);
         assert.equal(guest.progress, null);
     });
+
+    it('builds a short public user card and leaves private fields out', () => {
+        const preview = buildUserPreview({
+            _id: 12,
+            uname: 'alice',
+            avatar: 'gravatar:alice@example.test',
+            priv: 0,
+            badge: 'Coach',
+            ccfLevel: 6,
+            hideRank: false,
+            bio: '**Hello** [site](https://example.test)',
+            mail: 'alice@example.test',
+            hash: 'secret',
+        }, {
+            displayName: 'Alice Chen',
+            role: 'default',
+            nAccept: 42,
+            rank: 7,
+        }, {
+            equipment: { frame: 'frame-sprout', title: 'title-explorer', balance: 100, ledger: [] },
+            rating: { rating: 1840, history: [{ tid: 'long' }] },
+            canSeePrivate: false,
+        });
+        assert.equal(preview.displayName, null);
+        assert.equal(preview.role, null);
+        assert.equal(preview.bio, 'Hello site');
+        assert.equal(preview.nAccept, 42);
+        assert.equal(preview.rating, 1840);
+        assert.equal(preview.rank, 7);
+        assert.deepEqual(preview.equipment, { frame: 'frame-sprout', title: 'title-explorer' });
+        assert.equal('mail' in preview, false);
+        assert.equal('hash' in preview, false);
+        assert.equal('history' in preview, false);
+
+        const hidden = buildUserPreview({
+            _id: 12, uname: 'alice', hideRank: true,
+        }, { displayName: 'Alice Chen', role: 'root', rank: 1 }, { canSeePrivate: true });
+        assert.equal(hidden.displayName, 'Alice Chen');
+        assert.equal(hidden.role, 'root');
+        assert.equal(hidden.rank, null);
+        assert.equal(hidden.rating, null);
+    });
 });
 
 function mock(request: string, exports: unknown) {
@@ -135,6 +177,16 @@ const state: {
     statusReads: number;
     statusWrites: number;
     fullTrainingReads: number;
+    userDoc: any;
+    domainUser: any;
+    wallet: any;
+    rating: any;
+    userProject: unknown;
+    walletProject: unknown;
+    walletReads: number;
+    publishedRatingReads: number;
+    settledRatingReads: number;
+    domainUserReads: number;
 } = {
     problem: null,
     contest: null,
@@ -147,9 +199,43 @@ const state: {
     statusReads: 0,
     statusWrites: 0,
     fullTrainingReads: 0,
+    userDoc: null,
+    domainUser: null,
+    wallet: null,
+    rating: null,
+    userProject: null,
+    walletProject: null,
+    walletReads: 0,
+    publishedRatingReads: 0,
+    settledRatingReads: 0,
+    domainUserReads: 0,
 };
 
-mock('../src/service/db', { collection: () => ({}) });
+function projected(rows: () => any, record: (projection: unknown) => void) {
+    return {
+        find: () => ({
+            project: (projection: unknown) => {
+                record(projection);
+                return {
+                    limit: () => ({
+                        toArray: async () => {
+                            const row = rows();
+                            return row ? [row] : [];
+                        },
+                    }),
+                };
+            },
+        }),
+    };
+}
+
+mock('../src/service/db', {
+    collection: (name: string) => {
+        assert.equal(name, 'reward.wallet');
+        state.walletReads += 1;
+        return projected(() => state.wallet, (projection) => { state.walletProject = projection; });
+    },
+});
 mock('../src/service/server', require('@hydrooj/framework'));
 mock('../src/model/problem', {
     get: async (...args: unknown[]) => {
@@ -173,6 +259,24 @@ mock('../src/model/training', {
 });
 mock('../src/model/user', {
     listGroup: async () => state.groups.map((name) => ({ name })),
+    coll: projected(() => state.userDoc, (projection) => { state.userProject = projection; }),
+    collV: projected(() => null, () => undefined),
+});
+mock('../src/model/domain', {
+    getDomainUser: async () => {
+        state.domainUserReads += 1;
+        return state.domainUser;
+    },
+});
+mock('../src/model/contestRating', {
+    getPublishedUserRating: async () => {
+        state.publishedRatingReads += 1;
+        return state.rating;
+    },
+    getUserRating: async () => {
+        state.settledRatingReads += 1;
+        throw new Error('preview must not settle contest ratings');
+    },
 });
 mock('../src/model/document', {
     TYPE_CONTEST: 30,
@@ -197,7 +301,7 @@ mock('../src/model/document', {
 
 (global as any).Hydro = (global as any).Hydro || { model: {}, ui: {} };
 const { PERM } = require('../src/model/builtin');
-const { PermissionError, NotAssignedError, ContestNotFoundError } = require('../src/error');
+const { PermissionError, NotAssignedError, ContestNotFoundError, UserNotFoundError } = require('../src/error');
 const { loadEntityPreview } = require('../src/handler/entityPreview');
 
 function caller(options: { perms?: bigint[], groups?: string[], id?: number, ownerOf?: boolean } = {}) {
@@ -314,5 +418,54 @@ describe('entity preview loader', () => {
         assert.deepEqual(projection.excerpt, {
             $substrCP: [{ $ifNull: ['$content', ''] }, 0, TRAINING_EXCERPT_SAMPLE],
         });
+    });
+
+    it('reads a user shell without mail, wallet history, or a rating rebuild', async () => {
+        state.userDoc = {
+            _id: 12,
+            uname: 'alice',
+            avatar: 'github:alice',
+            priv: 0,
+            bio: 'Hello',
+            mail: 'alice@example.test',
+        };
+        state.domainUser = { role: 'guest', nAccept: 3, rank: 9, displayName: 'Alice Chen' };
+        state.wallet = { equipped: { frame: 'frame-sprout' }, balance: 80, ledger: [{ id: 'welcome' }] };
+        state.rating = { rating: 1510, history: [{ tid: 'secret' }] };
+        state.userProject = null;
+        state.walletProject = null;
+        state.walletReads = 0;
+        state.publishedRatingReads = 0;
+        state.settledRatingReads = 0;
+        state.domainUserReads = 0;
+        const hidden = await loadEntityPreview(
+            caller({ perms: [PERM.PERM_VIEW] }),
+            { kind: 'user', id: '12' },
+        );
+        assert.equal(hidden.kind, 'user');
+        assert.equal(hidden.uname, 'alice');
+        assert.equal(hidden.displayName, null);
+        assert.equal(hidden.rating, null);
+        assert.equal(hidden.role, 'guest');
+        assert.equal('mail' in hidden, false);
+        assert.deepEqual(hidden.equipment, { frame: 'frame-sprout' });
+        assert.deepEqual(state.userProject, USER_PREVIEW_PROJECTION);
+        assert.deepEqual(state.walletProject, USER_WALLET_PROJECTION);
+        assert.equal(state.publishedRatingReads, 0);
+        assert.equal(state.settledRatingReads, 0);
+        assert.equal(state.domainUserReads, 1);
+
+        const visible = await loadEntityPreview(
+            caller({ perms: [PERM.PERM_VIEW, PERM.PERM_VIEW_CONTEST_SCOREBOARD, PERM.PERM_VIEW_USER_PRIVATE_INFO] }),
+            { kind: 'user', id: '12' },
+        );
+        assert.equal(visible.displayName, 'Alice Chen');
+        assert.equal(visible.rating, 1510);
+        assert.equal(state.publishedRatingReads, 1);
+        assert.equal(state.settledRatingReads, 0);
+        await assert.rejects(
+            () => loadEntityPreview(caller({ perms: [PERM.PERM_VIEW] }), { kind: 'user', id: 'sudo' }),
+            UserNotFoundError,
+        );
     });
 });

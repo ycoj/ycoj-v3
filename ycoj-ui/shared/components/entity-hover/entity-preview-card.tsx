@@ -1,17 +1,25 @@
 'use client';
 
 import { getContestStatusTextClassName } from '@/features/contest/contest-status';
+import RewardTitle from '@/features/rewards/reward-title';
+import CcfHook from '@/features/user/ccf-hook';
+import UserAvatar from '@/features/user/user-avatar';
+import Username from '@/features/user/username';
 import type {
   ContestPreview,
   EntityPreview,
+  EntityPreviewChrome,
   EntityPreviewResult,
   HomeworkPreview,
   ProblemPreview,
   ScheduleStatus,
   TrainingPreview,
+  UserPreview,
 } from '@/shared/components/entity-hover/types';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { PROBLEMS_DIFFICULTY_KEYS } from '@/shared/configs/difficulty';
+import { cn } from '@/shared/lib/utils';
+import type { BaseUser } from '@/shared/types/user';
 import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
@@ -216,6 +224,90 @@ function TrainingCard({ preview }: { preview: TrainingPreview }) {
   );
 }
 
+function userForPreview(preview: UserPreview): BaseUser {
+  return {
+    _id: Number(preview.id),
+    uname: preview.uname,
+    mail: '',
+    avatar: preview.avatar,
+    priv: preview.priv,
+    ccfLevel: preview.ccfLevel,
+    rewardEquipment: preview.equipment,
+    contestRating:
+      preview.rating === null
+        ? null
+        : {
+            rating: preview.rating,
+            peak: preview.rating,
+            contests: 0,
+            provisional: false,
+          },
+  };
+}
+
+function UserRole({ role }: { role: string }) {
+  const t = useTranslations('hoverCard');
+  if (role === 'guest') return t('roleGuest');
+  if (role === 'root') return t('roleRoot');
+  return role;
+}
+
+function UserCard({ preview }: { preview: UserPreview }) {
+  const t = useTranslations('hoverCard');
+  const user = userForPreview(preview);
+  const role = preview.role ? <UserRole role={preview.role} /> : null;
+  const badge = preview.badge;
+  const stats = [t('solved', { count: preview.nAccept })];
+  if (preview.rating !== null)
+    stats.push(t('rating', { rating: preview.rating }));
+  else if (preview.rank !== null) stats.push(t('rank', { rank: preview.rank }));
+  const summary = stats.join(' · ');
+  return (
+    <>
+      <div className="flex min-w-0 items-start gap-2.5">
+        <UserAvatar user={user} />
+        <div className="min-w-0">
+          <p className="flex flex-wrap items-center gap-1">
+            <Username user={user} />
+            <CcfHook level={preview.ccfLevel} />
+            {preview.equipment.title ? (
+              <RewardTitle id={preview.equipment.title} />
+            ) : null}
+          </p>
+          {preview.displayName ? (
+            <p
+              className="text-muted-foreground truncate text-xs"
+              data-llm-text={preview.displayName}
+            >
+              {preview.displayName}
+            </p>
+          ) : null}
+          {role || badge ? (
+            <p className="text-muted-foreground mt-0.5 truncate text-xs">
+              {role}
+              {role && badge ? ' · ' : null}
+              {badge}
+            </p>
+          ) : null}
+        </div>
+      </div>
+      {preview.bio ? (
+        <p
+          className="text-muted-foreground mt-1.5 line-clamp-2 text-xs leading-relaxed"
+          data-llm-text={preview.bio}
+        >
+          {preview.bio}
+        </p>
+      ) : null}
+      <Meta>
+        <span className="tabular-nums" data-llm-text={summary}>
+          {summary}
+        </span>
+      </Meta>
+    </>
+  );
+}
+
 function PreviewBody({ preview }: { preview: EntityPreview }) {
   switch (preview.kind) {
     case 'problem':
@@ -226,6 +318,8 @@ function PreviewBody({ preview }: { preview: EntityPreview }) {
       return <HomeworkCard preview={preview} />;
     case 'training':
       return <TrainingCard preview={preview} />;
+    case 'user':
+      return <UserCard preview={preview} />;
     default: {
       const unexpected: never = preview;
       return unexpected;
@@ -248,8 +342,10 @@ export const entityPreviewCardClassName =
 
 export default function EntityPreviewCard({
   result,
+  chrome,
 }: {
   result: EntityPreviewResult | null;
+  chrome?: EntityPreviewChrome;
 }) {
   const t = useTranslations('hoverCard');
   const message = result && !result.ok ? t(result.reason) : null;
@@ -257,7 +353,7 @@ export default function EntityPreviewCard({
     <div
       data-slot="entity-preview"
       data-llm-visible="true"
-      className={entityPreviewCardClassName}
+      className={cn(entityPreviewCardClassName, chrome?.className)}
     >
       {result === null ? (
         <PreviewLoading label={t('loading')} />

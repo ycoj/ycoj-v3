@@ -22,7 +22,7 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 | `/`, `/home/*`, `/discuss*`, `/blog/*`, `/paste*` | [Community and home](community/README.md) | Home/account pages, settings/messages (leaderboard opt-out requires domain edit permission), discussions, blogs and pastebin |
 | `/file*`, `/storage`, `/storage/avatar/*`, `/judge/*`, `/metrics`, `/center/report`, `/onlyoffice-jwt`, `/heap-snapshot`; runtime connections | [Runtime](runtime/README.md) | Private user files and public uploaded avatars with CDN-cacheable object URLs, storage APIs, judge integration, monitoring/add-ons, WebSocket/SSE contracts |
 | `/ui/*`, `/media`, `/markdown`, `/wiki/*`, `/language/*`, `/account/*`, `/lazy/*`, `/resource/*`, `/plugins/*`, `/legacy`, `/set_theme/*` | [UI and utility](ui/README.md) | Navigation (including first real-name submission time)/media rendering, UI assets, compatibility/session utilities |
-| `/api/:op`, `/api/:op/conn` | [Operation transport](api/README.md) | Query/Mutation request protocol, projection, connections, registered non-problem operations, and the lightweight problem/contest/homework/training hover preview |
+| `/api/:op`, `/api/:op/conn` | [Operation transport](api/README.md) | Query/Mutation request protocol, projection, connections, registered non-problem operations, and the lightweight problem/contest/homework/training/user hover preview |
 
 Within a group, use its `README.md` only as an index and open the linked endpoint document. A registered path can expose GET, POST, multiple POST `operation` values, or a connection; follow the contract for the exact variant being called.
 

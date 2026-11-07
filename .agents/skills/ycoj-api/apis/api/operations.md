@@ -28,7 +28,7 @@ Description: list domain user groups, optionally filtering membership/name. `typ
 
 ## `entity.preview`
 
-Description: lightweight hover summary for one problem, contest, homework, or training. The contract, including the fields that are intentionally omitted, is [Entity preview](entity-preview.md).
+Description: lightweight hover summary for one problem, contest, homework, training, or user. The contract, including the fields that are intentionally omitted, is [Entity preview](entity-preview.md).
 
 ## `domain.group` (mutation)
 

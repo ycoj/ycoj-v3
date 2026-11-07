@@ -2,20 +2,24 @@ import { ObjectId } from 'mongodb';
 import Schema from 'schemastery';
 import type { Context } from '../context';
 import {
-    ContestNotFoundError, NotAssignedError, ProblemNotFoundError, TrainingNotFoundError, ValidationError,
+    ContestNotFoundError, NotAssignedError, ProblemNotFoundError, TrainingNotFoundError, UserNotFoundError, ValidationError,
 } from '../error';
 import {
-    buildContestPreview, buildHomeworkPreview, buildProblemPreview, buildTrainingPreview,
+    buildContestPreview, buildHomeworkPreview, buildProblemPreview, buildTrainingPreview, buildUserPreview,
     CONTEST_PREVIEW_FIELDS, PROBLEM_PREVIEW_FIELDS, TRAINING_EXCERPT_SAMPLE,
+    USER_PREVIEW_PROJECTION, USER_WALLET_PROJECTION,
 } from '../lib/entityPreview';
 import { PERM } from '../model/builtin';
+import { getPublishedUserRating } from '../model/contestRating';
+import domain from '../model/domain';
 import * as document from '../model/document';
 import problem from '../model/problem';
 import * as training from '../model/training';
-import user from '../model/user';
+import user, { collV } from '../model/user';
+import db from '../service/db';
 import { Query } from '../service/server';
 
-const KINDS = ['problem', 'contest', 'homework', 'training'] as const;
+const KINDS = ['problem', 'contest', 'homework', 'training', 'user'] as const;
 type PreviewKind = typeof KINDS[number];
 
 const OBJECT_ID = /^[a-f0-9]{24}$/i;
@@ -110,6 +114,33 @@ async function loadTraining(ctx: PreviewContext, id: string) {
     return buildTrainingPreview(tdoc, tsdoc);
 }
 
+/**
+ * Reads the public profile shell. The detail page also loads every accepted
+ * problem, contest history, and may settle ratings; a hover must not do that.
+ */
+async function loadUser(ctx: PreviewContext, id: string) {
+    ctx.checkPerm(PERM.PERM_VIEW);
+    const domainId = domainIdOf(ctx);
+    if (!/^-?\d+$/.test(id)) throw new UserNotFoundError(id);
+    const uid = Number(id);
+    if (!Number.isSafeInteger(uid) || uid === 0) throw new UserNotFoundError(uid);
+    const source = uid < -999 ? collV : user.coll;
+    const canRate = ctx.user.hasPerm(PERM.PERM_VIEW_CONTEST_SCOREBOARD);
+    const [udoc, wallet, rating] = await Promise.all([
+        source.find({ _id: uid }).project(USER_PREVIEW_PROJECTION).limit(1).toArray().then((rows) => rows[0]),
+        db.collection('reward.wallet').find({ _id: uid }).project(USER_WALLET_PROJECTION).limit(1).toArray()
+            .then((rows) => rows[0]),
+        canRate ? getPublishedUserRating(domainId, uid) : Promise.resolve(null),
+    ]);
+    if (!udoc?.uname) throw new UserNotFoundError(uid);
+    const membership = await domain.getDomainUser(domainId, { _id: uid, priv: udoc.priv || 0 });
+    return buildUserPreview(udoc, membership, {
+        equipment: wallet?.equipped,
+        rating,
+        canSeePrivate: ctx.user._id === uid || ctx.user.hasPerm(PERM.PERM_VIEW_USER_PRIVATE_INFO),
+    });
+}
+
 export async function loadEntityPreview(ctx: PreviewContext, args: { kind?: string, id?: string }) {
     const kind = assertKind(args.kind || '');
     const id = args.id || '';
@@ -123,6 +154,8 @@ export async function loadEntityPreview(ctx: PreviewContext, args: { kind?: stri
             return loadContest(ctx, id, 'homework');
         case 'training':
             return loadTraining(ctx, id);
+        case 'user':
+            return loadUser(ctx, id);
         default: {
             const unexpected: never = kind;
             return unexpected;

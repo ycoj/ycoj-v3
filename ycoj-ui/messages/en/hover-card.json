@@ -6,5 +6,10 @@
   "stats": "{accepted} accepted · {submitted} submitted",
   "participants": "{count, plural, one {# participant} other {# participants}}",
   "progress": "{percent}% complete",
-  "deadline": "Due {time}"
+  "deadline": "Due {time}",
+  "solved": "{count, plural, one {# solved} other {# solved}}",
+  "rating": "Rating {rating}",
+  "rank": "Rank {rank}",
+  "roleGuest": "Guest",
+  "roleRoot": "Root"
 }

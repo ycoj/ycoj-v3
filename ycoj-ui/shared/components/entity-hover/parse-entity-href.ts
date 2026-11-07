@@ -9,6 +9,7 @@ const KIND_BY_SEGMENT: Record<string, EntityKind> = {
   contest: 'contest',
   homework: 'homework',
   training: 'training',
+  user: 'user',
 };
 
 const RESERVED_IDS: Record<EntityKind, ReadonlySet<string>> = {
@@ -23,6 +24,7 @@ const RESERVED_IDS: Record<EntityKind, ReadonlySet<string>> = {
   contest: new Set(['create', 'analysis']),
   homework: new Set(['create']),
   training: new Set(['create']),
+  user: new Set(['sudo']),
 };
 
 function pathnameOf(href: string): string | null {
@@ -40,7 +42,7 @@ function pathnameOf(href: string): string | null {
   return trimmed.split(/[?#]/)[0] ?? null;
 }
 
-/** Resolves a problem, contest, homework, or training reference from a link href. */
+/** Resolves a problem, contest, homework, training, or user reference from a link href. */
 export function parseEntityHref(href: string): EntityReference | null {
   const pathname = pathnameOf(href);
   if (!pathname) return null;
@@ -55,6 +57,7 @@ export function parseEntityHref(href: string): EntityReference | null {
   try {
     const id = decodeURIComponent(rawId);
     if (!id || id.includes('/')) return null;
+    if (kind === 'user' && (!/^-?\d+$/.test(id) || id === '0')) return null;
     return { kind, id };
   } catch {
     return null;

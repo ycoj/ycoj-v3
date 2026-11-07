@@ -37,6 +37,7 @@ describe('classifyEntityPreview', () => {
     ['ProblemNotFoundError', 'missing'],
     ['ContestNotFoundError', 'missing'],
     ['TrainingNotFoundError', 'missing'],
+    ['UserNotFoundError', 'missing'],
     ['ValidationError', 'failed'],
   ] as const)('maps %s to %s', (name, reason) => {
     expect(classifyEntityPreview({ error: { name } })).toEqual({

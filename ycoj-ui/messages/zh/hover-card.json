@@ -6,5 +6,10 @@
   "stats": "通过 {accepted} · 提交 {submitted}",
   "participants": "{count, plural, other {# 人参加}}",
   "progress": "已完成 {percent}%",
-  "deadline": "截止 {time}"
+  "deadline": "截止 {time}",
+  "solved": "{count, plural, other {通过 # 题}}",
+  "rating": "评分 {rating}",
+  "rank": "排名 {rank}",
+  "roleGuest": "访客",
+  "roleRoot": "超级管理员"
 }
