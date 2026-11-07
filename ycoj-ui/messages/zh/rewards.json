@@ -50,6 +50,10 @@
   "totals": "累计获得 {earned} · 累计兑换 {spent}",
   "welcome": "欢迎加入 · 初始赠送",
   "purchaseReason": "兑换：{item}",
+  "administrator": "管理员",
+  "adminAdjust": "{name} 调整：{note}",
+  "cosmeticsRefund": "退还装扮：{item}",
+  "retiredCosmetic": "已下架装扮",
   "slots": {
     "frame": "头像框",
     "background": "名字背景",

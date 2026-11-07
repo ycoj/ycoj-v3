@@ -1,6 +1,7 @@
 # Domain, ranking, and management routes
 
 - [Strict domain endpoint contracts](domain.md): batch role assignment upserts each distinct uid, including missing domain-user records
+- [Domain coin adjustments](coins.md): grant or deduct coins for joined members
 - [Strict management endpoint contracts](manage.md)
 - [System brand settings and CORS](../ui/branding.md)
 - [Real-name super-admin review](../realname/manage.md)
@@ -13,6 +14,7 @@ These are HTML/PJAX management pages, not REST resources. `GET` renders the name
 | `/domain/dashboard` GET | Domain moderation dashboard. | HTML. Handler requires domain-management permission. |
 | `/domain/edit` GET, POST | Read/edit domain properties. POST accepts the domain setting fields selected by the UI. | HTML or redirect. `PERM_EDIT_DOMAIN`. |
 | `/domain/user` GET, POST | List members (`?format=default\|raw`) and mutate selected users. E.g. `{operation:"setRole",uids:[12],role:"member",join:true}`. | HTML, or raw user export for `format=raw`; management permission. |
+| `/domain/coins` GET, POST `adjust` | Grant or deduct coins for joined members, with a required reason. See [coin adjustments](coins.md). | JSON; `PERM_EDIT_DOMAIN`. POST also requires sudo. |
 | `/domain/permission` GET, POST | Inspect/edit domain permission bitmasks. | HTML/redirect; `PERM_EDIT_DOMAIN`. |
 | `/domain/role` GET, POST | Inspect/edit named roles. E.g. `{role:"teacher",roles:["teacher","student"]}`. | HTML/redirect; `PERM_EDIT_DOMAIN`. |
 | `/domain/group` GET, POST | List/create/update/delete member groups. E.g. `{name:"ClassA",uids:[12,13]}`. | HTML/redirect; `PERM_EDIT_DOMAIN`. |

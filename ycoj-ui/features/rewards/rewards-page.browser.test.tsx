@@ -46,6 +46,22 @@ function fixture(): RewardsData {
       equipped: {},
       ledger: [
         {
+          id: 'adjust-1',
+          reason: 'admin-adjust',
+          amount: 20,
+          at: '2026-11-02T05:00:00Z',
+          by: 3,
+          byName: 'coach',
+          note: 'Weekly prize',
+        },
+        {
+          id: 'retire:frame-sprout',
+          reason: 'cosmetics-refund',
+          amount: 60,
+          at: '2026-11-02T04:30:00Z',
+          note: 'frame-sprout',
+        },
+        {
           id: 'welcome',
           reason: 'welcome',
           amount: 100,
@@ -110,13 +126,10 @@ function fixture(): RewardsData {
       },
     ],
     catalog: [
-      { id: 'frame-sprout', slot: 'frame', price: 60 },
-      { id: 'frame-starlight', slot: 'frame', price: 180 },
       { id: 'frame-tiger', slot: 'frame', price: 200 },
       { id: 'frame-pixel', slot: 'frame', price: 200 },
-      { id: 'title-explorer', slot: 'title', price: 80 },
-      { id: 'background-sky', slot: 'background', price: 120 },
       { id: 'accent-forest', slot: 'accent', price: 160 },
+      { id: 'accent-violet', slot: 'accent', price: 160 },
     ],
   };
 }
@@ -191,23 +204,25 @@ describe('learning rewards page', () => {
 
   it('previews, redeems, equips, and removes permanent items without losing ownership', async () => {
     let next = fixture();
+    next.wallet.balance = 200;
+    next.wallet.earned = 200;
     mocks.update.mockImplementation((action) => ({
       send: async () => {
         next = structuredClone(next);
         if (action.action === 'buy') {
-          next.wallet.balance = 40;
-          next.wallet.owned = ['frame-sprout'];
+          next.wallet.balance = 0;
+          next.wallet.owned = ['frame-tiger'];
         } else if (action.action === 'equip')
           next.wallet.equipped.frame = action.id;
         else delete next.wallet.equipped.frame;
         return next;
       },
     }));
-    renderPage();
+    renderPage(next);
     await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
     fireEvent.click(
       await screen.findByRole('button', {
-        name: 'Confirm redemption · 60 coins',
+        name: 'Confirm redemption · 200 coins',
       })
     );
     fireEvent.click(await screen.findByRole('button', { name: 'Equip' }));
@@ -218,7 +233,7 @@ describe('learning rewards page', () => {
     );
     expect(mocks.update).toHaveBeenLastCalledWith({
       action: 'equip',
-      id: 'frame-sprout',
+      id: 'frame-tiger',
     });
     expect(mocks.refresh).toHaveBeenCalled();
     fireEvent.click(
@@ -230,7 +245,9 @@ describe('learning rewards page', () => {
       )
     );
     expect(screen.getByRole('button', { name: 'Equip' })).toBeVisible();
-    expect(screen.getByText('40')).toBeVisible();
+    expect(screen.getByText('Your balance').parentElement).toHaveTextContent(
+      '0 coins'
+    );
   });
 
   it('disables unaffordable items and shows server errors without inventing a balance change', async () => {
@@ -239,27 +256,29 @@ describe('learning rewards page', () => {
         error: { name: 'RewardError', message: 'insufficient-coins' },
       }),
     });
-    renderPage();
+    const data = fixture();
+    data.wallet.balance = 160;
+    data.wallet.earned = 160;
+    renderPage(data);
     await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Preview Starlight frame' })
-    );
     expect(
-      screen.getByRole('button', { name: 'Confirm redemption · 180 coins' })
+      screen.getByRole('button', { name: 'Confirm redemption · 200 coins' })
     ).toBeDisabled();
     expect(
-      screen.getByText('Save 80 more coins by completing learning tasks.')
+      screen.getByText('Save 40 more coins by completing learning tasks.')
     ).toBeVisible();
     fireEvent.click(
-      screen.getByRole('button', { name: 'Preview Sprout frame' })
+      screen.getByRole('button', { name: 'Preview Forest accent' })
     );
     fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm redemption · 60 coins' })
+      screen.getByRole('button', { name: 'Confirm redemption · 160 coins' })
     );
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'You need more coins'
     );
-    expect(screen.getByText('100')).toBeVisible();
+    expect(screen.getByText('Your balance').parentElement).toHaveTextContent(
+      '160 coins'
+    );
     expect(
       screen.queryByRole('button', { name: 'Equip' })
     ).not.toBeInTheDocument();
@@ -268,14 +287,15 @@ describe('learning rewards page', () => {
   it('groups shop items by category and filters to a single category', async () => {
     renderPage();
     await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
-    for (const name of [
-      'Avatar frame',
-      'Name background',
-      'Personal title',
-      'Interface accent',
-    ]) {
+    for (const name of ['Avatar frame', 'Interface accent']) {
       expect(await screen.findByRole('region', { name })).toBeVisible();
     }
+    expect(
+      screen.queryByRole('region', { name: 'Name background' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: 'Personal title' })
+    ).not.toBeInTheDocument();
     const frames = screen.getByRole('region', { name: 'Avatar frame' });
     expect(
       within(frames).getByRole('button', { name: 'Preview Little tiger frame' })
@@ -285,16 +305,16 @@ describe('learning rewards page', () => {
         name: 'Preview Pixel explorer frame',
       })
     ).toBeVisible();
-    expect(within(frames).getByText('0 of 4 owned')).toBeVisible();
+    expect(within(frames).getByText('0 of 2 owned')).toBeVisible();
 
     await userEvent.click(
-      screen.getByRole('button', { name: 'Personal title' })
+      screen.getByRole('button', { name: 'Interface accent' })
     );
     expect(
       screen.queryByRole('region', { name: 'Avatar frame' })
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole('region', { name: 'Personal title' })
+      screen.getByRole('region', { name: 'Interface accent' })
     ).toBeVisible();
     await userEvent.click(screen.getByRole('button', { name: 'All' }));
     expect(screen.getByRole('region', { name: 'Avatar frame' })).toBeVisible();
@@ -351,6 +371,10 @@ describe('learning rewards page', () => {
           screen.getByRole('tab', { name: 'Coin history' })
         );
         expect(await screen.findByText('Welcome gift')).toBeVisible();
+        expect(
+          screen.getByText('Adjustment by coach: Weekly prize')
+        ).toBeVisible();
+        expect(screen.getByText('Refund: Sprout frame')).toBeVisible();
         expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
       } finally {
         await page.viewport(1280, 900);

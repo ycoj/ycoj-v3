@@ -1,7 +1,6 @@
 'use client';
 
 import ClientApis from '@/api/client/method';
-import { rewardFrameClasses } from '@/features/rewards/appearance';
 import CcfHook from '@/features/user/ccf-hook';
 import Username from '@/features/user/username';
 import { locales, type Locale } from '@/i18n/config';
@@ -116,12 +115,7 @@ export default function SidebarUserMenu({
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           aria-label={user.uname}
         >
-          <Avatar
-            className={cn(
-              'h-8 w-8 rounded-lg',
-              rewardFrameClasses[user.rewardEquipment?.frame ?? '']
-            )}
-          >
+          <Avatar className="h-8 w-8 rounded-lg">
             <AvatarImage src={avatarSrc} alt={user.uname} />
             <AvatarFallback className="rounded-lg">
               {user.uname.slice(0, 2).toUpperCase()}

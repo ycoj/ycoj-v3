@@ -110,11 +110,13 @@ describe('server-verified reward progress', () => {
     });
 
     it('initializes one wallet and deducts a purchase once under MongoDB contention', async () => {
-        await Promise.all(Array.from({ length: 8 }, () => rewards.act(2, { action: 'buy', id: 'frame-sprout' })));
+        await rewards.act(2, { action: 'unequip', id: 'frame' });
+        await database.collection('reward.wallet').updateOne({ _id: 2 } as never, { $set: { balance: 200, earned: 200 } });
+        await Promise.all(Array.from({ length: 8 }, () => rewards.act(2, { action: 'buy', id: 'accent-forest' })));
         const wallet = await database.collection('reward.wallet').findOne({ _id: 2 } as never);
         assert.equal(wallet.balance, 40);
-        assert.deepEqual(wallet.owned, ['frame-sprout']);
+        assert.deepEqual(wallet.owned, ['accent-forest']);
         assert.equal(wallet.ledger.length, 2);
-        await assert.rejects(rewards.act(2, { action: 'buy', id: 'title-explorer' }), /insufficient-coins/);
+        await assert.rejects(rewards.act(2, { action: 'buy', id: 'accent-violet' }), /insufficient-coins/);
     });
 });

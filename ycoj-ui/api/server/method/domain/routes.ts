@@ -1,5 +1,6 @@
 import type {
   CurrentDomainResponse,
+  DomainCoinsResponse,
   DomainDashboardResponse,
   DomainEditResponse,
   DomainGroupsResponse,
@@ -37,3 +38,6 @@ export const getDomainPermissions = () =>
 
 export const getDomainGroups = () =>
   alova.Get<DomainGroupsResponse>('/domain/group', { cacheFor: 0 });
+
+export const getDomainCoins = () =>
+  alova.Get<DomainCoinsResponse>('/domain/coins', { cacheFor: 0 });

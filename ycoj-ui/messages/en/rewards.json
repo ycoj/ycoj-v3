@@ -50,6 +50,10 @@
   "totals": "Earned {earned} · Redeemed {spent}",
   "welcome": "Welcome gift",
   "purchaseReason": "Redeemed: {item}",
+  "administrator": "An administrator",
+  "adminAdjust": "Adjustment by {name}: {note}",
+  "cosmeticsRefund": "Refund: {item}",
+  "retiredCosmetic": "Retired cosmetic",
   "slots": {
     "frame": "Avatar frame",
     "background": "Name background",

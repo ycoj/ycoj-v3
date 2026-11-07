@@ -34,6 +34,18 @@ const systemTranslations: Record<string, Record<'en' | 'zh', string>> = {
     en: 'Broadcast message from contest {0}:\n{1}',
     zh: '来自比赛 {0} 的广播消息：\n{1}',
   },
+  '{0} granted you {1} coins in {2}. Reason: {3}': {
+    en: '{0} granted you {1} coins in {2}. Reason: {3}',
+    zh: '{0} 在 {2} 向你发放了 {1} 枚金币。原因：{3}',
+  },
+  '{0} deducted {1} coins in {2}. Reason: {3}': {
+    en: '{0} deducted {1} coins in {2}. Reason: {3}',
+    zh: '{0} 在 {2} 扣除了你 {1} 枚金币。原因：{3}',
+  },
+  'These cosmetics are being remade. {0} coins have been refunded.': {
+    en: 'These cosmetics are being remade. {0} coins have been refunded.',
+    zh: '正在重制这些装扮，已退还 {0} 枚金币。',
+  },
 };
 
 export function objectIdTimestamp(id: string): number {

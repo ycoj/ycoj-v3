@@ -1,3 +1,4 @@
+import { adjustDomainCoins } from './coins';
 import { initDiscussionNodes, saveDomainSettings } from './dashboard';
 import { getGroupsByNames, searchGroups } from './groups';
 import { deleteDomainGroup, updateDomainGroup } from './groups-admin';
@@ -20,6 +21,7 @@ const Domain = {
   saveDomainPermissions,
   updateDomainGroup,
   deleteDomainGroup,
+  adjustDomainCoins,
 };
 
 export default Domain;

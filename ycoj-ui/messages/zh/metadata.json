@@ -62,6 +62,7 @@
   "domainRoles": "角色管理",
   "domainPermissions": "权限管理",
   "domainGroups": "用户分组",
+  "domainCoins": "金币奖惩",
   "systemDashboard": "系统控制台",
   "systemSetting": "系统设置",
   "systemConfig": "系统配置",

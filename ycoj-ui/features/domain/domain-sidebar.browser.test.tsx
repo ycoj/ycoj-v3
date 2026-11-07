@@ -22,6 +22,7 @@ describe('domain management sidebar', () => {
       ['Settings', '/domain/edit'],
       ['Roles', '/domain/role'],
       ['Members', '/domain/user'],
+      ['Coins', '/domain/coins'],
       ['Permissions', '/domain/permission'],
       ['Groups', '/domain/group'],
     ] as const) {

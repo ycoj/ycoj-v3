@@ -1,5 +1,7 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
+import { applyCoinAdjustment } from '../src/lib/coinAdjust';
+import { planCosmeticsRetirement } from '../src/lib/retireCosmetics';
 import type { RewardProgress, RewardRepository, RewardWallet } from '../src/lib/rewards';
 import {
     applyRewardAction, createRewardWallet, mutateRewardWallet, REWARD_CATALOG, rewardPeriod, rewardTasks,
@@ -68,11 +70,12 @@ describe('learning rewards', () => {
         assert.deepEqual(rewardPeriod(sunday), { date: '2026-11-01', week: '2026-10-26' });
         assert.deepEqual(rewardPeriod(monday), { date: '2026-11-02', week: '2026-11-02' });
         let wallet = applyRewardAction(createRewardWallet(2, sunday), { action: 'claim', id: 'practice-days' }, complete, sunday);
-        wallet = applyRewardAction(wallet, { action: 'buy', id: 'frame-sprout' }, complete, sunday);
+        wallet = applyRewardAction(wallet, { action: 'claim', id: 'eight-solves' }, complete, sunday);
+        wallet = applyRewardAction(wallet, { action: 'buy', id: 'frame-tiger' }, complete, sunday);
         assert.equal(rewardTasks(wallet, empty, monday).some((task) => task.claimed), false);
         assert.throws(() => applyRewardAction(wallet, { action: 'claim', id: 'practice-days' }, empty, monday));
-        assert.deepEqual(wallet.owned, ['frame-sprout']);
-        assert.equal(wallet.balance, 80);
+        assert.deepEqual(wallet.owned, ['frame-tiger']);
+        assert.equal(wallet.balance, 0);
     });
 
     it('purchases once, keeps each equipment slot separate, and removes without refunding or deleting', () => {
@@ -107,12 +110,18 @@ describe('learning rewards', () => {
 
     it('cannot overspend when two different purchases race', async () => {
         const { repository, read } = memoryRepository();
-        const results = await Promise.allSettled(['frame-sprout', 'title-explorer'].map((id) => mutateRewardWallet(
+        for (const id of ['checkin', 'first-solve', 'three-solves', 'comeback', 'practice-days', 'eight-solves']) {
+            // Each claim has to land before the next one reads the same wallet.
+            // eslint-disable-next-line no-await-in-loop
+            await mutateRewardWallet(repository, 2, { action: 'claim', id }, async () => complete, () => now);
+        }
+        assert.equal(read().balance, 250);
+        const results = await Promise.allSettled(['accent-forest', 'accent-violet'].map((id) => mutateRewardWallet(
             repository, 2, { action: 'buy', id }, async () => complete, () => now,
         )));
         assert.equal(results.filter((result) => result.status === 'fulfilled').length, 1);
         assert.equal(read().owned.length, 1);
-        assert.ok(read().balance >= 0);
+        assert.equal(read().balance, 90);
         assert.equal(read().earned - read().spent, read().balance);
     });
 
@@ -130,5 +139,68 @@ describe('learning rewards', () => {
         }, () => time), /task-incomplete/);
         assert.equal(calls, 2);
         assert.equal(read().balance, 100);
+    });
+
+    it('rejects retired cosmetics that are no longer in the catalog', () => {
+        const wallet = createRewardWallet(2, now);
+        assert.throws(() => applyRewardAction(wallet, { action: 'buy', id: 'frame-sprout' }, empty, now), /invalid-item/);
+        assert.throws(() => applyRewardAction(wallet, { action: 'buy', id: 'title-explorer' }, empty, now), /invalid-item/);
+        assert.equal(wallet.balance, 100);
+    });
+});
+
+describe('admin coin ledger', () => {
+    const adjustment = {
+        id: 'adjust:request-1:12', amount: -150, by: 3, byName: 'teacher', note: 'Contest misconduct',
+    };
+
+    it('records who, whom, the full amount, and the reason, even below zero', () => {
+        const wallet = createRewardWallet(12, now);
+        const next = applyCoinAdjustment(wallet, adjustment, now);
+        assert.equal(next.balance, -50);
+        assert.equal(next.earned, 100);
+        assert.equal(next.spent, 150);
+        assert.equal(next.earned - next.spent, next.balance);
+        assert.deepEqual(next.ledger[0], {
+            id: adjustment.id,
+            reason: 'admin-adjust',
+            amount: -150,
+            at: now.toISOString(),
+            by: 3,
+            byName: 'teacher',
+            note: 'Contest misconduct',
+        });
+        assert.equal(wallet.balance, 100);
+    });
+
+    it('does not apply the same request twice', () => {
+        const once = applyCoinAdjustment(createRewardWallet(12, now), { ...adjustment, amount: 20 }, now);
+        const twice = applyCoinAdjustment(once, { ...adjustment, amount: 20 }, now);
+        assert.equal(twice, once);
+        assert.equal(once.balance, 120);
+        assert.equal(once.ledger.filter((entry) => entry.reason === 'admin-adjust').length, 1);
+    });
+});
+
+describe('retired cosmetic refunds', () => {
+    it('refunds the recorded purchase price, otherwise the catalog price, and leaves other items equipped', () => {
+        const wallet = createRewardWallet(12, now);
+        wallet.balance = 40;
+        wallet.spent = 60;
+        wallet.owned = ['frame-sprout', 'title-explorer', 'accent-forest'];
+        wallet.equipped = { frame: 'frame-sprout', title: 'title-explorer', accent: 'accent-forest' };
+        wallet.ledger.unshift({
+            id: 'buy:frame-sprout', reason: 'frame-sprout', amount: -45, at: now.toISOString(),
+        });
+        const next = planCosmeticsRetirement(wallet, now);
+        assert.equal(next.balance, 165);
+        assert.equal(next.earned - next.spent, next.balance);
+        assert.deepEqual(next.owned, ['accent-forest']);
+        assert.deepEqual(next.equipped, { accent: 'accent-forest' });
+        assert.deepEqual(next.cosmeticsRetirement.items, ['frame-sprout', 'title-explorer']);
+        assert.equal(next.cosmeticsRetirement.refunded, 125);
+        assert.equal(next.cosmeticsRetirement.notified, false);
+        const again = planCosmeticsRetirement(next, now);
+        assert.equal(again, null);
     });
 });

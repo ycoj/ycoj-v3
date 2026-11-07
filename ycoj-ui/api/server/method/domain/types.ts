@@ -86,6 +86,10 @@ export type DomainGroupsResponse = {
   groups: DomainGroupDoc[];
 };
 
+export type DomainCoinsResponse = {
+  domain: { _id: string; name: string };
+};
+
 export type CurrentDomainResponse = {
   domain: DomainDoc;
 };
