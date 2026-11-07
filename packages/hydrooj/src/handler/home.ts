@@ -184,6 +184,10 @@ export class HomeHandler extends Handler {
             contents,
             udict,
             domain: this.domain,
+            // No getCheckin: a `checkin` key in hydrooj.homepage is copied into
+            // `contents` with its YAML value, which decides where the card sits.
+            // This field is the card state either way, including when the key is
+            // absent and the UI uses its historical placement.
             checkin: {
                 timezone: CHECKIN_TIMEZONE,
                 date: today.date,

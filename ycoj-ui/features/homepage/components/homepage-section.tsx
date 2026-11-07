@@ -1,9 +1,10 @@
-import type { ResolvedSection } from '../section-layout';
+import { isCheckinSectionShown, type ResolvedSection } from '../section-layout';
 import Banner from './banner';
 import RecentBlogs from './blogs';
 import Bulletin from './bulletin';
 import Contests from './contests';
 import Countdown from './countdown';
+import DailyCheckin from './daily-checkin';
 import DiscussionNodes from './discussion-nodes';
 import Discussions from './discussions';
 import Hitokoto from './hitokoto';
@@ -22,6 +23,7 @@ import type {
   Suggestions as SuggestionsPayload,
 } from '@/api/server/method/ui/homepage';
 import type { Blog } from '@/shared/types/blog';
+import type { HomepageCheckin } from '@/shared/types/checkin';
 import type {
   Discussion as DiscussionDoc,
   Node,
@@ -34,6 +36,8 @@ type Props = {
   section: ResolvedSection;
   udict: BaseUserDict;
   bulletin?: string;
+  checkin: HomepageCheckin;
+  username: string;
   canEnroll: boolean;
 };
 
@@ -49,6 +53,8 @@ export default function HomepageSection({
   section,
   udict,
   bulletin,
+  checkin,
+  username,
   canEnroll,
 }: Props) {
   switch (section.name) {
@@ -170,9 +176,14 @@ export default function HomepageSection({
       }
       return <Countdown config={payload} />;
     }
+    case 'checkin':
+      if (!isCheckinSectionShown(section.payload)) return null;
+      return <DailyCheckin checkin={checkin} username={username} />;
     case 'error':
       return <SectionError message={String(section.payload ?? '')} />;
-    default:
-      return null;
+    default: {
+      const unsupported: never = section.name;
+      return unsupported;
+    }
   }
 }

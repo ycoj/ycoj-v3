@@ -23,6 +23,9 @@ export const SUPPORTED_SECTION_NAMES = [
   'suggestion',
   'suggestions',
   'countdown',
+  // Daily check-in. The YAML value is the section option; the card state stays
+  // on the homepage `checkin` field because this name has no backend getter.
+  'checkin',
   // The backend turns a failing section getter into an error payload instead
   // of failing the whole homepage.
   'error',
@@ -115,35 +118,81 @@ export function getColumnSpan(width: number, totalWidth: number): number {
 }
 
 /**
- * Where the daily check-in card goes. Check-in is a YCOJ addition rather than a
- * legacy section, so it must not create or resize configured columns.
+ * Whether a `checkin` homepage value should render the card.
  *
- * Rule: it sits first in the last narrow column (the sidebar, as in the legacy
- * 9/3 layout). When every configured column is wide it sits first in the last
- * column, and an empty homepage gets a single full-width column for it.
+ * The YAML value is the section option, same as `bulletin: true` or
+ * `contest: 5`. `false`, `0`, `null`, and `{ enabled: false }` hide the card.
+ * `true`, any other number, and any other object show the standard card.
+ * Unknown object fields are ignored so the check-in action itself stays the
+ * same.
  */
-export function placeCheckinColumn(columns: HomepageColumn[]): {
-  columns: HomepageColumn[];
-  checkinColumnIndex: number;
-  addedColumn: boolean;
-} {
+export function isCheckinSectionShown(payload: unknown): boolean {
+  if (payload === false || payload === null || payload === 0) return false;
+  if (isRecord(payload) && payload.enabled === false) return false;
+  return true;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+const DEFAULT_CHECKIN_SECTION: ResolvedSection = {
+  name: 'checkin',
+  payload: true,
+};
+
+/**
+ * Puts the daily check-in card on the configured homepage.
+ *
+ * When any column lists `checkin`, that entry is the only placement: it stays
+ * in its column and order, and a hidden value removes the card without adding
+ * another one. Columns left empty by a hidden check-in are dropped.
+ *
+ * When every column omits `checkin`, the card is appended to the last narrow
+ * column (width at most 6, the sidebar in the default 9/3 layout). If every
+ * column is wider it is appended to the last column, and an empty homepage
+ * gets one full-width column. Saved configs written before check-in was a
+ * section keep that historical placement.
+ */
+export function placeCheckinColumn(
+  columns: HomepageColumn[]
+): HomepageColumn[] {
+  const configured = columns.some((column) =>
+    column.sections.some((section) => section.name === 'checkin')
+  );
+  if (configured) return withoutHiddenCheckin(columns);
   if (!columns.length) {
-    return {
-      columns: [{ width: MAX_GRID_WIDTH, sections: [] }],
-      checkinColumnIndex: 0,
-      addedColumn: true,
-    };
+    return [{ width: MAX_GRID_WIDTH, sections: [DEFAULT_CHECKIN_SECTION] }];
   }
 
-  let narrowIndex = -1;
+  let target = columns.length - 1;
   columns.forEach((column, index) => {
-    if (column.width <= NARROW_COLUMN_MAX_WIDTH) narrowIndex = index;
+    if (column.width <= NARROW_COLUMN_MAX_WIDTH) target = index;
   });
-  return {
-    columns,
-    checkinColumnIndex: narrowIndex >= 0 ? narrowIndex : columns.length - 1,
-    addedColumn: false,
-  };
+  return columns.map((column, index) =>
+    index === target
+      ? {
+          ...column,
+          sections: [...column.sections, DEFAULT_CHECKIN_SECTION],
+        }
+      : column
+  );
+}
+
+function withoutHiddenCheckin(columns: HomepageColumn[]): HomepageColumn[] {
+  let hidden = false;
+  const next = columns.map((column) => {
+    const sections = column.sections.filter((section) => {
+      const hide =
+        section.name === 'checkin' && !isCheckinSectionShown(section.payload);
+      if (hide) hidden = true;
+      return !hide;
+    });
+    if (sections.length === column.sections.length) return column;
+    return { ...column, sections };
+  });
+  if (!hidden) return columns;
+  return next.filter((column) => column.sections.length > 0);
 }
 
 /**
