@@ -36,7 +36,9 @@ VelociTex does not enable trusted HTML, links, or images from TeX commands.
 `scripts/prepare-velocitex.mjs` copies the package's modules, complete runtime,
 matching stylesheet/fonts, and license notices to `public/velocitex/<version>/`.
 It runs on installation, development, builds, and browser tests. These generated
-files are ignored by Git and served locally; no runtime CDN is needed. VelociTex
+files are ignored by Git. Production loads them through the configured
+`ASSET_PREFIX`, including the modules, WASM, stylesheet, and fonts; development
+and builds with an empty prefix serve them from the application origin. VelociTex
 retains KaTeX-compatible HTML and semantic MathML, so `.katex` selectors still
 describe the rendered output even though the parser is the VelociTex WASM core.
 It uses the same syntax to locate formulas in sanitized HTML

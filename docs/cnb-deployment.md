@@ -66,7 +66,7 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 | `DEPLOY_ACTIVATE`           | 首次为字符串 `'false'`，迁移成功后改为 `'true'`                                                                       |
 | `BACKEND_BASEURL`           | 与生产服务器一致的后端地址，同时配置在服务器 `runtime.env`                                                            |
 | `NEXT_PUBLIC_*`             | 沿用实际生产值；这些配置需要在构建时提供                                                                              |
-| `ASSET_PREFIX`              | 可选。`/_next/static` 的构建时 CDN 前缀，生产为 `https://next-cdn.ycoj.cc`。设为 `''` 则走本站。密钥里省略时 `.cnb.yml` 使用该 CDN。修改后必须重新构建 |
+| `ASSET_PREFIX`              | 可选。`/_next/static` 和 VelociTex 的构建时 CDN 前缀，生产为 `https://next-cdn.ycoj.cc`。设为 `''` 则走本站。密钥里省略时 `.cnb.yml` 使用该 CDN。修改后必须重新构建 |
 | `SITE_NAME`                 | 未匹配到 branding 或后端不可用时的默认名称，构建时提供，可省略                                                        |
 
 主机公钥可用 `ssh-keyscan -p <端口> <服务器>` 收集，并与服务器上 `/etc/ssh/ssh_host_*_key.pub` 的指纹核对。非标准端口的 known_hosts 名称应为 `[主机]:端口`。流水线启用严格主机验证，不会自动信任扫描结果。
@@ -75,7 +75,7 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 
 网站名称和 Logo 优先使用后端 `/branding` 按访问 origin 返回的配置；在 `/manage/branding` 修改已匹配站点的名称和 Logo，不需要重新构建前端。`SITE_NAME` 只是兜底名称，不会覆盖 branding，省略时兜底名称为空。当前 `next.config.ts` 将它写入构建产物，因此修改兜底名称需重新构建，仅修改服务器 `runtime.env` 不会更新它。首次启用 branding 前先更新后端，并确保反向代理向前端传递真实的 `Host` 和 `X-Forwarded-Proto`，使协议、域名和端口与 branding 配置一致。
 
-`/_next/static`（脚本、样式、`next/font` 字体和构建产出的媒体文件）在生产构建时加上 `ASSET_PREFIX`。当前 CDN `https://next-cdn.ycoj.cc` 回源 `next.ycoj.cc`，所以发布包仍须带上 `.next/static/` 和 `public/`，不需要再把文件同步到 CDN。页面、RSC、`/api` 和 `/_next/image` 图片优化继续请求本站。`public/vendor`、打印和 clangd 资源也留在本站，`assetPrefix` 不会改写它们。字体预加载使用匿名 `crossorigin`；CDN 必须对站点源返回 `Access-Control-Allow-Origin`。旧的 `NEXT_PUBLIC_STATIC_ASSET_PREFIX` 和 `NEXT_PUBLIC_PRINT_ASSET_PREFIX` 仍然无效，不要用它们代替 `ASSET_PREFIX`。本地 `next dev` 会忽略 `ASSET_PREFIX`。细节见 `ycoj-ui/STATIC_ASSETS.md`。
+`/_next/static`（脚本、样式、`next/font` 字体和构建产出的媒体文件）在生产构建时加上 `ASSET_PREFIX`。VelociTex 加载器也显式使用此前缀，覆盖 `/velocitex/<version>/` 下的模块、WASM、样式和字体。当前 CDN `https://next-cdn.ycoj.cc` 回源 `next.ycoj.cc`，所以发布包仍须带上 `.next/static/` 和 `public/`，不需要再把文件同步到 CDN；CDN 也须支持 `/velocitex/` 回源并保留其 CORS 响应头。页面、RSC、`/api` 和 `/_next/image` 图片优化继续请求本站。`public/vendor`、打印和 clangd 资源也留在本站，`assetPrefix` 不会改写它们。字体预加载使用匿名 `crossorigin`；CDN 必须对站点源返回 `Access-Control-Allow-Origin`。旧的 `NEXT_PUBLIC_STATIC_ASSET_PREFIX` 和 `NEXT_PUBLIC_PRINT_ASSET_PREFIX` 仍然无效，不要用它们代替 `ASSET_PREFIX`。本地 `next dev` 会忽略 `ASSET_PREFIX`。细节见 `ycoj-ui/STATIC_ASSETS.md`。
 
 要让线上页面改为从 CDN 加载静态资源：在密钥仓库设置 `ASSET_PREFIX`（或保持省略，让流水线使用默认 CDN），然后重新构建并发布。只改服务器 `runtime.env` 不会生效。
 

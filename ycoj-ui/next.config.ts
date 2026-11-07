@@ -42,8 +42,8 @@ function assetPrefixForPhase(phase: string): string {
 }
 
 function createNextConfig(phase: string): NextConfig {
-  // `/_next/static` only. Page, RSC, `/api`, and the `/_next/image` optimizer
-  // stay on the site origin; `images.path` is left at its default. A
+  // Next chunks and VelociTex share the CDN prefix. Page, RSC, `/api`, and
+  // the `/_next/image` optimizer stay on the site origin. A
   // standalone build freezes this string into `server.js`, so the production
   // process does not read ASSET_PREFIX again.
   const assetPrefix = assetPrefixForPhase(phase);
@@ -82,6 +82,7 @@ function createNextConfig(phase: string): NextConfig {
       ],
     },
     env: {
+      ASSET_PREFIX: assetPrefix,
       NEXT_PUBLIC_UPLOAD_BASEURL: uploadBaseUrl,
       SITE_NAME: process.env.SITE_NAME ?? '',
       BUILD_COMMIT: process.env.BUILD_COMMIT ?? buildCommit.commit,
@@ -102,6 +103,17 @@ function createNextConfig(phase: string): NextConfig {
       return [
         {
           source: '/vendor/:path*',
+          headers: [
+            { key: 'Access-Control-Allow-Origin', value: '*' },
+            { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        },
+        {
+          source: '/velocitex/:path*',
           headers: [
             { key: 'Access-Control-Allow-Origin', value: '*' },
             { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },

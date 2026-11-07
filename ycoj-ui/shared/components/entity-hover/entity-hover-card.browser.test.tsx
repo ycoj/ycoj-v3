@@ -2,8 +2,9 @@ import messages from '@/messages/en';
 import EntityHoverCard from '@/shared/components/entity-hover/entity-hover-card';
 import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { clearEntityPreviewCache } from '@/shared/components/entity-hover/load-entity-preview';
+import MarkdownEntityLink from '@/shared/components/entity-hover/markdown-entity-link';
 import { Button } from '@/shared/components/ui/button';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 import Link from 'next/link';
@@ -151,6 +152,29 @@ describe('EntityHoverCard', () => {
     expect(screen.getByText('4 sections · 12 problems')).toBeVisible();
     expect(screen.getByText(/42% complete/)).toBeVisible();
   });
+
+  it.each([
+    ['navigation', EntityHoverLink],
+    ['Markdown', MarkdownEntityLink],
+  ] as const)(
+    'does not show a preview for %s links to entity subpages',
+    async (_, Component) => {
+      mocks.send.mockResolvedValue(problem);
+      renderCard(
+        <Component href="/problem/P1000/files">Problem files</Component>
+      );
+
+      const link = screen.getByRole('link', { name: 'Problem files' });
+      expect(link).toHaveAttribute('href', '/problem/P1000/files');
+      await userEvent.hover(link);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      });
+
+      expect(screen.queryByText('A + B Problem')).not.toBeInTheDocument();
+      expect(mocks.send).not.toHaveBeenCalled();
+    }
+  );
 
   it('shows a user name and a short stat line', async () => {
     mocks.send.mockResolvedValue({

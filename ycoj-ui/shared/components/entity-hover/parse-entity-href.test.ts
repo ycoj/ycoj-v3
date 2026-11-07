@@ -5,14 +5,14 @@ describe('parseEntityHref', () => {
   it.each([
     ['/problem/P1000', { kind: 'problem', id: 'P1000' }],
     ['/problem/P1000?tid=abc#sample', { kind: 'problem', id: 'P1000' }],
-    ['/problem/P1000/solution', { kind: 'problem', id: 'P1000' }],
+    ['/problem/P1000/', { kind: 'problem', id: 'P1000' }],
     ['/p/1001', { kind: 'problem', id: '1001' }],
     [
       '/contest/665f00000000000000000001',
       { kind: 'contest', id: '665f00000000000000000001' },
     ],
     [
-      '/homework/665f00000000000000000002/scoreboard',
+      '/homework/665f00000000000000000002',
       { kind: 'homework', id: '665f00000000000000000002' },
     ],
     [
@@ -20,17 +20,31 @@ describe('parseEntityHref', () => {
       { kind: 'training', id: '665f00000000000000000003' },
     ],
     [
-      '/d/system/contest/665f00000000000000000001/edit',
+      '/d/system/contest/665f00000000000000000001',
       { kind: 'contest', id: '665f00000000000000000001' },
     ],
     ['/user/12', { kind: 'user', id: '12' }],
-    ['/user/-1001/blog', { kind: 'user', id: '-1001' }],
+    ['/user/-1001', { kind: 'user', id: '-1001' }],
     ['problem/P1000', { kind: 'problem', id: 'P1000' }],
   ] as const)('reads %s', (href, reference) => {
     expect(parseEntityHref(href)).toEqual(reference);
   });
 
   it.each([
+    '/problem/P1000/files',
+    '/problem/P1000/files?type=additional#readme',
+    '/problem/P1000/solution',
+    '/problem/P1000/submit',
+    '/p/1001/files',
+    '/contest/665f00000000000000000001/edit',
+    '/homework/665f00000000000000000002/scoreboard',
+    '/training/665f00000000000000000003/edit',
+    '/user/12/blog',
+    '/user/-1001/blog',
+    '/d/system/problem/P1000/files',
+    '/d/system/contest/665f00000000000000000001/edit',
+    '/problem//P1000',
+    '/problem/P1000//',
     '/problem/create',
     '/problem/import/hydro',
     '/problem/solution-review',
@@ -76,6 +90,7 @@ describe('parseEntityHref', () => {
         parseEntityHref('https://codeforces.com/contest/1234/problem/A')
       ).toBeNull();
       expect(parseEntityHref('https://luogu.com.cn/problem/P1000')).toBeNull();
+      expect(parseEntityHref('https://ycoj.cc/problem/P1000/files')).toBeNull();
       expect(
         parseEntityHref('https://ycoj.cc/d/school/problem/1001')
       ).toBeNull();

@@ -1,6 +1,6 @@
 import { version } from 'velocitex/package.json';
 
-const assetBaseUrl = `/velocitex/${version}/`;
+const assetBaseUrl = `${process.env.ASSET_PREFIX ?? ''}/velocitex/${version}/`;
 let initialization: Promise<typeof import('velocitex')> | undefined;
 
 export function loadVelocitex() {

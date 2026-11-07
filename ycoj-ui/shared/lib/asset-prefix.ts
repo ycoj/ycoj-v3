@@ -1,6 +1,6 @@
 /**
- * CDN origin for `/_next/static`, read by `next.config.ts` when Next loads
- * the config. An empty value keeps those URLs on the site origin.
+ * CDN prefix for `/_next/static` and VelociTex, read by `next.config.ts` when
+ * Next loads the config. An empty value keeps those URLs on the site origin.
  *
  * Next joins this string directly to `/_next/...`, so the result has no
  * trailing slash. `next dev` ignores it; a production build freezes it into

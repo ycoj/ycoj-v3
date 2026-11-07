@@ -22,10 +22,11 @@ are not read.
 - the `/_next/image` optimizer (`images.path` stays `/_next/image`)
 - files in `public/`, including `vendor/`, print assets, and clangd
 
-Those stay on the application origin. Public files that are safe to cache
-from a CDN would need their own URLs; the prepared files below are
-intentionally same-origin because workers, WASM, and cross-origin isolation
-load them from this site.
+Those stay on the application origin, except VelociTex. Its loader explicitly
+uses the same normalized, build-time `ASSET_PREFIX` for
+`/velocitex/<version>/`, including ES modules, WASM, stylesheets, and fonts.
+An empty prefix and `next dev` keep VelociTex on the application origin.
+Other prepared public files remain same-origin.
 
 Turbopack worker entrypoints and their imported chunks also stay on the
 application origin via `experimental.turbopackWorkerAssetPrefix: ''`. This
@@ -66,9 +67,9 @@ The manifest covers:
   WASM URL. Server rendering uses the installed package's local binary.
 
 The Markdown editor uses the existing VelociTex adapter for formulas, so it
-does not load the default public KaTeX scripts or stylesheet. Excalidraw fonts,
-VelociTex, PDF.js, and print/clangd resources already use self-hosted assets or
-bundled modules.
+does not load the default public KaTeX scripts or stylesheet. VelociTex uses the
+prepared versioned files through `ASSET_PREFIX`; Excalidraw fonts, PDF.js, and
+print/clangd resources use self-hosted assets or bundled modules.
 
 ## Deployment
 
@@ -85,7 +86,8 @@ When the secret file omits it, that build defaults to
 `https://next-cdn.ycoj.cc`. Set `ASSET_PREFIX: ''` in the secret file to keep
 production on the site origin. See `docs/cnb-deployment.md`.
 
-`next.config.ts` sets these origin response headers for `/vendor/*`:
+`next.config.ts` sets these origin response headers for `/vendor/*` and
+`/velocitex/*`:
 
 ```text
 Access-Control-Allow-Origin: *
@@ -95,6 +97,8 @@ Cache-Control: public, max-age=31536000, immutable
 
 Serve JavaScript, CSS, fonts, and WASM with their correct content types. Browser
 access controls must permit the application origin and Monaco's `blob:` workers.
+The CDN must also forward these headers for VelociTex's cross-origin modules,
+WASM, and fonts, and serve `/velocitex/` from the deployed `public/` tree.
 
 When upgrading a prepared dependency, update its package version, lockfile,
 and manifest together, verify the listed browser files and any relative imports,

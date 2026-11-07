@@ -52,12 +52,13 @@ function pathnameOf(href: string): string | null {
 export function parseEntityHref(href: string): EntityReference | null {
   const pathname = pathnameOf(href);
   if (!pathname) return null;
-  const parts = pathname.split('/').filter(Boolean);
+  const parts = pathname.replace(/^\/|\/$/g, '').split('/');
   // `/d/system` is the root domain. Another domain prefix is a different site.
   if (parts[0] === 'd') {
     if (parts[1] !== 'system') return null;
     parts.splice(0, 2);
   }
+  if (parts.length !== 2) return null;
   const segment = parts[0];
   const rawId = parts[1];
   if (!segment || !rawId) return null;
