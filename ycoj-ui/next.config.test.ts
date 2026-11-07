@@ -17,10 +17,11 @@ async function loadConfig(phase: string) {
 }
 
 describe('ASSET_PREFIX', () => {
-  it('prefixes production /_next/static and leaves the image optimizer on the origin', async () => {
+  it('prefixes production assets and keeps workers and the image optimizer on the origin', async () => {
     vi.stubEnv('ASSET_PREFIX', 'https://next-cdn.ycoj.cc/');
     const config = await loadConfig(PHASE_PRODUCTION_BUILD);
     expect(config.assetPrefix).toBe('https://next-cdn.ycoj.cc');
+    expect(config.experimental?.turbopackWorkerAssetPrefix).toBe('');
     expect(config.images?.path).toBeUndefined();
   });
 

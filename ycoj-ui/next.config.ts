@@ -62,6 +62,8 @@ function createNextConfig(phase: string): NextConfig {
       '*.local',
     ],
     experimental: {
+      // Worker entrypoints and their imported chunks must share the page origin.
+      turbopackWorkerAssetPrefix: '',
       // proxy.ts makes Next buffer request bodies before the backend rewrites;
       // keep /api file uploads (imports, bulk submits) above the 10MB default.
       // Bodies past this size are silently truncated, not rejected. Uploads use

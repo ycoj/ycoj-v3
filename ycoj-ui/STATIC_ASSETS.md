@@ -1,6 +1,6 @@
 # Browser static assets
 
-`/_next/static` (JavaScript, CSS, `next/font` files, and other files the
+`/_next/static` (page JavaScript, CSS, `next/font` files, and other files the
 bundler emits, including static image imports) is served from the site origin
 unless `ASSET_PREFIX` is set for a production build. `next dev` ignores the
 variable so local chunks and the dev socket stay on the dev server.
@@ -27,14 +27,20 @@ from a CDN would need their own URLs; the prepared files below are
 intentionally same-origin because workers, WASM, and cross-origin isolation
 load them from this site.
 
+Turbopack worker entrypoints and their imported chunks also stay on the
+application origin via `experimental.turbopackWorkerAssetPrefix: ''`. This
+keeps the Typst PDF preview worker same-origin even with a CDN prefix.
+
 Font preloads are anonymous CORS requests. Next.js puts them on the `Link`
 response header as `crossorigin=""` with the prefixed font URL. A cross-origin
 `ASSET_PREFIX` therefore requires the CDN to send `Access-Control-Allow-Origin`
 for the page origin. The global `crossOrigin` config is left unset so script
 preloads keep the same credentials mode as the classic script tags.
-Stylesheet and classic script tags are not sent with credentials. The origin
-must still serve `/_next/static`: an origin-pull CDN fetches it from the site,
-and the release health check requests a file under that path directly.
+Stylesheet and classic script requests without `crossorigin` use credentials
+mode `include`. Cookies scoped to `.ycoj.cc` may therefore be sent to
+`next-cdn.ycoj.cc`, subject to browser cookie policy. The origin must still
+serve `/_next/static`: an origin-pull CDN fetches it from the site, and the
+release health check requests a file under that path directly.
 
 Next reads `ASSET_PREFIX` when it loads `next.config.ts`. A standalone
 production build copies the resolved prefix into `server.js`. Putting the
