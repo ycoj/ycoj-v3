@@ -1,4 +1,3 @@
-import { rewardFrameClasses } from '@/features/rewards/appearance';
 import RewardFrameDecoration, {
   isDecoratedFrame,
 } from '@/features/rewards/reward-frame';
@@ -23,11 +22,7 @@ export default function UserAvatar({ user, className, ...props }: Props) {
   return (
     <Avatar
       {...props}
-      className={cn(
-        rewardFrameClasses[frame ?? ''],
-        isDecoratedFrame(frame) && 'isolate',
-        className
-      )}
+      className={cn(isDecoratedFrame(frame) && 'isolate', className)}
     >
       {isDecoratedFrame(frame) && <RewardFrameDecoration id={frame} />}
       {src && <AvatarImage src={src} alt={user.uname} />}

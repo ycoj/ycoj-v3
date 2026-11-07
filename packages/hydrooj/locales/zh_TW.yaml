@@ -8,7 +8,9 @@ __langname: 正體中文
 (Not changed): 未更改
 '{0} {1} delete your discussion reply {2} in "{3}"({4}).': '{0} {1} 從討論 {3}({4}) 刪除了你的回覆 {2}。'
 '{0} comments': '{0} 條評論'
+'{0} deducted {1} coins in {2}. Reason: {3}': '{0} 在 {2} 扣除了你 {1} 枚金幣。原因：{3}'
 '{0} discussions': '{0} 條討論'
+'{0} granted you {1} coins in {2}. Reason: {3}': '{0} 在 {2} 向你發放了 {1} 枚金幣。原因：{3}'
 '{0} is a moderator of this domain.': '{0}是這個域的管理者之一。'
 '{0} limit exceeded (limit: {2} operations in {1} seconds).': '{0} 超過限制。(限制：{1} 秒內最多 {2} 次操作。)'
 '{0} problems': '{0} 道題'
@@ -887,6 +889,7 @@ theme: 主題
 There are no contests...: 沒有比賽…
 There is no homework so far ╰(*°▽°*)╯: 目前沒有功課 ╰(*°▽°*)╯
 These awards are already certified to another account.: 這些獎項已被其他帳號認證。
+'These cosmetics are being remade. {0} coins have been refunded.': 正在重制這些裝扮，已退還 {0} 枚金幣。
 This account already has certified awards. Ask an administrator to remove them first.: 該帳號已綁定獎項。如需更改請先聯繫管理員移除。
 This account has no certified awards.: 該帳號沒有已認證的獎項。
 This application is not pending review.: 該申請目前不在待審核狀態。

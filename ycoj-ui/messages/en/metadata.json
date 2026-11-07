@@ -62,6 +62,7 @@
   "domainRoles": "Roles",
   "domainPermissions": "Permissions",
   "domainGroups": "Groups",
+  "domainCoins": "Coin adjustments",
   "systemDashboard": "System console",
   "systemSetting": "System settings",
   "systemConfig": "System configuration",

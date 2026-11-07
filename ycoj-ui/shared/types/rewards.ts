@@ -27,7 +27,15 @@ export type RewardsData = {
     spent: number;
     owned: string[];
     equipped: RewardEquipment;
-    ledger: { id: string; reason: string; amount: number; at: string }[];
+    ledger: {
+      id: string;
+      reason: string;
+      amount: number;
+      at: string;
+      by?: number;
+      byName?: string;
+      note?: string;
+    }[];
   };
   tasks: RewardTask[];
   catalog: RewardItem[];

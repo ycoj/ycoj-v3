@@ -6,6 +6,7 @@ describe('domain mutation redirects', () => {
     ['/domain/dashboard', '/domain'],
     ['/domain/edit', '/domain/edit'],
     ['/domain/user', '/domain/user'],
+    ['/domain/coins', '/domain/coins'],
     ['/domain/role', '/domain/role'],
     ['/domain/permission', '/domain/permission'],
     ['/domain/group', '/domain/group'],

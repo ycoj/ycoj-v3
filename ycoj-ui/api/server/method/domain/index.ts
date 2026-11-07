@@ -2,6 +2,7 @@ import {
   getCurrentDomain,
   getDomainDashboard,
   getDomainEdit,
+  getDomainCoins,
   getDomainGroups,
   getDomainPermissions,
   getDomainRoles,
@@ -15,6 +16,7 @@ const Domain = {
   getDomainUsers,
   getDomainRoles,
   getDomainPermissions,
+  getDomainCoins,
   getDomainGroups,
 };
 

@@ -2,6 +2,7 @@
 
 import { cn } from '@/shared/lib/utils';
 import {
+  Coins,
   Info,
   KeyRound,
   ShieldCheck,
@@ -20,6 +21,7 @@ type Item = {
     | 'settings'
     | 'roles'
     | 'members'
+    | 'coins'
     | 'permissionMatrix'
     | 'groups';
   icon: LucideIcon;
@@ -30,6 +32,7 @@ const ITEMS: Item[] = [
   { href: '/domain/edit', labelKey: 'settings', icon: UserCog },
   { href: '/domain/role', labelKey: 'roles', icon: KeyRound },
   { href: '/domain/user', labelKey: 'members', icon: Users },
+  { href: '/domain/coins', labelKey: 'coins', icon: Coins },
   {
     href: '/domain/permission',
     labelKey: 'permissionMatrix',

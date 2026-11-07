@@ -22,7 +22,15 @@ type RewardsData = {
     spent: number;
     owned: string[];
     equipped: Equipment;
-    ledger: { id: string; reason: 'welcome' | TaskId | string; amount: number; at: string }[];
+    ledger: {
+      id: string;
+      reason: 'welcome' | 'admin-adjust' | 'cosmetics-refund' | TaskId | string;
+      amount: number;
+      at: string;
+      by?: number;
+      byName?: string;
+      note?: string;
+    }[];
   };
   tasks: {
     id: TaskId;
@@ -53,7 +61,7 @@ Example wallet excerpt (the actual response includes every task and catalog item
     "ledger": [{ "id": "welcome", "reason": "welcome", "amount": 100, "at": "2026-11-02T04:00:00.000Z" }]
   },
   "tasks": [{ "id": "checkin", "period": "daily", "target": 1, "coins": 5, "key": "2026-11-02:checkin", "progress": 0, "claimed": false }],
-  "catalog": [{ "id": "frame-sprout", "slot": "frame", "price": 60 }]
+  "catalog": [{ "id": "frame-tiger", "slot": "frame", "price": 200 }]
 }
 ```
 
@@ -88,11 +96,11 @@ There is no `operation` field. Examples:
 ```
 
 ```json
-{ "action": "buy", "id": "frame-sprout" }
+{ "action": "buy", "id": "accent-forest" }
 ```
 
 ```json
-{ "action": "equip", "id": "frame-sprout" }
+{ "action": "equip", "id": "accent-forest" }
 ```
 
 ```json
@@ -100,27 +108,29 @@ There is no `operation` field. Examples:
 ```
 
 - `claim`: `id` must be a task ID. Computes progress again on the server. Only current daily/weekly tasks can be claimed, once per task and period. Repeating a successful claim is a no-op.
-- `buy`: `id` must be a catalog item ID. Deducts its fixed server price, adds permanent ownership, and adds a negative ledger entry atomically. Already-owned purchases are no-ops. Buying does not equip. No refund, transfer, cash payment, expiration, or administrator minting API is provided.
+- `buy`: `id` must be a current catalog item ID. Deducts its fixed server price, adds permanent ownership, and adds a negative ledger entry atomically. Already-owned purchases are no-ops. Buying does not equip. Retired item IDs are rejected with `invalid-item`. Purchases still require a sufficient balance. Domain administrators adjust balances through [`POST /domain/coins`](../domain/coins.md), which is separate from this shop.
 - `equip`: `id` must identify an owned catalog item. Replaces only that item's slot. Does not change balance or ledger.
 - `unequip`: `id` must be a slot ID. Clears that slot without removing ownership or refunding coins. Repeating it is harmless.
 
 Wallet replacement uses an `_id`/version compare-and-swap. Initial grants, balance, ownership, claim deduplication, equipment, aggregate totals, and ledger are in one MongoDB document, so no replica-set transactions are required. Claims older than the current day/week are pruned on mutation. The newest 100 ledger entries are retained, while earned/spent totals and permanent ownership remain. Contention retries recompute claims and check for midnight changes.
 
-Success response is HTTP 200 JSON `RewardsData`, same type and example as GET. After buying `frame-sprout` on a fresh wallet, its wallet portion is:
+Success response is HTTP 200 JSON `RewardsData`, same type and example as GET. A fresh wallet has 100 coins, and every current catalog item costs 160 or 200, so the first purchase happens only after more coins are earned. After buying `accent-forest` from a wallet whose balance is 260, its wallet portion is:
 
 ```json
 {
-  "balance": 40,
-  "earned": 100,
-  "spent": 60,
-  "owned": ["frame-sprout"],
+  "balance": 100,
+  "earned": 260,
+  "spent": 160,
+  "owned": ["accent-forest"],
   "equipped": {},
   "ledger": [
-    { "id": "buy:frame-sprout", "reason": "frame-sprout", "amount": -60, "at": "2026-11-02T04:01:00.000Z" },
+    { "id": "buy:accent-forest", "reason": "accent-forest", "amount": -160, "at": "2026-11-02T04:01:00.000Z" },
     { "id": "welcome", "reason": "welcome", "amount": 100, "at": "2026-11-02T04:00:00.000Z" }
   ]
 }
 ```
+
+An administrator adjustment adds a ledger entry `{ "id": "adjust:<requestId>:<uid>", "reason": "admin-adjust", "amount": 20, "at": "2026-11-02T04:02:00.000Z", "by": 2, "byName": "coach", "note": "Class prize" }`. A cosmetics retirement refund adds `{ "id": "retire:<item-id>", "reason": "cosmetics-refund", "amount": 60, "note": "<item-id>" }`. The newest 100 entries are kept, so those optional fields can age out of the response.
 
 Invalid task/item/slot, incomplete task, insufficient balance, and unowned equipment return HTTP 400 with `type RewardFailure = {error:{name:'RewardError';message:string}}`. Message codes are `invalid-task`, `invalid-item`, `task-incomplete`, `insufficient-coins`, and `item-not-owned`. Example: `{"error":{"name":"RewardError","message":"insufficient-coins"}}`. Exhausted concurrency retries return HTTP 409 with message `busy`. Invalid `action`/missing or invalid typed fields use the normal validation error envelope. Authentication, privilege, real-name, and rate limit failures retain existing framework envelopes/status behavior. No redirects are introduced by this handler.
 
@@ -128,19 +138,15 @@ Catalog:
 
 | ID | Slot | Price |
 | --- | --- | --- |
-| `frame-sprout` | frame | 60 |
-| `frame-starlight` | frame | 180 |
 | `frame-tiger` | frame | 200 |
 | `frame-pixel` | frame | 200 |
-| `background-sky` | background | 120 |
-| `background-peach` | background | 120 |
-| `title-explorer` | title | 80 |
-| `title-persistent` | title | 240 |
 | `accent-forest` | accent | 160 |
 | `accent-violet` | accent | 160 |
+
+Retired and no longer sold: `frame-sprout` (frame, 60), `frame-starlight` (frame, 180), `background-sky` (background, 120), `background-peach` (background, 120), `title-explorer` (title, 80), and `title-persistent` (title, 240). Those were the solid-color avatar frames, every name background, and every personal title. Decorated frames and interface accent colors stay. The `retireCosmetics` CLI refunds owners once, unequips the retired slots, and sends one in-site message. Preview with `hydrooj cli script retireCosmetics '{"dryRun":true}'` and apply with `hydrooj cli script retireCosmetics '{"confirm":true}'`. A second apply does not refund again. Do not run the apply against a production database unless that refund is intended.
 
 Names and visual styles are localized by the frontend, not arbitrary HTML or CSS supplied by the client. Equipment affects cosmetics only, not scores, Rating, RP, or permissions.
 
 ## Public user appearance
 
-User serialization and public user dictionaries expose only `rewardEquipment?:Equipment`; they do not expose another user's wallet balance, inventory, claims, or ledger. Example user excerpt: `{"_id":12,"uname":"alice","rewardEquipment":{"frame":"frame-sprout","title":"title-explorer"}}`. `GET /user/:uid` includes it under `udoc`, and `/ui/nav` includes it in the authenticated `user`. User-list projections use a batch wallet lookup. Equip/unequip invalidates the affected user's cross-process cache. Defaults apply when the field or a slot is absent.
+User serialization and public user dictionaries expose only `rewardEquipment?:Equipment`; they do not expose another user's wallet balance, inventory, claims, or ledger. Example user excerpt: `{"_id":12,"uname":"alice","rewardEquipment":{"frame":"frame-tiger","accent":"accent-forest"}}`. `GET /user/:uid` includes it under `udoc`, and `/ui/nav` includes it in the authenticated `user`. User-list projections use a batch wallet lookup. Equip/unequip invalidates the affected user's cross-process cache. Defaults apply when the field or a slot is absent.

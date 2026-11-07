@@ -2,15 +2,22 @@
 export type RewardSlot = 'frame' | 'background' | 'title' | 'accent';
 export type RewardEquipment = Partial<Record<RewardSlot, string>>;
 export interface RewardItem { id: string, slot: RewardSlot, price: number }
-export const REWARD_CATALOG: RewardItem[] = [
+/**
+ * Removed from the shop: the two solid-color frames, every name background,
+ * and every personal title. Prices stay here so a refund can use them when
+ * the purchase has fallen out of the 100-entry ledger.
+ */
+export const RETIRED_REWARD_ITEMS: RewardItem[] = [
     { id: 'frame-sprout', slot: 'frame', price: 60 },
     { id: 'frame-starlight', slot: 'frame', price: 180 },
-    { id: 'frame-tiger', slot: 'frame', price: 200 },
-    { id: 'frame-pixel', slot: 'frame', price: 200 },
     { id: 'background-sky', slot: 'background', price: 120 },
     { id: 'background-peach', slot: 'background', price: 120 },
     { id: 'title-explorer', slot: 'title', price: 80 },
     { id: 'title-persistent', slot: 'title', price: 240 },
+];
+export const REWARD_CATALOG: RewardItem[] = [
+    { id: 'frame-tiger', slot: 'frame', price: 200 },
+    { id: 'frame-pixel', slot: 'frame', price: 200 },
     { id: 'accent-forest', slot: 'accent', price: 160 },
     { id: 'accent-violet', slot: 'accent', price: 160 },
 ];
@@ -24,7 +31,22 @@ export const REWARD_TASKS = [
 ] as const;
 export type RewardTaskId = typeof REWARD_TASKS[number]['id'];
 export type RewardProgress = Record<RewardTaskId, number>;
-export interface RewardLedgerEntry { id: string, reason: string, amount: number, at: string }
+export interface RewardLedgerEntry {
+    id: string;
+    reason: string;
+    amount: number;
+    at: string;
+    by?: number;
+    byName?: string;
+    note?: string;
+}
+/** Durable retirement marker. Ledger entries are capped, so this is what makes a re-run skip the refund. */
+export interface CosmeticsRetirementRecord {
+    items: string[];
+    refunded: number;
+    at: string;
+    notified: boolean;
+}
 export interface RewardWallet {
     _id: number;
     version: number;
@@ -35,6 +57,7 @@ export interface RewardWallet {
     equipped: RewardEquipment;
     claims: string[];
     ledger: RewardLedgerEntry[];
+    cosmeticsRetirement?: CosmeticsRetirementRecord;
 }
 export type RewardAction =
     | { action: 'claim', id: string }

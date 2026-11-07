@@ -68,7 +68,7 @@ Use to remove the signed-in account. `type DeleteInput={password:string}`, examp
 
 ### `GET /user/:uid`
 
-The `udoc` also exposes optional public cosmetic equipment: `rewardEquipment?:Partial<Record<'frame'|'background'|'title'|'accent',string>>`, e.g. `{"rewardEquipment":{"frame":"frame-sprout","title":"title-explorer"}}`. Inventory, balance, claims, and ledger are never included here. See [learning rewards](../rewards/wallet.md#public-user-appearance).
+The `udoc` also exposes optional public cosmetic equipment: `rewardEquipment?:Partial<Record<'frame'|'background'|'title'|'accent',string>>`, e.g. `{"rewardEquipment":{"frame":"frame-tiger","accent":"accent-forest"}}`. Inventory, balance, claims, and ledger are never included here. See [learning rewards](../rewards/wallet.md#public-user-appearance).
 
 Additional body field: `contestRating:UserContestRating|null`; example `{"contestRating":{"rating":1652,"peak":1670,"contests":4,"provisional":true,"history":[]}}`. Viewers need `PERM_VIEW_CONTEST_SCOREBOARD` for a non-null result. Reading may publish a replayed generation. Full schema, history filtering and examples: [Contest Rating](../contest/rating.md#user-profile-result).
 

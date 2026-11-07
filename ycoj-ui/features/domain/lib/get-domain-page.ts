@@ -3,6 +3,7 @@ import ServerApis from '@/api/server/method';
 import type {
   DomainDashboardResponse,
   DomainEditResponse,
+  DomainCoinsResponse,
   DomainGroupsResponse,
   DomainPermissionsResponse,
   DomainRolesResponse,
@@ -116,6 +117,14 @@ export async function getDomainPermissionsPage() {
   const t = await getTranslations('domainAdmin');
   return loadDomainPage<DomainPermissionsResponse>(
     () => ServerApis.Domain.getDomainPermissions(),
+    t('loadFailed')
+  );
+}
+
+export async function getDomainCoinsPage() {
+  const t = await getTranslations('domainAdmin');
+  return loadDomainPage<DomainCoinsResponse>(
+    () => ServerApis.Domain.getDomainCoins(),
     t('loadFailed')
   );
 }

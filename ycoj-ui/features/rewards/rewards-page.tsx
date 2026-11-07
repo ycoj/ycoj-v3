@@ -36,6 +36,14 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
 const SLOT_ORDER: RewardSlot[] = ['frame', 'background', 'title', 'accent'];
+const RETIRED_ITEM_IDS = new Set([
+  'frame-sprout',
+  'frame-starlight',
+  'background-sky',
+  'background-peach',
+  'title-explorer',
+  'title-persistent',
+]);
 
 type Props = { initialData: RewardsData; user: BaseUser };
 
@@ -68,15 +76,23 @@ export default function RewardsPage({ initialData, user }: Props) {
     (task) => !task.claimed && task.progress >= task.target
   ).length;
 
-  const shopGroups = SLOT_ORDER.map((slot) => ({
-    slot,
-    items: data.catalog.filter(
-      (item) =>
-        item.slot === slot &&
-        (category === 'all' || category === slot) &&
-        (!ownedOnly || data.wallet.owned.includes(item.id))
-    ),
-  })).filter((group) => group.items.length > 0);
+  const activeSlots = SLOT_ORDER.filter((slot) =>
+    data.catalog.some((item) => item.slot === slot)
+  );
+  const wearingSlots = SLOT_ORDER.filter(
+    (slot) => activeSlots.includes(slot) || Boolean(data.wallet.equipped[slot])
+  );
+  const shopGroups = activeSlots
+    .map((slot) => ({
+      slot,
+      items: data.catalog.filter(
+        (item) =>
+          item.slot === slot &&
+          (category === 'all' || category === slot) &&
+          (!ownedOnly || data.wallet.owned.includes(item.id))
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
 
   const run = async (key: string, action?: RewardAction) => {
     if (inFlight.current) return;
@@ -128,14 +144,30 @@ export default function RewardsPage({ initialData, user }: Props) {
   };
 
   const itemName = (id: string) => t(`items.${id}.name`);
-  const reasonLabel = (reason: string) =>
-    reason === 'welcome'
-      ? t('welcome')
-      : data.catalog.some((item) => item.id === reason)
-        ? t('purchaseReason', { item: itemName(reason) })
-        : data.tasks.some((task) => task.id === reason)
-          ? t(`tasks.${reason}.name`)
-          : reason;
+  const reasonLabel = (entry: RewardsData['wallet']['ledger'][number]) => {
+    if (entry.reason === 'admin-adjust') {
+      return t('adminAdjust', {
+        name: entry.byName || t('administrator'),
+        note: entry.note ?? '',
+      });
+    }
+    if (entry.reason === 'cosmetics-refund') {
+      return t('cosmeticsRefund', {
+        item: entry.note ? itemName(entry.note) : t('retiredCosmetic'),
+      });
+    }
+    const reason = entry.reason;
+    if (reason === 'welcome') return t('welcome');
+    if (
+      data.catalog.some((item) => item.id === reason) ||
+      RETIRED_ITEM_IDS.has(reason)
+    ) {
+      return t('purchaseReason', { item: itemName(reason) });
+    }
+    if (data.tasks.some((task) => task.id === reason))
+      return t(`tasks.${reason}.name`);
+    return reason;
+  };
 
   const itemActions = (item: RewardItem) => {
     const owned = data.wallet.owned.includes(item.id);
@@ -369,7 +401,7 @@ export default function RewardsPage({ initialData, user }: Props) {
             aria-label={t('categoriesLabel')}
             className="flex flex-wrap gap-2"
           >
-            {(['all', ...SLOT_ORDER] as const).map((slot) => (
+            {(['all', ...activeSlots] as const).map((slot) => (
               <button
                 type="button"
                 key={slot}
@@ -516,7 +548,7 @@ export default function RewardsPage({ initialData, user }: Props) {
               )}
               <div className="space-y-2 border-t pt-4">
                 <h3 className="text-sm font-medium">{t('wearing')}</h3>
-                {SLOT_ORDER.map((slot) => (
+                {wearingSlots.map((slot) => (
                   <div
                     key={slot}
                     className="flex items-center justify-between gap-2 text-xs"
@@ -576,7 +608,7 @@ export default function RewardsPage({ initialData, user }: Props) {
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm">{reasonLabel(entry.reason)}</p>
+                  <p className="text-sm">{reasonLabel(entry)}</p>
                   <time
                     dateTime={entry.at}
                     className="text-xs text-muted-foreground"

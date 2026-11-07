@@ -64,6 +64,19 @@ describe('message utilities', () => {
       formatMessageContent(
         {
           ...systemMessage,
+          content: JSON.stringify({
+            message:
+              'These cosmetics are being remade. {0} coins have been refunded.',
+            params: [180],
+          }),
+        },
+        'zh'
+      ).text
+    ).toBe('正在重制这些装扮，已退还 180 枚金币。');
+    expect(
+      formatMessageContent(
+        {
+          ...systemMessage,
           content: JSON.stringify({ message: 'Unknown {0}', params: ['key'] }),
         },
         'en'
