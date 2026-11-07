@@ -3,11 +3,11 @@ import { resolveSolutionPermissions } from './solution-reply-permissions';
 import type { ProblemSolutionResponse } from '@/api/server/method/problems/solution';
 import { getUser } from '@/features/user/lib/get-user';
 import { hasPerm, PERM } from '@/features/user/lib/priv';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Button } from '@/shared/components/ui/button';
 import { Separator } from '@/shared/components/ui/separator';
 import { Plus } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
 
 type Props = {
   data: ProblemSolutionResponse;
@@ -34,10 +34,10 @@ export default async function SolutionContent({ data, highlightedId }: Props) {
         <div className="text-foreground flex items-center">
           <span className="text-muted-foreground">{t('missingYours')}</span>
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/problem/${pid}/solution/create`}>
+            <EntityHoverLink href={`/problem/${pid}/solution/create`}>
               <Plus className="size-4" />
               {t('create')}
-            </Link>
+            </EntityHoverLink>
           </Button>
         </div>
       )}

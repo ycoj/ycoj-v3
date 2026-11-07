@@ -2,6 +2,7 @@
 
 import '@/shared/components/code/style/both.css';
 import '@/shared/components/code/style/line-numbers.css';
+import MarkdownEntityLink from '@/shared/components/entity-hover/markdown-entity-link';
 import MarkdownAlert from '@/shared/components/markdown/components/markdown-alert';
 import MarkdownAlign from '@/shared/components/markdown/components/markdown-align';
 import MarkdownCodeBlock from '@/shared/components/markdown/components/markdown-code-block';
@@ -32,6 +33,7 @@ const components = {
   'md-alert': MarkdownAlert,
   'md-align': MarkdownAlign,
   pre: MarkdownCodeBlock,
+  a: MarkdownEntityLink,
 } satisfies Components;
 
 /**

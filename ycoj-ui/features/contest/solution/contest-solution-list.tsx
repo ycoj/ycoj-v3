@@ -1,5 +1,6 @@
 import type { ContestSolutionListItem } from '@/api/server/method/contests/solution';
 import UserSpan from '@/features/user/user-span';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Button } from '@/shared/components/ui/button';
 import {
   Empty,
@@ -12,7 +13,6 @@ import oid2ts from '@/shared/lib/oid2ts';
 import type { BaseUserDict } from '@/shared/types/user';
 import { Lightbulb } from 'lucide-react';
 import { getFormatter, getTranslations } from 'next-intl/server';
-import Link from 'next/link';
 
 type Props = {
   tid: string;
@@ -46,7 +46,9 @@ export default async function ContestSolutionList({
         <h2 className="text-xl font-semibold">{t('heading')}</h2>
         {canManage && (
           <Button asChild>
-            <Link href={`/contest/${tid}/solution/create`}>{t('create')}</Link>
+            <EntityHoverLink href={`/contest/${tid}/solution/create`}>
+              {t('create')}
+            </EntityHoverLink>
           </Button>
         )}
       </div>
@@ -78,12 +80,12 @@ export default async function ContestSolutionList({
                 return (
                   <tr key={doc.docId} className="border-b">
                     <td className="py-3 pr-3">
-                      <Link
+                      <EntityHoverLink
                         className="text-primary hover:underline"
                         href={`/contest/${tid}/solution/${doc.docId}`}
                       >
                         {doc.title}
-                      </Link>
+                      </EntityHoverLink>
                     </td>
                     <td className="whitespace-nowrap p-3">
                       {udict[doc.owner] ? (

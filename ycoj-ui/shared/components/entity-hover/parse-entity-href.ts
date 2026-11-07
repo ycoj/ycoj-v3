@@ -1,0 +1,62 @@
+import type {
+  EntityKind,
+  EntityReference,
+} from '@/shared/components/entity-hover/types';
+
+const KIND_BY_SEGMENT: Record<string, EntityKind> = {
+  problem: 'problem',
+  p: 'problem',
+  contest: 'contest',
+  homework: 'homework',
+  training: 'training',
+};
+
+const RESERVED_IDS: Record<EntityKind, ReadonlySet<string>> = {
+  problem: new Set([
+    'create',
+    'import',
+    'solution-review',
+    'feedback',
+    'random',
+    'category',
+  ]),
+  contest: new Set(['create', 'analysis']),
+  homework: new Set(['create']),
+  training: new Set(['create']),
+};
+
+function pathnameOf(href: string): string | null {
+  const trimmed = href.trim();
+  if (!trimmed || trimmed.startsWith('#')) return null;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      return url.pathname;
+    } catch {
+      return null;
+    }
+  }
+  return trimmed.split(/[?#]/)[0] ?? null;
+}
+
+/** Resolves a problem, contest, homework, or training reference from a link href. */
+export function parseEntityHref(href: string): EntityReference | null {
+  const pathname = pathnameOf(href);
+  if (!pathname) return null;
+  const parts = pathname.split('/').filter(Boolean);
+  if (parts[0] === 'd') parts.splice(0, 2);
+  const segment = parts[0];
+  const rawId = parts[1];
+  if (!segment || !rawId) return null;
+  const kind = KIND_BY_SEGMENT[segment];
+  if (!kind || RESERVED_IDS[kind].has(rawId)) return null;
+  if (segment === 'p' && rawId === 'category') return null;
+  try {
+    const id = decodeURIComponent(rawId);
+    if (!id || id.includes('/')) return null;
+    return { kind, id };
+  } catch {
+    return null;
+  }
+}

@@ -4,6 +4,7 @@ import {
   percentage,
 } from '@/features/contest/analysis/contest-analysis-helpers';
 import ContestAnalysisStudents from '@/features/contest/analysis/contest-analysis-students';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import Markdown from '@/shared/components/markdown';
 import { Badge } from '@/shared/components/ui/badge';
 import {
@@ -18,7 +19,6 @@ import type {
   ContestAnalysisWeakPoint,
 } from '@/shared/types/contest-analysis';
 import { getFormatter, getTranslations } from 'next-intl/server';
-import Link from 'next/link';
 
 type Props = {
   job: ContestAnalysisJob;
@@ -200,12 +200,12 @@ function ContestSection(props: {
               >
                 <td className="py-2 pr-3 tabular-nums">T{problemIndex + 1}</td>
                 <td className="py-2 pr-3">
-                  <Link
+                  <EntityHoverLink
                     className="font-medium hover:underline"
                     href={`/problem/${problem.pid}`}
                   >
                     {problem.title}
-                  </Link>
+                  </EntityHoverLink>
                   {commentByPid.get(problem.pid) && (
                     <p className="text-muted-foreground mt-1 text-xs">
                       {commentByPid.get(problem.pid)}

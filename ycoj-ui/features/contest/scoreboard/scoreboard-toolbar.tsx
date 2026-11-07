@@ -3,12 +3,12 @@
 import ScoreboardExport from './scoreboard-export';
 import { SCOREBOARD_EXPORT_DATA_VIEW } from './scoreboard-export-utils';
 import UnlockButton from './unlock-button';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Button } from '@/shared/components/ui/button';
 import type { Contest } from '@/shared/types/contest';
 import type { Homework } from '@/shared/types/homework';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 
 type Props = {
   tid: string;
@@ -41,12 +41,12 @@ export default function ScoreboardToolbar({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button variant="outline" size="sm" asChild>
-        <Link href={`/${pageType}/${tid}`}>
+        <EntityHoverLink href={`/${pageType}/${tid}`}>
           <ArrowLeft data-icon="inline-start" />
           {pageType === 'homework'
             ? homeworkT('backToHomework')
             : contestT('backToContest')}
-        </Link>
+        </EntityHoverLink>
       </Button>
 
       {exportViews.map(([key, label]) => (

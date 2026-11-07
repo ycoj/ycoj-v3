@@ -2,6 +2,7 @@
 
 import ClientApis from '@/api/client/method';
 import UserSpan from '@/features/user/user-span';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import {
   Empty,
   EmptyDescription,
@@ -31,7 +32,6 @@ import {
 } from '@/shared/types/problem-feedback';
 import { FileWarning, LoaderCircle } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -108,13 +108,13 @@ export default function ProblemFeedbackList({ data }: Props) {
             return (
               <TableRow key={feedback._id}>
                 <TableCell>
-                  <Link
+                  <EntityHoverLink
                     href={`/problem/${problem?.pid ?? feedback.pid}`}
                     className="font-medium hover:underline"
                     prefetch={false}
                   >
                     {problem?.title ?? `#${feedback.pid}`}
-                  </Link>
+                  </EntityHoverLink>
                 </TableCell>
                 <TableCell>
                   {reporter ? (

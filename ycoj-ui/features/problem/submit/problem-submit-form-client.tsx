@@ -13,6 +13,7 @@ import {
   resolveSubmitMode,
 } from '@/features/problem/submit/submit-mode';
 import CodeEditor from '@/shared/components/code/code-editor';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import parseErrorMessage from '@/shared/components/errored/parse-message';
 import { Button } from '@/shared/components/ui/button';
 import { Checkbox } from '@/shared/components/ui/checkbox';
@@ -39,7 +40,6 @@ import type { PublicProjectionProblem } from '@/shared/types/problem';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileUp, Navigation, Link2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -459,10 +459,10 @@ export default function ProblemSubmitFormClient({
         </Button>
       ) : (
         <Button size="lg" asChild className="w-auto gap-3">
-          <Link href={`/problem/${pid}`}>
+          <EntityHoverLink href={`/problem/${pid}`}>
             <Link2 strokeWidth={2} data-icon="inline-start" />
             {tProblem('openInProblemSet')}
-          </Link>
+          </EntityHoverLink>
         </Button>
       )}
     </form>

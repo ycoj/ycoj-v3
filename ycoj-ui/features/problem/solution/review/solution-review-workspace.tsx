@@ -5,12 +5,12 @@ import {
   type SolutionReviewData,
 } from '@/api/server/method/problems/solution-review';
 import UserSpan from '@/features/user/user-span';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import Markdown from '@/shared/components/markdown';
 import { Button } from '@/shared/components/ui/button';
 import oid2ts from '@/shared/lib/oid2ts';
 import { ArrowLeft, ExternalLink, ListChecks, UserRoundX } from 'lucide-react';
 import { getFormatter, getTranslations } from 'next-intl/server';
-import Link from 'next/link';
 
 type Props = { data: SolutionReviewData };
 
@@ -69,12 +69,12 @@ export default async function SolutionReviewWorkspace({ data }: Props) {
             aria-label={t('back')}
             title={t('back')}
           >
-            <Link href="/problem">
+            <EntityHoverLink href="/problem">
               <ArrowLeft />
-            </Link>
+            </EntityHoverLink>
           </Button>
           <Button asChild variant="outline">
-            <Link
+            <EntityHoverLink
               href={
                 data.status === 'authors'
                   ? '/problem/solution-review'
@@ -84,7 +84,7 @@ export default async function SolutionReviewWorkspace({ data }: Props) {
             >
               {data.status === 'authors' ? <ListChecks /> : <UserRoundX />}
               {data.status === 'authors' ? t('queue') : t('authors')}
-            </Link>
+            </EntityHoverLink>
           </Button>
         </div>
       </header>
@@ -109,13 +109,13 @@ export default async function SolutionReviewWorkspace({ data }: Props) {
               size="sm"
               variant={data.status === status ? 'secondary' : 'ghost'}
             >
-              <Link
+              <EntityHoverLink
                 href={`/problem/solution-review?status=${status}`}
                 prefetch={false}
                 aria-current={data.status === status ? 'page' : undefined}
               >
                 {solutionT(filterLabelKeys[status])}
-              </Link>
+              </EntityHoverLink>
             </Button>
           ))}
         </nav>
@@ -136,12 +136,12 @@ export default async function SolutionReviewWorkspace({ data }: Props) {
                 aria-label={t('view')}
                 title={t('view')}
               >
-                <Link
+                <EntityHoverLink
                   href={`/problem/${problem?.pid ?? solution.parentId}/solution?sid=${solution.docId}`}
                   prefetch={false}
                 >
                   <ExternalLink />
-                </Link>
+                </EntityHoverLink>
               </Button>
             )}
           </div>
@@ -207,12 +207,12 @@ export default async function SolutionReviewWorkspace({ data }: Props) {
                   <div>
                     <dt>{t('problem')}</dt>
                     <dd>
-                      <Link
+                      <EntityHoverLink
                         className="hover:underline"
                         href={`/problem/${problem?.pid ?? solution.parentId}`}
                       >
                         {problem?.title ?? solution.parentId}
-                      </Link>
+                      </EntityHoverLink>
                     </dd>
                   </div>
                   <div>

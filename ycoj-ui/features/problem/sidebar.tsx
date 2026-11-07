@@ -10,6 +10,7 @@ import { getContestEndedVariant } from '@/features/problem/detail/contest-ended-
 import ProblemPackageActions from '@/features/problem/detail/problem-package-actions';
 import ProblemRejudgeButton from '@/features/problem/detail/problem-rejudge-button';
 import ProblemFeedbackDialog from '@/features/problem/feedback/problem-feedback-dialog';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Separator } from '@/shared/components/ui/separator';
@@ -30,7 +31,6 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import Link from 'next/link';
 
 type Props = {
   allowSubmit?: boolean;
@@ -75,7 +75,7 @@ function SidebarButton({ icon: Icon, text, href, count }: SidebarButtonProps) {
       className="h-10 w-full justify-start gap-3 px-4"
       variant="ghost"
     >
-      <Link href={href}>
+      <EntityHoverLink href={href}>
         <Icon strokeWidth={2} />
         <span data-llm-text={text}>{text}</span>
         {count !== undefined && (
@@ -83,7 +83,7 @@ function SidebarButton({ icon: Icon, text, href, count }: SidebarButtonProps) {
             {count}
           </Badge>
         )}
-      </Link>
+      </EntityHoverLink>
     </Button>
   );
 }
@@ -150,7 +150,7 @@ export default function ProblemSidebar({
               variant="ghost"
               className="h-10 w-full justify-start gap-3 px-4"
             >
-              <Link
+              <EntityHoverLink
                 href={`/problem/${problem.pid ?? problem.docId}`}
                 prefetch={false}
               >
@@ -158,7 +158,7 @@ export default function ProblemSidebar({
                 <span data-llm-text={t('openInProblemSet')}>
                   {t('openInProblemSet')}
                 </span>
-              </Link>
+              </EntityHoverLink>
             </Button>
           ) : (
             <Button
@@ -166,7 +166,7 @@ export default function ProblemSidebar({
               variant="ghost"
               className="h-10 w-full justify-start gap-3 px-4"
             >
-              <Link
+              <EntityHoverLink
                 href={withTid(
                   `/problem/${problem.pid ?? problem.docId}/submit`,
                   tid
@@ -174,19 +174,19 @@ export default function ProblemSidebar({
               >
                 <Navigation strokeWidth={2} />
                 <span data-llm-text={t('submit')}>{t('submit')}</span>
-              </Link>
+              </EntityHoverLink>
             </Button>
           ))}
         {showBackToProblem && (
           <Button asChild className="h-10 w-full justify-start gap-3 px-4">
-            <Link
+            <EntityHoverLink
               href={withTid(`/problem/${problem.pid ?? problem.docId}`, tid)}
             >
               <ArrowLeft strokeWidth={2} />
               <span data-llm-text={t('backToProblem')}>
                 {t('backToProblem')}
               </span>
-            </Link>
+            </EntityHoverLink>
           </Button>
         )}
         {isContestMode && contest?.rule !== 'homework' && (
@@ -279,13 +279,13 @@ export default function ProblemSidebar({
                       variant={active ? 'default' : 'outline'}
                       className="h-8 min-w-8 px-2"
                     >
-                      <Link
+                      <EntityHoverLink
                         href={withTid(`/problem/${contestPid}`, tid)}
                         prefetch={false}
                         data-llm-text={label}
                       >
                         {label}
-                      </Link>
+                      </EntityHoverLink>
                     </Button>
                   );
                 })}

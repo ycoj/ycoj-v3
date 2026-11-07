@@ -26,6 +26,7 @@ import homepage from './homepage.json';
 import homeworkCreate from './homework-create.json';
 import homeworkEdit from './homework-edit.json';
 import homework from './homework.json';
+import hoverCard from './hover-card.json';
 import judgeStatus from './judge-status.json';
 import landing from './landing.json';
 import manage from './manage.json';
@@ -98,6 +99,7 @@ const catalog = {
   branding,
   messages,
   homepage,
+  hoverCard,
   checkin,
   training,
   preliminary,

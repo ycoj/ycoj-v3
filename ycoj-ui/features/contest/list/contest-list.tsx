@@ -7,6 +7,7 @@ import ContestStatus, {
   getContestStatusTextClassName,
   type ContestStatus as ContestRuntimeStatus,
 } from '@/features/contest/contest-status';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import TimeDurationBadge from '@/shared/components/time-duration-badge';
 import { Badge } from '@/shared/components/ui/badge';
 import { Checkbox } from '@/shared/components/ui/checkbox';
@@ -23,7 +24,6 @@ import type { ContestListProjection } from '@/shared/types/contest';
 import dayjs from 'dayjs';
 import { Code2, Search, Star, Check, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { Fragment } from 'react';
 
 export type ContestSelection = {
@@ -127,7 +127,7 @@ function ContestItem({
       )}
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex items-start justify-between gap-3">
-          <Link
+          <EntityHoverLink
             href={contestHref}
             prefetch={false}
             data-llm-text={contest.title}
@@ -138,7 +138,7 @@ function ContestItem({
             )}
           >
             {contest.title}
-          </Link>
+          </EntityHoverLink>
           <ContestStatus status={status} className={statusBadgeClassName} />
         </div>
 

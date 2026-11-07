@@ -2,6 +2,7 @@
 
 import { solutionErrorMessage } from './solution-error';
 import ClientApis from '@/api/client/method';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import MarkdownEditor from '@/shared/components/markdown-editor';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -14,7 +15,6 @@ import type { ObjectId } from '@/shared/types/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Navigation } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -150,10 +150,10 @@ export default function SolutionCreateForm({
           {isSubmitting ? submittingText : submitText}
         </Button>
         <Button asChild variant="secondary" className="gap-1.5">
-          <Link href={`/problem/${routePid}/solution`}>
+          <EntityHoverLink href={`/problem/${routePid}/solution`}>
             <ArrowLeft strokeWidth={2} />
             <span data-llm-text={t('back')}>{t('back')}</span>
-          </Link>
+          </EntityHoverLink>
         </Button>
       </div>
     </form>

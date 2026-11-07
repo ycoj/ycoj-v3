@@ -3,6 +3,7 @@ import ContestStatus, {
   getContestStatusTextClassName,
   type ContestStatus as ContestRuntimeStatus,
 } from '@/features/contest/contest-status';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import TimeDurationBadge from '@/shared/components/time-duration-badge';
 import { Badge } from '@/shared/components/ui/badge';
 import {
@@ -16,7 +17,6 @@ import type { Contest } from '@/shared/types/contest';
 import dayjs from 'dayjs';
 import { Award, Star, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 
 type Props = {
   contests: Contest[];
@@ -47,7 +47,7 @@ function ContestRow({ contest }: { contest: Contest }) {
   return (
     <div data-llm-visible="true" className="space-y-1.5">
       <div className="flex items-start justify-between gap-2">
-        <Link
+        <EntityHoverLink
           href={`/contest/${contest.docId}`}
           prefetch={false}
           data-llm-text={contest.title}
@@ -57,7 +57,7 @@ function ContestRow({ contest }: { contest: Contest }) {
           )}
         >
           {contest.title}
-        </Link>
+        </EntityHoverLink>
         <ContestStatus status={status} />
       </div>
 

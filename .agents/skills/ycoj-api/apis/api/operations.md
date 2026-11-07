@@ -26,6 +26,10 @@ Description: retrieve active-domain context. `type CurrentDomainArgs={}`; exampl
 
 Description: list domain user groups, optionally filtering membership/name. `type GroupsArgs={domainId:string;uid?:number;names?:string[];search?:string;limit?:number}`; example `{"domainId":"school","search":"Class","limit":20}`. Response `type Group={name:string;uids?:number[]}; type GroupsResult=Group[]`; example `[{"name":"ClassA","uids":[12,13]}]`. Requires `PERM_VIEW` in the active domain or `PRIV_VIEW_ALL_DOMAIN`; limit is at most 100.
 
+## `entity.preview`
+
+Description: lightweight hover summary for one problem, contest, homework, or training. The contract, including the fields that are intentionally omitted, is [Entity preview](entity-preview.md).
+
 ## `domain.group` (mutation)
 
 Description: upsert group membership when `uids` is nonempty, or delete the group when omitted/empty. `type DomainGroupInput={name:string;uids?:number[]}`; example `{"name":"ClassA","uids":[12,13]}`. Response `type DomainGroupResult=boolean`; example `true`. Requires `PERM_EDIT_DOMAIN`; POST only.

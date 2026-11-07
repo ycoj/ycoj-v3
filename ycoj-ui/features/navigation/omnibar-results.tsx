@@ -5,6 +5,7 @@ import { lookupProblemStatus, type OmnibarHit } from './omnibar-utils';
 import { formatProblemPid } from '@/features/problem/lib/format-problem-pid';
 import ProblemStatus from '@/features/problem/problem-status';
 import Username from '@/features/user/username';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import {
   Avatar,
   AvatarFallback,
@@ -113,7 +114,7 @@ export default function OmnibarResults({
                         <ProblemStatus status={statusDoc} />
                       </div>
                     )}
-                    <Link
+                    <EntityHoverLink
                       ref={highlighted ? highlightedRef : undefined}
                       id={`omnibar-${hit.id}`}
                       role="option"
@@ -138,7 +139,7 @@ export default function OmnibarResults({
                         <span className="px-1">·</span>
                         {acceptance}
                       </div>
-                    </Link>
+                    </EntityHoverLink>
                   </div>
                 );
               })}

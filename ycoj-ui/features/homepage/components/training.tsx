@@ -3,12 +3,12 @@ import {
   getTrainingProblemCount,
 } from '../homepage-status';
 import RecentSectionCard from './recent-section-card';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/lib/utils';
 import type { TrainingDoc, TrainingStatusDict } from '@/shared/types/training';
 import { BookOpen, Check, Code2, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 
 type Props = {
   trainings: TrainingDoc[];
@@ -35,14 +35,14 @@ function TrainingItem({
 
   return (
     <div data-llm-visible="true" className="space-y-1.5">
-      <Link
+      <EntityHoverLink
         href={`/training/${training.docId}`}
         prefetch={false}
         data-llm-text={training.title}
         className="text-foreground hover:text-primary block overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap hover:underline"
       >
         {training.title}
-      </Link>
+      </EntityHoverLink>
       <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
         <Badge variant="secondary" title={t('sectionCount')}>
           <BookOpen data-icon="inline-start" />

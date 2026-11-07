@@ -11,6 +11,7 @@ import ContestRuleBadge from '@/features/contest/contest-rule-badge';
 import ContestStatus from '@/features/contest/contest-status';
 import ContestManagementNav from '@/features/contest/management/contest-management-nav';
 import UserSpan from '@/features/user/user-span';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Separator } from '@/shared/components/ui/separator';
@@ -25,7 +26,6 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -51,10 +51,10 @@ function SidebarButton({ href, icon: Icon, text }: SidebarButtonProps) {
       className="h-10 w-full justify-start gap-3 px-4"
       variant="ghost"
     >
-      <Link href={href}>
+      <EntityHoverLink href={href}>
         <Icon strokeWidth={2} />
         <span data-llm-text={text}>{text}</span>
-      </Link>
+      </EntityHoverLink>
     </Button>
   );
 }

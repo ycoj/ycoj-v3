@@ -1,0 +1,10 @@
+{
+  "loading": "正在加载预览",
+  "denied": "没有权限查看。",
+  "missing": "内容不存在或已删除。",
+  "failed": "预览加载失败。",
+  "stats": "通过 {accepted} · 提交 {submitted}",
+  "participants": "{count, plural, other {# 人参加}}",
+  "progress": "已完成 {percent}%",
+  "deadline": "截止 {time}"
+}
