@@ -176,7 +176,9 @@ source binaries and checksums are documented in `assets/fonts/README.md` and
 
 Runtime assets use same-origin `public/` paths, including the compiler WASM,
 fonts, vendored packages, and worker scripts. The former
-`NEXT_PUBLIC_PRINT_ASSET_PREFIX` setting is no longer used.
+`NEXT_PUBLIC_PRINT_ASSET_PREFIX` setting is no longer used. Production
+`/_next/static` URLs can use the build-time `ASSET_PREFIX` described in
+`STATIC_ASSETS.md`; that prefix does not apply to these print files.
 
 ## typst.ts 0.7.0 API notes
 

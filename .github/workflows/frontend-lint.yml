@@ -70,6 +70,8 @@ jobs:
         env:
           BACKEND_BASEURL: http://127.0.0.1:2333
           YCOJ_STANDALONE: '1'
+          # ASSET_PREFIX stays unset here so CI covers the same-origin build.
+          # The production CDN prefix is applied by .cnb.yml.
 
       - name: Verify deployment scripts and package
         working-directory: .

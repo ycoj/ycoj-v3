@@ -1,4 +1,5 @@
 import { resolveLegacyRoute } from '@/shared/lib/legacy-routes';
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/next-intl.config', () => ({ default: (config: unknown) => config }));
@@ -21,7 +22,8 @@ describe('problem short route', () => {
   });
 
   it('is emitted by the next.config redirects', async () => {
-    const { default: config } = await import('@/next.config');
+    const { default: createNextConfig } = await import('@/next.config');
+    const config = createNextConfig(PHASE_PRODUCTION_BUILD);
     const redirects = (await config.redirects?.()) ?? [];
 
     expect(redirects).toContainEqual({

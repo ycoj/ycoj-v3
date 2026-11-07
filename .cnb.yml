@@ -58,6 +58,19 @@ master:
             : "${BACKEND_BASEURL:?Set BACKEND_BASEURL in the CNB secret file}"
             cd "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/ycoj-ui"
             pnpm install --frozen-lockfile
+            # Next.js reads ASSET_PREFIX while loading next.config.ts and
+            # freezes it into the standalone server. An empty value keeps
+            # /_next/static on the site origin. When the secret file does not
+            # set the variable, production uses the origin-pull CDN.
+            if [ -z "${ASSET_PREFIX+x}" ]; then
+              ASSET_PREFIX=https://next-cdn.ycoj.cc
+            fi
+            export ASSET_PREFIX
+            if [ -n "$ASSET_PREFIX" ]; then
+              echo "Building UI with ASSET_PREFIX=${ASSET_PREFIX}"
+            else
+              echo "Building UI with same-origin /_next/static (ASSET_PREFIX is empty)"
+            fi
             YCOJ_STANDALONE=1 pnpm build
         - name: Package UI
           script: bash "${CNB_BUILD_WORKSPACE:?Set by the CNB runner}/.cnb/package-ui.sh"
