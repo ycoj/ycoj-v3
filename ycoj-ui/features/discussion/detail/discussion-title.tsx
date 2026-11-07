@@ -7,15 +7,19 @@ import type {
   DiscussionDoc,
 } from '@/shared/types/discussion';
 import type { BaseUser } from '@/shared/types/user';
-import { ArrowLeft, Eye, MessageCircle, Pin, Star } from 'lucide-react';
+import { Pin, Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 type Props = {
   ddoc: DiscussionDoc;
   owner?: BaseUser;
   vnode: DiscussionDetailVnode;
   drcount: number;
+  /** Edit history control, shown beside the timestamp when the topic was edited. */
+  history?: ReactNode;
+  /** Topic actions (follow, edit, lock, delete), aligned with the counts. */
+  actions?: ReactNode;
 };
 
 function getVnodeTitle(vnode: DiscussionDetailVnode): string | null {
@@ -32,82 +36,92 @@ export default function DiscussionTitle({
   owner,
   vnode,
   drcount,
+  history,
+  actions,
 }: Props) {
   const t = useTranslations('discussion');
   const vnodeTitle = getVnodeTitle(vnode);
   const replyCount = Number.isFinite(drcount) ? drcount : ddoc.nReply;
 
   return (
-    <header data-llm-visible="true" className="space-y-4 border-b pb-5">
-      <Link
-        href="/discussion"
-        prefetch={false}
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs"
-      >
-        <ArrowLeft className="size-3.5" />
-        <span data-llm-text={t('backToList')}>{t('backToList')}</span>
-      </Link>
-
-      <div className="space-y-2">
-        {(ddoc.pin || ddoc.highlight || vnodeTitle) && (
-          <div className="flex flex-wrap items-center gap-2">
-            {ddoc.pin && (
-              <Badge
-                variant="secondary"
-                className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400"
-              >
-                <Pin data-icon="inline-start" />
-                {t('pinned')}
-              </Badge>
-            )}
-            {ddoc.highlight && (
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400"
-              >
-                <Star data-icon="inline-start" />
-                {t('featured')}
-              </Badge>
-            )}
-            {vnodeTitle && (
-              <Badge variant="outline" title={t('node')}>
-                <span data-llm-text={vnodeTitle}>{vnodeTitle}</span>
-              </Badge>
-            )}
-          </div>
-        )}
+    <header
+      data-llm-visible="true"
+      className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4 border-b pb-5"
+    >
+      <div className="min-w-[min(100%,20rem)] flex-1 space-y-3">
         <h1
-          className="text-2xl leading-snug font-semibold break-words"
+          className="text-3xl leading-snug font-semibold break-words"
           data-llm-text={ddoc.title}
         >
           {ddoc.title}
         </h1>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+          {owner && (
+            <span className="inline-flex items-center gap-2">
+              <UserAvatar user={owner} className="size-8 shrink-0" />
+              <span data-llm-text={owner.uname}>
+                <UserSpan user={owner} showAvatar={false} />
+              </span>
+            </span>
+          )}
+          {owner && (
+            <span aria-hidden="true" className="text-muted-foreground">
+              ·
+            </span>
+          )}
+          <DiscussionTime
+            value={ddoc.updateAt}
+            className="text-muted-foreground"
+          />
+          {history}
+          {ddoc.pin && (
+            <Badge
+              variant="secondary"
+              className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400"
+            >
+              <Pin data-icon="inline-start" />
+              {t('pinned')}
+            </Badge>
+          )}
+          {ddoc.highlight && (
+            <Badge
+              variant="secondary"
+              className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400"
+            >
+              <Star data-icon="inline-start" />
+              {t('featured')}
+            </Badge>
+          )}
+          {vnodeTitle && (
+            <Badge variant="outline" title={t('node')}>
+              <span data-llm-text={vnodeTitle}>{vnodeTitle}</span>
+            </Badge>
+          )}
+        </div>
       </div>
 
-      <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-        {owner && (
-          <span className="inline-flex items-center gap-2">
-            <UserAvatar user={owner} className="size-8 shrink-0" />
-            <span className="text-sm" data-llm-text={owner.uname}>
-              <UserSpan user={owner} showAvatar={false} />
-            </span>
-          </span>
-        )}
-        <DiscussionTime value={ddoc.updateAt} />
-        <span
-          className="inline-flex items-center gap-1 tabular-nums"
-          title={t('replyCount')}
-        >
-          <MessageCircle className="size-3.5" />
-          <span data-llm-text={String(replyCount)}>{replyCount}</span>
-        </span>
-        <span
-          className="inline-flex items-center gap-1 tabular-nums"
-          title={t('views')}
-        >
-          <Eye className="size-3.5" />
-          <span data-llm-text={String(ddoc.views)}>{ddoc.views}</span>
-        </span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1.5">
+        <dl className="flex items-center gap-4 text-sm">
+          <div className="flex items-baseline gap-1.5">
+            <dt className="text-muted-foreground">{t('replyCount')}</dt>
+            <dd
+              className="text-foreground font-medium tabular-nums"
+              data-llm-text={String(replyCount)}
+            >
+              {replyCount}
+            </dd>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <dt className="text-muted-foreground">{t('views')}</dt>
+            <dd
+              className="text-foreground font-medium tabular-nums"
+              data-llm-text={String(ddoc.views)}
+            >
+              {ddoc.views}
+            </dd>
+          </div>
+        </dl>
+        {actions}
       </div>
     </header>
   );
