@@ -16,7 +16,7 @@ import {
 } from '@/shared/components/markdown/engine-base';
 import '@/shared/components/markdown/markdown.css';
 import { markdownSanitizeSchema } from '@/shared/components/markdown/sanitize-schema';
-import { use } from 'react';
+import { Suspense, use, useMemo, type ReactNode } from 'react';
 import { MarkdownAsync } from 'react-markdown';
 import type { Components } from 'react-markdown';
 
@@ -36,6 +36,50 @@ const components = {
   a: MarkdownEntityLink,
 } satisfies Components;
 
+// One promise per source. A new promise on every render makes `use()` suspend
+// the shell again on each retry (React error #482) when history opens.
+const RENDER_CACHE_LIMIT = 100;
+const renderedMarkdown = new Map<string, Promise<ReactNode>>();
+
+function loadRenderedMarkdown(source: string) {
+  const cached = renderedMarkdown.get(source);
+  if (cached) {
+    renderedMarkdown.delete(source);
+    renderedMarkdown.set(source, cached);
+    return cached;
+  }
+
+  const pending = MarkdownAsync({
+    remarkPlugins: markdownRemarkPlugins,
+    rehypePlugins: markdownRehypeBasePlugins([], markdownSanitizeSchema),
+    components,
+    children: source,
+  });
+  renderedMarkdown.set(source, pending);
+  if (renderedMarkdown.size > RENDER_CACHE_LIMIT) {
+    const oldest = renderedMarkdown.keys().next().value;
+    if (oldest !== undefined) renderedMarkdown.delete(oldest);
+  }
+  return pending;
+}
+
+function ClientMarkdownContent({
+  source,
+  className,
+}: {
+  source: string;
+  className?: string;
+}) {
+  const rendered = useMemo(() => loadRenderedMarkdown(source), [source]);
+  const content = use(rendered);
+
+  return (
+    <div className={className} data-llm-text={source}>
+      <MarkdownMath>{content}</MarkdownMath>
+    </div>
+  );
+}
+
 /**
  * Browser variant of the shared Markdown renderer for interactive replies.
  *
@@ -43,20 +87,19 @@ const components = {
  * through the server API and cannot run in the browser. Replies are edited in
  * place, so the same pipeline and sanitize schema are reused here without that
  * extension; `/user/:uid` links render as ordinary links instead.
+ *
+ * Highlighting is async. The promise is cached and read under Suspense, and
+ * the reader remounts when the source changes so React does not reuse the
+ * previous thenable.
  */
 export default function ClientMarkdown({ children, className }: Props) {
-  const rendered = use(
-    MarkdownAsync({
-      remarkPlugins: markdownRemarkPlugins,
-      rehypePlugins: markdownRehypeBasePlugins([], markdownSanitizeSchema),
-      components,
-      children,
-    })
-  );
-
   return (
-    <div className={className} data-llm-text={children}>
-      <MarkdownMath>{rendered}</MarkdownMath>
-    </div>
+    <Suspense fallback={null}>
+      <ClientMarkdownContent
+        key={children}
+        source={children}
+        className={className}
+      />
+    </Suspense>
   );
 }
