@@ -13,6 +13,7 @@ import ClientApis from '@/api/client/method';
 import type { UserAutoCompleteItem } from '@/api/client/method/user/auto-complete';
 import SingleUserAutoComplete from '@/features/user/user-auto-complete';
 import Username from '@/features/user/username';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import {
   Avatar,
   AvatarFallback,
@@ -28,7 +29,6 @@ import type {
 } from '@/shared/types/message';
 import { LoaderCircle, Plus, Send, UserRound } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -266,21 +266,21 @@ export default function MessagePage({
         {activeDialogue ? (
           <>
             <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-              <Link
+              <EntityHoverLink
                 href={`/user/${activeDialogue.udoc._id}`}
                 className="min-w-0 truncate text-sm font-medium hover:underline"
               >
                 <Username user={activeDialogue.udoc} /> (
                 {t('userId', { id: activeDialogue.udoc._id })})
-              </Link>
+              </EntityHoverLink>
               <Button asChild variant="ghost" size="icon-sm">
-                <Link
+                <EntityHoverLink
                   href={`/user/${activeDialogue.udoc._id}`}
                   aria-label={t('viewProfile')}
                   title={t('viewProfile')}
                 >
                   <UserRound aria-hidden="true" />
-                </Link>
+                </EntityHoverLink>
               </Button>
             </header>
             <div

@@ -4,12 +4,12 @@ import ClientApis from '@/api/client/method';
 import { serializeAnswersForSubmit } from '@/features/problem/objective/draft-utils';
 import { useObjective } from '@/features/problem/objective/provider';
 import { sanitizeAnswers } from '@/features/problem/objective/question-schema';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import parseErrorMessage from '@/shared/components/errored/parse-message';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { Button } from '@/shared/components/ui/button';
 import { dump } from 'js-yaml';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -41,7 +41,9 @@ export default function ObjectiveSubmitButton({
     // The ended-contest notice already sits above the statement on the page.
     return (
       <Button asChild className="gap-2">
-        <Link href={`/problem/${pid}`}>{tProblem('openInProblemSet')}</Link>
+        <EntityHoverLink href={`/problem/${pid}`}>
+          {tProblem('openInProblemSet')}
+        </EntityHoverLink>
       </Button>
     );
   }
@@ -50,9 +52,11 @@ export default function ObjectiveSubmitButton({
     return (
       <div className="space-y-3">
         <Button asChild className="gap-2">
-          <Link href={`/login?next=/problem/${pid}${tid ? `?tid=${tid}` : ''}`}>
+          <EntityHoverLink
+            href={`/login?next=/problem/${pid}${tid ? `?tid=${tid}` : ''}`}
+          >
             {t('loginToSubmit')}
-          </Link>
+          </EntityHoverLink>
         </Button>
       </div>
     );

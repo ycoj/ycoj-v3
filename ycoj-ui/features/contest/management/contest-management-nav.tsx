@@ -1,6 +1,7 @@
 'use client';
 
 import ContestRejudge from '@/features/contest/management/contest-rejudge';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/lib/utils';
 import {
@@ -16,7 +17,6 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 type NavButtonProps = {
@@ -40,10 +40,10 @@ function NavButton({ href, icon: Icon, label, nested }: NavButtonProps) {
         active && 'bg-accent text-accent-foreground'
       )}
     >
-      <Link href={href} aria-current={active ? 'page' : undefined}>
+      <EntityHoverLink href={href} aria-current={active ? 'page' : undefined}>
         <Icon className={nested ? 'size-4' : undefined} strokeWidth={2} />
         <span data-llm-text={label}>{label}</span>
-      </Link>
+      </EntityHoverLink>
     </Button>
   );
 }

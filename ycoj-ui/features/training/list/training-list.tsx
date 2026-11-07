@@ -1,4 +1,5 @@
 import type { TrainingListResponse } from '@/api/server/method/training/list';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Badge } from '@/shared/components/ui/badge';
 import {
   Empty,
@@ -11,7 +12,6 @@ import { Separator } from '@/shared/components/ui/separator';
 import type { TrainingDoc } from '@/shared/types/training';
 import { BookOpen, Code2, Search, Check, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { Fragment } from 'react';
 
 type Props = {
@@ -39,14 +39,14 @@ function TrainingItem({
   return (
     <div data-llm-visible="true" className="space-y-2">
       <div className="flex items-start justify-between gap-3">
-        <Link
+        <EntityHoverLink
           href={trainingHref}
           prefetch={false}
           data-llm-text={training.title}
           className="truncate text-sm font-medium text-foreground hover:text-primary hover:underline md:text-lg"
         >
           {training.title}
-        </Link>
+        </EntityHoverLink>
       </div>
 
       <p

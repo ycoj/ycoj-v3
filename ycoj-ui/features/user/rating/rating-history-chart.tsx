@@ -1,9 +1,9 @@
 'use client';
 
 import RatingChange from './rating-change';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import type { UserContestRating } from '@/shared/types/rating';
 import { useFormatter, useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 type Props = { history: UserContestRating['history'] };
@@ -139,13 +139,13 @@ export default function RatingHistoryChart({ history }: Props) {
         aria-atomic="true"
       >
         <div className="min-w-0 space-y-0.5">
-          <Link
+          <EntityHoverLink
             href={`/contest/${selected.tid}/scoreboard`}
             prefetch={false}
             className="break-words font-medium hover:underline"
           >
             {selected.title}
-          </Link>
+          </EntityHoverLink>
           <p className="text-xs text-muted-foreground">
             {date(selected.endAt)}
           </p>

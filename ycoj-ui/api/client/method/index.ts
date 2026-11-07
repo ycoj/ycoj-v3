@@ -8,6 +8,7 @@ import * as Checkin from '@/api/client/method/checkin';
 import Contest from '@/api/client/method/contest';
 import Discussion from '@/api/client/method/discussion';
 import Domain from '@/api/client/method/domain';
+import * as EntityPreview from '@/api/client/method/entity-preview';
 import Homework from '@/api/client/method/homework';
 import Messages from '@/api/client/method/messages';
 import Paste from '@/api/client/method/paste';
@@ -32,6 +33,7 @@ const ClientApis = {
   Contest,
   Discussion,
   Domain,
+  EntityPreview,
   Homework,
   Messages,
   Paste,

@@ -4,6 +4,7 @@ import ClientApis from '@/api/client/method';
 import CcfHook from '@/features/user/ccf-hook';
 import Username from '@/features/user/username';
 import { locales, type Locale } from '@/i18n/config';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import {
   Avatar,
   AvatarFallback,
@@ -148,10 +149,10 @@ export default function SidebarUserMenu({
           data-llm-visible="true"
         >
           <DropdownMenuPrimitive.Item asChild className={menuItemClassName}>
-            <Link href={`/user/${user._id}`}>
+            <EntityHoverLink href={`/user/${user._id}`}>
               <UserRound aria-hidden="true" />
               <span data-llm-text={t('profile')}>{t('profile')}</span>
-            </Link>
+            </EntityHoverLink>
           </DropdownMenuPrimitive.Item>
           <DropdownMenuPrimitive.Item asChild className={menuItemClassName}>
             <Link href="/home/messages">

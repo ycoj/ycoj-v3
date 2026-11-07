@@ -1,4 +1,5 @@
 import { formatProblemPid } from '@/features/problem/lib/format-problem-pid';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import {
   Card,
   CardContent,
@@ -20,7 +21,6 @@ import type {
 } from '@/shared/types/problem';
 import { CircleCheck, ListChecks, Send, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 type Props = {
@@ -111,7 +111,7 @@ function ProblemRow({
       data-llm-visible="true"
       className="flex min-w-0 items-center gap-2 py-1.5"
     >
-      <Link
+      <EntityHoverLink
         href={`/problem/${problem.pid || problem.docId}`}
         prefetch={false}
         data-llm-text={`${pid}. ${problem.title}`}
@@ -122,7 +122,7 @@ function ProblemRow({
             the link underline between the id and the title. */}
         <span className="text-muted-foreground tabular-nums">{pid}. </span>
         {problem.title}
-      </Link>
+      </EntityHoverLink>
       <div className="text-muted-foreground flex shrink-0 items-center gap-2 text-xs">
         {status && <StatusDot status={status} />}
         <DifficultyDot difficulty={problem.difficulty} />

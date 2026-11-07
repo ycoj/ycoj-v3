@@ -4,6 +4,7 @@ import ContestStatus, {
   getContestStatusTextClassName,
   type ContestStatus as ContestRuntimeStatus,
 } from '@/features/contest/contest-status';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import TimeDurationBadge from '@/shared/components/time-duration-badge';
 import { Badge } from '@/shared/components/ui/badge';
 import {
@@ -19,7 +20,6 @@ import type { ContestListProjection } from '@/shared/types/contest';
 import dayjs from 'dayjs';
 import { Search, Check, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { Fragment } from 'react';
 
 type Props = {
@@ -58,7 +58,7 @@ function HomeworkItem({
   return (
     <div data-llm-visible="true" className="space-y-2">
       <div className="flex items-start justify-between gap-3">
-        <Link
+        <EntityHoverLink
           href={homeworkHref}
           prefetch={false}
           data-llm-text={homework.title}
@@ -68,7 +68,7 @@ function HomeworkItem({
           )}
         >
           {homework.title}
-        </Link>
+        </EntityHoverLink>
         <ContestStatus status={status} />
       </div>
 

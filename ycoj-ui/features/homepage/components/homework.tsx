@@ -1,6 +1,7 @@
 import { getRuntimeStatus } from '../homepage-status';
 import RecentSectionCard from './recent-section-card';
 import ContestStatus from '@/features/contest/contest-status';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import TimeDurationBadge from '@/shared/components/time-duration-badge';
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/lib/utils';
@@ -8,7 +9,6 @@ import type { ContestStatus as ContestStatusDoc } from '@/shared/types/contest';
 import type { Homework } from '@/shared/types/homework';
 import { Check, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 
 type Props = {
   homeworks: Homework[];
@@ -29,14 +29,14 @@ function HomeworkItem({ homework, attended }: HomeworkItemProps) {
   return (
     <div data-llm-visible="true" className="space-y-1.5">
       <div className="flex items-start justify-between gap-2">
-        <Link
+        <EntityHoverLink
           href={`/homework/${homework.docId}`}
           prefetch={false}
           data-llm-text={homework.title}
           className="text-foreground hover:text-primary overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap hover:underline"
         >
           {homework.title}
-        </Link>
+        </EntityHoverLink>
         <ContestStatus status={status} />
       </div>
       <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">

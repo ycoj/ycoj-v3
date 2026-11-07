@@ -1,9 +1,9 @@
 import RecentSectionCard from './recent-section-card';
 import { formatProblemPid } from '@/features/problem/lib/format-problem-pid';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import type { ListProjectionProblem } from '@/shared/types/problem';
 import { Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 
 type Props = {
   problems: ListProjectionProblem[];
@@ -20,7 +20,7 @@ export default function StarredProblems({ problems }: Props) {
           const pid = formatProblemPid(problem);
           return (
             <p key={problem.docId} className="py-1.5 text-sm">
-              <Link
+              <EntityHoverLink
                 href={`/problem/${problem.pid || problem.docId}`}
                 prefetch={false}
                 data-llm-text={`${pid}. ${problem.title}`}
@@ -30,7 +30,7 @@ export default function StarredProblems({ problems }: Props) {
                   {pid}.{' '}
                 </span>
                 {problem.title}
-              </Link>
+              </EntityHoverLink>
             </p>
           );
         })}

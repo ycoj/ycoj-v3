@@ -4,12 +4,12 @@ import ContestSidebar from '@/features/contest/detail/contest-sidebar';
 import { canShowContestScoreboard } from '@/features/contest/detail/contest-utils';
 import { canEditContest } from '@/features/contest/lib/can-edit-contest';
 import { getUser } from '@/features/user/lib/get-user';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import Markdown from '@/shared/components/markdown';
 import { Button } from '@/shared/components/ui/button';
 import TwoColumnLayout from '@/shared/layout/two-column';
 import { ArrowLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
 
 type Props = { tid: string; data: ContestSolutionData };
 
@@ -28,11 +28,11 @@ export default async function ContestSolutionDetail({ tid, data }: Props) {
           {data.canManage && (
             <div className="flex items-center gap-3">
               <Button asChild variant="secondary">
-                <Link
+                <EntityHoverLink
                   href={`/contest/${tid}/solution/${data.csdoc.docId}/edit`}
                 >
                   {t('edit')}
-                </Link>
+                </EntityHoverLink>
               </Button>
               <ContestSolutionDeleteButton tid={tid} sid={data.csdoc.docId} />
             </div>
@@ -46,10 +46,10 @@ export default async function ContestSolutionDetail({ tid, data }: Props) {
             variant="ghost"
             className="h-10 w-full justify-start gap-3 px-4"
           >
-            <Link href={`/contest/${tid}`}>
+            <EntityHoverLink href={`/contest/${tid}`}>
               <ArrowLeft strokeWidth={2} />
               <span data-llm-text={t('back')}>{t('back')}</span>
-            </Link>
+            </EntityHoverLink>
           </Button>
           <ContestSidebar
             tid={tid}

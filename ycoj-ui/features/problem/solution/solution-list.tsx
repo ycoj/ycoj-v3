@@ -1,5 +1,6 @@
 import SolutionItem from './solution-item';
 import type { ProblemSolutionResponse } from '@/api/server/method/problems/solution';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Button } from '@/shared/components/ui/button';
 import {
   Empty,
@@ -12,7 +13,6 @@ import {
 import { Separator } from '@/shared/components/ui/separator';
 import { Lightbulb, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { Fragment } from 'react';
 
 type Props = {
@@ -63,14 +63,14 @@ export default function SolutionList({
       </EmptyHeader>
       <EmptyContent>
         <Button asChild variant="secondary">
-          <Link href={`/problem/${pid}/solution`}>
+          <EntityHoverLink href={`/problem/${pid}/solution`}>
             <RefreshCw
               strokeWidth={2}
               className="size-4"
               data-icon="inline-start"
             />
             <span data-llm-text={t('refresh')}>{t('refresh')}</span>
-          </Link>
+          </EntityHoverLink>
         </Button>
       </EmptyContent>
     </Empty>

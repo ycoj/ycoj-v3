@@ -6,6 +6,7 @@ import FileSection from './file-section';
 import type { PreviewableFileType } from './previewable-file';
 import RenameFileDialog from './rename-file-dialog';
 import ClientApis from '@/api/client/method';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
 import type { FileInfo } from '@/shared/types/file';
@@ -13,7 +14,6 @@ import type { ProblemFileType } from '@/shared/types/problem-file';
 import { useUploader } from 'alova/client';
 import { Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertDialog, Dialog } from 'radix-ui';
 import { useRef, useState } from 'react';
@@ -269,12 +269,12 @@ export default function ProblemFilesManager({
                 {t('generateWithAi')}
               </h2>
               <Button asChild type="button">
-                <Link href={`/problem/${pid}/generate`}>
+                <EntityHoverLink href={`/problem/${pid}/generate`}>
                   <Sparkles />
                   <span data-llm-text={t('openGenerationPage')}>
                     {t('openGenerationPage')}
                   </span>
-                </Link>
+                </EntityHoverLink>
               </Button>
             </section>
           )}

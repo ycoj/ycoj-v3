@@ -5,6 +5,7 @@ import { lookupProblemStatus, type OmnibarHit } from './omnibar-utils';
 import { formatProblemPid } from '@/features/problem/lib/format-problem-pid';
 import ProblemStatus from '@/features/problem/problem-status';
 import Username from '@/features/user/username';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import {
   Avatar,
   AvatarFallback,
@@ -13,7 +14,6 @@ import {
 import { cn } from '@/shared/lib/utils';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 
 type Props = {
@@ -113,7 +113,7 @@ export default function OmnibarResults({
                         <ProblemStatus status={statusDoc} />
                       </div>
                     )}
-                    <Link
+                    <EntityHoverLink
                       ref={highlighted ? highlightedRef : undefined}
                       id={`omnibar-${hit.id}`}
                       role="option"
@@ -138,7 +138,7 @@ export default function OmnibarResults({
                         <span className="px-1">·</span>
                         {acceptance}
                       </div>
-                    </Link>
+                    </EntityHoverLink>
                   </div>
                 );
               })}
@@ -163,7 +163,7 @@ export default function OmnibarResults({
                   ? `${hit.user.uname} (${hit.user.displayName})`
                   : hit.user.uname;
                 return (
-                  <Link
+                  <EntityHoverLink
                     key={hit.id}
                     ref={highlighted ? highlightedRef : undefined}
                     id={`omnibar-${hit.id}`}
@@ -201,7 +201,7 @@ export default function OmnibarResults({
                         {userIdLabel('userId', { id: hit.user._id })}
                       </div>
                     </div>
-                  </Link>
+                  </EntityHoverLink>
                 );
               })}
           </div>

@@ -1,0 +1,13 @@
+{
+  "loading": "Loading preview",
+  "denied": "You don't have access to this.",
+  "missing": "This is no longer available.",
+  "failed": "Couldn't load the preview.",
+  "stats": "{accepted} accepted · {submitted} submitted",
+  "participants": "{count, plural, one {# participant} other {# participants}}",
+  "progress": "{percent}% complete",
+  "deadline": "Due {time}",
+  "solved": "{count, plural, one {# solved} other {# solved}}",
+  "rating": "Rating {rating}",
+  "rank": "Rank {rank}"
+}

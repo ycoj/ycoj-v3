@@ -1,6 +1,7 @@
 'use client';
 
 import RatingChange from './rating-change';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Button } from '@/shared/components/ui/button';
 import {
   Table,
@@ -13,7 +14,6 @@ import {
 import type { UserContestRating } from '@/shared/types/rating';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useId, useState } from 'react';
 
 type Props = { history: UserContestRating['history'] };
@@ -39,13 +39,13 @@ export default function RatingHistoryTable({ history }: Props) {
           {entries.map((entry) => (
             <TableRow key={entry.tid}>
               <TableCell className="max-w-56 whitespace-normal">
-                <Link
+                <EntityHoverLink
                   href={`/contest/${entry.tid}/scoreboard`}
                   prefetch={false}
                   className="hover:underline"
                 >
                   {entry.title}
-                </Link>
+                </EntityHoverLink>
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {format.dateTime(new Date(entry.endAt), {

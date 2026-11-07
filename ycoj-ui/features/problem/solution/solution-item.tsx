@@ -8,6 +8,7 @@ import {
 import SolutionStatus from './solution-status';
 import SolutionVote from './solution-vote';
 import UserSpan from '@/features/user/user-span';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import Markdown from '@/shared/components/markdown';
 import { Button } from '@/shared/components/ui/button';
 import oid2ts from '@/shared/lib/oid2ts';
@@ -18,7 +19,6 @@ import type { BaseUserDict } from '@/shared/types/user';
 import dayjs from 'dayjs';
 import { Pencil } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 
 type Props = {
   solution: SolutionDoc;
@@ -120,7 +120,7 @@ export default function SolutionItem({
               aria-label={t('edit')}
               title={t('edit')}
             >
-              <Link
+              <EntityHoverLink
                 href={`/problem/${pid}/solution/${solution.docId}/edit`}
                 prefetch={false}
               >
@@ -128,7 +128,7 @@ export default function SolutionItem({
                 <span className="sr-only" data-llm-text={t('edit')}>
                   {t('edit')}
                 </span>
-              </Link>
+              </EntityHoverLink>
             </Button>
           )}
           {canDelete && (

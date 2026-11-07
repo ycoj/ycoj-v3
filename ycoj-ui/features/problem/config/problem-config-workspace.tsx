@@ -10,6 +10,7 @@ import { selectSaveYaml } from './problem-config-utils';
 import SubtasksConfigTab from './subtasks-config-tab';
 import TestdataSidebar from './testdata-sidebar';
 import ClientApis from '@/api/client/method';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Button } from '@/shared/components/ui/button';
 import {
   Tabs,
@@ -26,7 +27,6 @@ import {
   Settings2,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { AlertDialog } from 'radix-ui';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -197,12 +197,12 @@ function Workspace({
       <footer className="flex min-h-8 items-center gap-2">
         {saveButton}
         <Button asChild variant="outline">
-          <Link href={`/problem/${pid}`}>
+          <EntityHoverLink href={`/problem/${pid}`}>
             <ArrowLeft />
             <span data-llm-text={problemT('backToProblem')}>
               {problemT('backToProblem')}
             </span>
-          </Link>
+          </EntityHoverLink>
         </Button>
       </footer>
 

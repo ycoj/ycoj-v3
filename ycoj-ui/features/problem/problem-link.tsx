@@ -1,4 +1,7 @@
+'use client';
+
 import { formatProblemPid } from '@/features/problem/lib/format-problem-pid';
+import EntityHoverCard from '@/shared/components/entity-hover/entity-hover-card';
 import { Button } from '@/shared/components/ui/button';
 import {
   ContestListProjectionProblem,
@@ -30,37 +33,39 @@ export default function ProblemLink({
   const href = tid ? `/problem/${hrefPid}?tid=${tid}` : `/problem/${hrefPid}`;
 
   return (
-    <Button className="h-6 px-0" variant="link" asChild>
-      <Link
-        href={href}
-        prefetch={prefetch}
-        {...(openInNewTab && {
-          target: '_blank',
-          rel: 'noopener noreferrer',
-        })}
-      >
-        {/* Separators must be real spaces inside one inline flow: margins or
+    <EntityHoverCard kind="problem" id={String(hrefPid)}>
+      <Button className="h-6 px-0" variant="link" asChild>
+        <Link
+          href={href}
+          prefetch={prefetch}
+          {...(openInNewTab && {
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          })}
+        >
+          {/* Separators must be real spaces inside one inline flow: margins or
             flex gaps are not painted by text-decoration, so the link underline
             would break between pid and title. */}
-        <span>
-          {showId && (
-            <span
-              className="dark:brightness-150"
-              style={idColor ? { color: idColor } : undefined}
-              data-llm-text={`${displayPid}.`}
-            >
-              {displayPid}.{' '}
-            </span>
-          )}
-          <span data-llm-text={problem.title}>{problem.title}</span>
-          {(problem as PublicProjectionProblem).hidden && (
-            <span className="text-primary" data-llm-text={t('hidden')}>
-              {' '}
-              {t('hidden')}
-            </span>
-          )}
-        </span>
-      </Link>
-    </Button>
+          <span>
+            {showId && (
+              <span
+                className="dark:brightness-150"
+                style={idColor ? { color: idColor } : undefined}
+                data-llm-text={`${displayPid}.`}
+              >
+                {displayPid}.{' '}
+              </span>
+            )}
+            <span data-llm-text={problem.title}>{problem.title}</span>
+            {(problem as PublicProjectionProblem).hidden && (
+              <span className="text-primary" data-llm-text={t('hidden')}>
+                {' '}
+                {t('hidden')}
+              </span>
+            )}
+          </span>
+        </Link>
+      </Button>
+    </EntityHoverCard>
   );
 }

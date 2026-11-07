@@ -7,10 +7,10 @@ import { getProblemSolution } from '@/features/problem/solution/get-problem-solu
 import SolutionCreateForm from '@/features/problem/solution/solution-create-form';
 import { getUser } from '@/features/user/lib/get-user';
 import { hasPerm, PERM } from '@/features/user/lib/priv';
+import EntityHoverLink from '@/shared/components/entity-hover/entity-hover-link';
 import { Errored } from '@/shared/components/errored';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 type Params = {
@@ -64,9 +64,12 @@ export default async function ProblemSolutionCreatePage({
       <div className="space-y-6" data-llm-visible="true">
         <ProblemTitle problem={data.pdoc} />
         <p role="status">{solutionT('errors.blocked')}</p>
-        <Link className="text-sm underline" href={`/problem/${pid}/solution`}>
+        <EntityHoverLink
+          className="text-sm underline"
+          href={`/problem/${pid}/solution`}
+        >
           {solutionT('back')}
-        </Link>
+        </EntityHoverLink>
       </div>
     );
   }
