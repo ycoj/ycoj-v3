@@ -9,7 +9,5 @@
   "deadline": "Due {time}",
   "solved": "{count, plural, one {# solved} other {# solved}}",
   "rating": "Rating {rating}",
-  "rank": "Rank {rank}",
-  "roleGuest": "Guest",
-  "roleRoot": "Root"
+  "rank": "Rank {rank}"
 }

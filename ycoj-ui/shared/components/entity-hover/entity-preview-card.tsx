@@ -1,7 +1,6 @@
 'use client';
 
 import { getContestStatusTextClassName } from '@/features/contest/contest-status';
-import RewardTitle from '@/features/rewards/reward-title';
 import CcfHook from '@/features/user/ccf-hook';
 import UserAvatar from '@/features/user/user-avatar';
 import Username from '@/features/user/username';
@@ -245,66 +244,30 @@ function userForPreview(preview: UserPreview): BaseUser {
   };
 }
 
-function UserRole({ role }: { role: string }) {
-  const t = useTranslations('hoverCard');
-  if (role === 'guest') return t('roleGuest');
-  if (role === 'root') return t('roleRoot');
-  return role;
-}
-
 function UserCard({ preview }: { preview: UserPreview }) {
   const t = useTranslations('hoverCard');
   const user = userForPreview(preview);
-  const role = preview.role ? <UserRole role={preview.role} /> : null;
-  const badge = preview.badge;
   const stats = [t('solved', { count: preview.nAccept })];
   if (preview.rating !== null)
     stats.push(t('rating', { rating: preview.rating }));
   else if (preview.rank !== null) stats.push(t('rank', { rank: preview.rank }));
   const summary = stats.join(' · ');
   return (
-    <>
-      <div className="flex min-w-0 items-start gap-2.5">
-        <UserAvatar user={user} />
-        <div className="min-w-0">
-          <p className="flex flex-wrap items-center gap-1">
-            <Username user={user} />
-            <CcfHook level={preview.ccfLevel} />
-            {preview.equipment.title ? (
-              <RewardTitle id={preview.equipment.title} />
-            ) : null}
-          </p>
-          {preview.displayName ? (
-            <p
-              className="text-muted-foreground truncate text-xs"
-              data-llm-text={preview.displayName}
-            >
-              {preview.displayName}
-            </p>
-          ) : null}
-          {role || badge ? (
-            <p className="text-muted-foreground mt-0.5 truncate text-xs">
-              {role}
-              {role && badge ? ' · ' : null}
-              {badge}
-            </p>
-          ) : null}
-        </div>
-      </div>
-      {preview.bio ? (
-        <p
-          className="text-muted-foreground mt-1.5 line-clamp-2 text-xs leading-relaxed"
-          data-llm-text={preview.bio}
-        >
-          {preview.bio}
+    <div className="flex min-w-0 items-center gap-2.5">
+      <UserAvatar user={user} className="shrink-0" />
+      <div className="min-w-0">
+        <p className="flex min-w-0 items-center gap-1">
+          <Username user={user} className="min-w-0 truncate" />
+          <CcfHook level={preview.ccfLevel} />
         </p>
-      ) : null}
-      <Meta>
-        <span className="tabular-nums" data-llm-text={summary}>
+        <p
+          className="text-muted-foreground mt-0.5 truncate text-xs tabular-nums"
+          data-llm-text={summary}
+        >
           {summary}
-        </span>
-      </Meta>
-    </>
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -340,6 +303,18 @@ function PreviewLoading({ label }: { label: string }) {
 export const entityPreviewCardClassName =
   'bg-popover text-popover-foreground w-64 rounded-lg p-3 text-sm shadow-md ring-1 ring-foreground/10';
 
+function cardClassName(
+  result: EntityPreviewResult | null,
+  chrome: EntityPreviewChrome | undefined
+) {
+  const user = result?.ok && result.preview.kind === 'user';
+  return cn(
+    entityPreviewCardClassName,
+    user && 'w-fit max-w-64',
+    chrome?.className
+  );
+}
+
 export default function EntityPreviewCard({
   result,
   chrome,
@@ -353,7 +328,7 @@ export default function EntityPreviewCard({
     <div
       data-slot="entity-preview"
       data-llm-visible="true"
-      className={cn(entityPreviewCardClassName, chrome?.className)}
+      className={cardClassName(result, chrome)}
     >
       {result === null ? (
         <PreviewLoading label={t('loading')} />

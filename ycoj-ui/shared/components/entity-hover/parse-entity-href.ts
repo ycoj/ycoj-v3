@@ -27,6 +27,11 @@ const RESERVED_IDS: Record<EntityKind, ReadonlySet<string>> = {
   user: new Set(['sudo']),
 };
 
+function sameSite(url: URL): boolean {
+  if (typeof window === 'undefined') return false;
+  return url.origin === window.location.origin;
+}
+
 function pathnameOf(href: string): string | null {
   const trimmed = href.trim();
   if (!trimmed || trimmed.startsWith('#')) return null;
@@ -34,6 +39,7 @@ function pathnameOf(href: string): string | null {
     try {
       const url = new URL(trimmed);
       if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      if (!sameSite(url)) return null;
       return url.pathname;
     } catch {
       return null;
@@ -47,7 +53,11 @@ export function parseEntityHref(href: string): EntityReference | null {
   const pathname = pathnameOf(href);
   if (!pathname) return null;
   const parts = pathname.split('/').filter(Boolean);
-  if (parts[0] === 'd') parts.splice(0, 2);
+  // `/d/system` is the root domain. Another domain prefix is a different site.
+  if (parts[0] === 'd') {
+    if (parts[1] !== 'system') return null;
+    parts.splice(0, 2);
+  }
   const segment = parts[0];
   const rawId = parts[1];
   if (!segment || !rawId) return null;

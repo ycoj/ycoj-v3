@@ -9,7 +9,5 @@
   "deadline": "截止 {time}",
   "solved": "{count, plural, other {通过 # 题}}",
   "rating": "评分 {rating}",
-  "rank": "排名 {rank}",
-  "roleGuest": "访客",
-  "roleRoot": "超级管理员"
+  "rank": "排名 {rank}"
 }

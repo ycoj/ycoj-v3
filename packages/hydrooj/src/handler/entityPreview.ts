@@ -137,7 +137,6 @@ async function loadUser(ctx: PreviewContext, id: string) {
     return buildUserPreview(udoc, membership, {
         equipment: wallet?.equipped,
         rating,
-        canSeePrivate: ctx.user._id === uid || ctx.user.hasPerm(PERM.PERM_VIEW_USER_PRIVATE_INFO),
     });
 }
 

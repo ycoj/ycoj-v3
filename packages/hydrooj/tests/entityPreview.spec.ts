@@ -136,28 +136,28 @@ describe('entity preview builders', () => {
             nAccept: 42,
             rank: 7,
         }, {
-            equipment: { frame: 'frame-sprout', title: 'title-explorer', balance: 100, ledger: [] },
+            equipment: { frame: 'frame-sprout', background: 'background-sky', title: 'title-explorer', balance: 100, ledger: [] },
             rating: { rating: 1840, history: [{ tid: 'long' }] },
-            canSeePrivate: false,
         });
-        assert.equal(preview.displayName, null);
-        assert.equal(preview.role, null);
-        assert.equal(preview.bio, 'Hello site');
         assert.equal(preview.nAccept, 42);
         assert.equal(preview.rating, 1840);
         assert.equal(preview.rank, 7);
-        assert.deepEqual(preview.equipment, { frame: 'frame-sprout', title: 'title-explorer' });
+        assert.deepEqual(preview.equipment, { frame: 'frame-sprout', background: 'background-sky' });
         assert.equal('mail' in preview, false);
         assert.equal('hash' in preview, false);
         assert.equal('history' in preview, false);
+        assert.equal('bio' in preview, false);
+        assert.equal('displayName' in preview, false);
+        assert.equal('role' in preview, false);
+        assert.equal('badge' in preview, false);
 
         const hidden = buildUserPreview({
             _id: 12, uname: 'alice', hideRank: true,
-        }, { displayName: 'Alice Chen', role: 'root', rank: 1 }, { canSeePrivate: true });
-        assert.equal(hidden.displayName, 'Alice Chen');
-        assert.equal(hidden.role, 'root');
+        }, { displayName: 'Alice Chen', role: 'root', rank: 1 }, {});
         assert.equal(hidden.rank, null);
         assert.equal(hidden.rating, null);
+        assert.equal('displayName' in hidden, false);
+        assert.equal('role' in hidden, false);
     });
 });
 
@@ -444,10 +444,11 @@ describe('entity preview loader', () => {
         );
         assert.equal(hidden.kind, 'user');
         assert.equal(hidden.uname, 'alice');
-        assert.equal(hidden.displayName, null);
         assert.equal(hidden.rating, null);
-        assert.equal(hidden.role, 'guest');
         assert.equal('mail' in hidden, false);
+        assert.equal('bio' in hidden, false);
+        assert.equal('displayName' in hidden, false);
+        assert.equal('role' in hidden, false);
         assert.deepEqual(hidden.equipment, { frame: 'frame-sprout' });
         assert.deepEqual(state.userProject, USER_PREVIEW_PROJECTION);
         assert.deepEqual(state.walletProject, USER_WALLET_PROJECTION);
@@ -456,11 +457,11 @@ describe('entity preview loader', () => {
         assert.equal(state.domainUserReads, 1);
 
         const visible = await loadEntityPreview(
-            caller({ perms: [PERM.PERM_VIEW, PERM.PERM_VIEW_CONTEST_SCOREBOARD, PERM.PERM_VIEW_USER_PRIVATE_INFO] }),
+            caller({ perms: [PERM.PERM_VIEW, PERM.PERM_VIEW_CONTEST_SCOREBOARD] }),
             { kind: 'user', id: '12' },
         );
-        assert.equal(visible.displayName, 'Alice Chen');
         assert.equal(visible.rating, 1510);
+        assert.equal('displayName' in visible, false);
         assert.equal(state.publishedRatingReads, 1);
         assert.equal(state.settledRatingReads, 0);
         await assert.rejects(

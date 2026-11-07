@@ -20,7 +20,14 @@ const KINDS = new Set<EntityKind>([
   'user',
 ]);
 
-const cache = new Map<string, EntityPreviewResult>();
+const FAILED_TTL_MS = 15_000;
+
+type CacheEntry = {
+  result: EntityPreviewResult;
+  expiresAt: number | null;
+};
+
+const cache = new Map<string, CacheEntry>();
 const inflight = new Map<string, Promise<EntityPreviewResult>>();
 
 export function entityPreviewCacheKey(kind: EntityKind, id: string) {
@@ -28,7 +35,14 @@ export function entityPreviewCacheKey(kind: EntityKind, id: string) {
 }
 
 export function peekEntityPreview(kind: EntityKind, id: string) {
-  return cache.get(entityPreviewCacheKey(kind, id)) ?? null;
+  const key = entityPreviewCacheKey(kind, id);
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt !== null && entry.expiresAt <= Date.now()) {
+    cache.delete(key);
+    return null;
+  }
+  return entry.result;
 }
 
 export function rememberEntityPreview(
@@ -36,7 +50,13 @@ export function rememberEntityPreview(
   id: string,
   result: EntityPreviewResult
 ) {
-  cache.set(entityPreviewCacheKey(kind, id), result);
+  cache.set(entityPreviewCacheKey(kind, id), {
+    result,
+    expiresAt:
+      !result.ok && result.reason === 'failed'
+        ? Date.now() + FAILED_TTL_MS
+        : null,
+  });
 }
 
 export function clearEntityPreviewCache() {
@@ -82,16 +102,16 @@ async function fetchEntityPreview(
   }
 }
 
-/** Loads one preview, sharing the in-flight request and keeping successful results. */
+/** Loads one preview, sharing the in-flight request and keeping the result. */
 export function loadEntityPreview(kind: EntityKind, id: string) {
   const key = entityPreviewCacheKey(kind, id);
-  const cached = cache.get(key);
+  const cached = peekEntityPreview(kind, id);
   if (cached) return Promise.resolve(cached);
   const pending = inflight.get(key);
   if (pending) return pending;
   const request = fetchEntityPreview(kind, id)
     .then((result) => {
-      if (result.ok || result.reason !== 'failed') cache.set(key, result);
+      rememberEntityPreview(kind, id, result);
       return result;
     })
     .finally(() => {

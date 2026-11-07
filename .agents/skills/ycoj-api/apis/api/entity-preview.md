@@ -24,7 +24,7 @@ Cookie: sid=…
 {"args":{"kind":"problem","id":"P1000"}}
 ```
 
-`id` is at most 128 characters and cannot contain a slash. The active domain comes from the request host or `/d/{domainId}` prefix. View permission for the kind is required: `PERM_VIEW_PROBLEM`, `PERM_VIEW_CONTEST`, `PERM_VIEW_HOMEWORK`, `PERM_VIEW_TRAINING`, or `PERM_VIEW` for a user.
+`id` is at most 128 characters and cannot contain `/` or `\`. The active domain comes from the request host or `/d/{domainId}` prefix. View permission for the kind is required: `PERM_VIEW_PROBLEM`, `PERM_VIEW_CONTEST`, `PERM_VIEW_HOMEWORK`, `PERM_VIEW_TRAINING`, or `PERM_VIEW` for a user.
 
 ## Response format
 
@@ -81,25 +81,19 @@ type TrainingPreview = {
 type UserPreviewEquipment = {
   frame?: string;
   background?: string;
-  title?: string;
-  accent?: string;
 };
 
 type UserPreview = {
   kind: 'user';
   id: string;
   uname: string;
-  displayName: string | null; // only for the user or a caller with PERM_VIEW_USER_PRIVATE_INFO
   avatar: string;
-  role: string | null; // omitted when the domain role is default
-  badge: string | null;
-  bio: string; // flattened excerpt, at most 140 characters
   nAccept: number;
   rating: number | null; // null without PERM_VIEW_CONTEST_SCOREBOARD or a published rating
   rank: number | null; // null when the user hides their rank
   ccfLevel: number;
   priv: number;
-  equipment: UserPreviewEquipment; // equipped cosmetic ids only
+  equipment: UserPreviewEquipment; // equipped avatar frame and name style
 };
 
 type EntityPreview = ProblemPreview | ContestPreview | HomeworkPreview | TrainingPreview | UserPreview;
@@ -122,9 +116,9 @@ type EntityPreview = ProblemPreview | ContestPreview | HomeworkPreview | Trainin
 ```
 
 ```json
-{"kind":"user","id":"12","uname":"alice","displayName":null,"avatar":"github:alice","role":"guest","badge":null,"bio":"Hello","nAccept":3,"rating":null,"rank":9,"ccfLevel":0,"priv":0,"equipment":{"frame":"frame-sprout"}}
+{"kind":"user","id":"12","uname":"alice","avatar":"github:alice","nAccept":3,"rating":null,"rank":9,"ccfLevel":0,"priv":0,"equipment":{"frame":"frame-sprout"}}
 ```
 
-A user preview does not read mail, sessions, the reward wallet balance or ledger, accepted-problem lists, or rating history. It uses the published rating summary and does not settle ratings. `displayName` is a private domain field.
+A user preview does not read mail, bio, the display name, the domain role, sessions, the reward wallet balance or ledger, title cosmetics, accepted-problem lists, or rating history. It uses the published rating summary and does not settle ratings.
 
-Permission and assignment failures use the standard error envelope (`PermissionError`, `PrivilegeError`, or `NotAssignedError`). Unknown kinds and malformed ids use `ValidationError`.
+Permission and assignment failures use the standard error envelope (`PermissionError`, `PrivilegeError`, or `NotAssignedError`). Unknown kinds, empty ids, and ids that contain `/` or `\` use `ValidationError`. A contest, homework, or training id that is not a 24-hex ObjectId raises the matching not-found error. A user id that is not a decimal uid raises `UserNotFoundError`.

@@ -62,19 +62,13 @@ export type TrainingPreview = {
 export type UserPreviewEquipment = {
   frame?: string;
   background?: string;
-  title?: string;
-  accent?: string;
 };
 
 export type UserPreview = {
   kind: 'user';
   id: string;
   uname: string;
-  displayName: string | null;
   avatar: string;
-  role: string | null;
-  badge: string | null;
-  bio: string;
   nAccept: number;
   rating: number | null;
   rank: number | null;

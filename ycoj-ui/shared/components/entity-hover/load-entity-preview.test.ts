@@ -72,17 +72,29 @@ describe('loadEntityPreview', () => {
     expect(mocks.send).toHaveBeenCalledTimes(1);
   });
 
-  it('does not cache a network failure', async () => {
+  it('keeps a network failure briefly, then tries again', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-07T00:00:00Z'));
     mocks.send.mockRejectedValueOnce(new Error('offline'));
     mocks.send.mockResolvedValueOnce(problem);
-    await expect(loadEntityPreview('problem', 'P1000')).resolves.toEqual({
-      ok: false,
-      reason: 'failed',
-    });
-    await expect(loadEntityPreview('problem', 'P1000')).resolves.toEqual({
-      ok: true,
-      preview: problem,
-    });
-    expect(mocks.send).toHaveBeenCalledTimes(2);
+    try {
+      await expect(loadEntityPreview('problem', 'P1000')).resolves.toEqual({
+        ok: false,
+        reason: 'failed',
+      });
+      await expect(loadEntityPreview('problem', 'P1000')).resolves.toEqual({
+        ok: false,
+        reason: 'failed',
+      });
+      expect(mocks.send).toHaveBeenCalledTimes(1);
+      vi.setSystemTime(new Date('2026-11-07T00:00:16Z'));
+      await expect(loadEntityPreview('problem', 'P1000')).resolves.toEqual({
+        ok: true,
+        preview: problem,
+      });
+      expect(mocks.send).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
