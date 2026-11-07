@@ -42,6 +42,8 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 
 `PORT` 必须是当前反向代理访问前端的端口；示例中的 `3000`、后端 `2333` 都需要按实际配置调整。`HOSTNAME=127.0.0.1` 适用于同机 Nginx 等反向代理，按现有网络部署调整。文件按 Node.js dotenv 格式解析，不执行 shell 命令，不展开 `$VARIABLE` 引用。运行 `chmod 600 /srv/ycoj-ui/shared/runtime.env`。
 
+不要把 `ASSET_PREFIX` 写进 `runtime.env`。standalone 进程使用构建时冻结在 `server.js` 里的 `assetPrefix`，运行时环境变量不会改写 HTML 中的 `/_next/static` 地址。
+
 ## 2. 配置 SSH 与 CNB 密钥仓库
 
 创建专用 SSH 部署密钥，将公钥加入上述 PM2 用户的 `~/.ssh/authorized_keys`。服务器需允许 CNB 构建节点访问其 SSH 端口。
@@ -64,6 +66,7 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 | `DEPLOY_ACTIVATE`           | 首次为字符串 `'false'`，迁移成功后改为 `'true'`                                                                       |
 | `BACKEND_BASEURL`           | 与生产服务器一致的后端地址，同时配置在服务器 `runtime.env`                                                            |
 | `NEXT_PUBLIC_*`             | 沿用实际生产值；这些配置需要在构建时提供                                                                              |
+| `ASSET_PREFIX`              | 可选。`/_next/static` 的构建时 CDN 前缀，生产为 `https://next-cdn.ycoj.cc`。设为 `''` 则走本站。密钥里省略时 `.cnb.yml` 使用该 CDN。修改后必须重新构建 |
 | `SITE_NAME`                 | 未匹配到 branding 或后端不可用时的默认名称，构建时提供，可省略                                                        |
 
 主机公钥可用 `ssh-keyscan -p <端口> <服务器>` 收集，并与服务器上 `/etc/ssh/ssh_host_*_key.pub` 的指纹核对。非标准端口的 known_hosts 名称应为 `[主机]:端口`。流水线启用严格主机验证，不会自动信任扫描结果。
@@ -72,7 +75,9 @@ BACKEND_BASEURL=http://127.0.0.1:2333
 
 网站名称和 Logo 优先使用后端 `/branding` 按访问 origin 返回的配置；在 `/manage/branding` 修改已匹配站点的名称和 Logo，不需要重新构建前端。`SITE_NAME` 只是兜底名称，不会覆盖 branding，省略时兜底名称为空。当前 `next.config.ts` 将它写入构建产物，因此修改兜底名称需重新构建，仅修改服务器 `runtime.env` 不会更新它。首次启用 branding 前先更新后端，并确保反向代理向前端传递真实的 `Host` 和 `X-Forwarded-Proto`，使协议、域名和端口与 branding 配置一致。
 
-前端静态资源统一走本站，发布包包含生成的 `public/` 和 `.next/static/`，不需要额外同步 CDN。旧的 `NEXT_PUBLIC_STATIC_ASSET_PREFIX` 和 `NEXT_PUBLIC_PRINT_ASSET_PREFIX` 配置已停用，可以从密钥仓库移除。
+`/_next/static`（脚本、样式、`next/font` 字体和构建产出的媒体文件）在生产构建时加上 `ASSET_PREFIX`。当前 CDN `https://next-cdn.ycoj.cc` 回源 `next.ycoj.cc`，所以发布包仍须带上 `.next/static/` 和 `public/`，不需要再把文件同步到 CDN。页面、RSC、`/api` 和 `/_next/image` 图片优化继续请求本站。`public/vendor`、打印和 clangd 资源也留在本站，`assetPrefix` 不会改写它们。字体预加载使用匿名 `crossorigin`；CDN 必须对站点源返回 `Access-Control-Allow-Origin`。旧的 `NEXT_PUBLIC_STATIC_ASSET_PREFIX` 和 `NEXT_PUBLIC_PRINT_ASSET_PREFIX` 仍然无效，不要用它们代替 `ASSET_PREFIX`。本地 `next dev` 会忽略 `ASSET_PREFIX`。细节见 `ycoj-ui/STATIC_ASSETS.md`。
+
+要让线上页面改为从 CDN 加载静态资源：在密钥仓库设置 `ASSET_PREFIX`（或保持省略，让流水线使用默认 CDN），然后重新构建并发布。只改服务器 `runtime.env` 不会生效。
 
 保留 `allow_slugs`、`allow_branches`、`allow_events` 限制，并确保仓库/组织的 CNB 构建触发规则允许同步所用 `CNB_TOKEN` 的身份触发。GitHub 仓库仍需配置现有同步流程使用的 `CNB_TOKEN`。
 
