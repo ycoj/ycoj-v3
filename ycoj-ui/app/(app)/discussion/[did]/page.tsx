@@ -7,8 +7,10 @@ import DiscussionTitle from '@/features/discussion/detail/discussion-title';
 import { getDiscussionDetail } from '@/features/discussion/detail/get-discussion-detail';
 import { resolveDiscussionPermissions } from '@/features/discussion/lib/permissions';
 import { getUser } from '@/features/user/lib/get-user';
+import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 
 type Params = {
   did: string;
@@ -53,43 +55,63 @@ export default async function DiscussionPage({
   ]);
   const owner = data.udict[data.ddoc.owner];
   const permissions = resolveDiscussionPermissions(user);
+  const t = await getTranslations('discussion');
   // `GET /discuss/:did` signs in the viewer to return their status; a signed-in
   // viewer may always star. The backend endpoint itself has no extra permission.
   const canStar = !!user?._id;
+  const showReactions =
+    permissions.canReact ||
+    Object.values(data.ddoc.react ?? {}).some((count) => count > 0);
 
   return (
     <div className="space-y-8">
-      <article className="bg-card rounded-xl border">
-        <div className="space-y-5 p-5 sm:p-6">
-          <DiscussionTitle
-            ddoc={data.ddoc}
-            owner={owner}
-            vnode={data.vnode}
-            drcount={data.drcount}
-          />
-          <DiscussionContent content={data.ddoc.content} />
-        </div>
-        <footer className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t px-5 py-3 sm:px-6">
-          <DiscussionReactions
-            did={did}
-            nodeType="did"
-            id={did}
-            reactions={data.ddoc.react ?? {}}
-            ownReactions={data.reactions[did] ?? {}}
-            canReact={permissions.canReact}
-          />
-          <div className="ml-auto flex flex-wrap items-center gap-1">
-            {data.ddoc.edited && <DiscussionHistoryPopover did={did} />}
-            <DiscussionActions
+      <div className="space-y-3">
+        <Link
+          href="/discussion"
+          prefetch={false}
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-sm py-1 text-sm"
+        >
+          <ArrowLeft className="size-3.5" />
+          <span data-llm-text={t('backToList')}>{t('backToList')}</span>
+        </Link>
+        <article className="bg-card rounded-xl border">
+          <div className="space-y-6 p-5 sm:p-6">
+            <DiscussionTitle
               ddoc={data.ddoc}
-              viewerId={user?._id}
-              permissions={permissions}
-              starred={!!data.dsdoc?.star}
-              canStar={canStar}
+              owner={owner}
+              vnode={data.vnode}
+              drcount={data.drcount}
+              history={
+                data.ddoc.edited ? (
+                  <DiscussionHistoryPopover did={did} />
+                ) : undefined
+              }
+              actions={
+                <DiscussionActions
+                  ddoc={data.ddoc}
+                  viewerId={user?._id}
+                  permissions={permissions}
+                  starred={!!data.dsdoc?.star}
+                  canStar={canStar}
+                />
+              }
             />
+            <DiscussionContent content={data.ddoc.content} />
           </div>
-        </footer>
-      </article>
+          {showReactions && (
+            <footer className="border-t px-5 py-3 sm:px-6">
+              <DiscussionReactions
+                did={did}
+                nodeType="did"
+                id={did}
+                reactions={data.ddoc.react ?? {}}
+                ownReactions={data.reactions[did] ?? {}}
+                canReact={permissions.canReact}
+              />
+            </footer>
+          )}
+        </article>
+      </div>
       <DiscussionReplies
         did={did}
         ddoc={data.ddoc}

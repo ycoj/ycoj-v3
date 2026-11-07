@@ -310,7 +310,7 @@ export default function DiscussionRepliesClient({
       </h2>
 
       {canReply ? (
-        <div className="bg-card flex gap-3 rounded-xl border p-4">
+        <div className="bg-card flex gap-3 rounded-xl border p-5 sm:p-6">
           {currentUser && (
             <UserAvatar user={currentUser} className="size-10 shrink-0" />
           )}
@@ -374,7 +374,7 @@ export default function DiscussionRepliesClient({
               <article
                 key={floorReply.docId}
                 id={floorId ? `reply-${floorId}` : undefined}
-                className="bg-card scroll-mt-24 rounded-xl border p-4 sm:p-5"
+                className="bg-card scroll-mt-24 rounded-xl border p-5 sm:p-6"
               >
                 <div className="flex items-start gap-3">
                   {owner && (
