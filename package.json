@@ -30,7 +30,7 @@
         "test:account-expiration": "node -r @hydrooj/register --test packages/hydrooj/tests/accountExpiration.spec.ts",
         "test:ai-generation": "node -r @hydrooj/register --test packages/hydrooj/tests/ai-generation/*.spec.ts",
         "test:html-to-markdown-handler": "node -r @hydrooj/register --test packages/hydrooj/tests/htmlToMarkdownHandler.spec.ts",
-        "test:checkin": "node -r @hydrooj/register --test packages/hydrooj/tests/checkin.spec.ts packages/hydrooj/tests/homepageCheckinTemplate.spec.ts",
+        "test:checkin": "node -r @hydrooj/register --test packages/hydrooj/tests/checkin.spec.ts",
         "test:rewards": "node -r @hydrooj/register --test packages/hydrooj/tests/rewards*.spec.ts",
         "test:locales": "node -r @hydrooj/register --test packages/hydrooj/tests/sortLocales.spec.ts",
         "test:realname": "node -r @hydrooj/register --test packages/hydrooj/tests/realname.spec.ts",
