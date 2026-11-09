@@ -1,5 +1,6 @@
 'use client';
 
+import RewardThemePreview from './reward-theme-preview';
 import RewardTitle from './reward-title';
 import ClientApis from '@/api/client/method';
 import { getRewards, updateRewards } from '@/api/client/method/rewards';
@@ -17,6 +18,7 @@ import {
 import { cn } from '@/shared/lib/utils';
 import type {
   RewardAction,
+  RewardEquipment,
   RewardItem,
   RewardsData,
   RewardSlot,
@@ -52,7 +54,18 @@ export default function RewardsPage({ initialData, user }: Props) {
   const format = useFormatter();
   const router = useRouter();
   const [data, setData] = useState(initialData);
-  const [selectedId, setSelectedId] = useState(initialData.catalog[0]?.id);
+  const [selectedId, setSelectedId] = useState<string | undefined>(
+    initialData.catalog[0]?.id
+  );
+  const [previewEquipment, setPreviewEquipment] = useState<RewardEquipment>(
+    () => {
+      const firstItem = initialData.catalog[0];
+      return {
+        ...initialData.wallet.equipped,
+        ...(firstItem ? { [firstItem.slot]: firstItem.id } : {}),
+      };
+    }
+  );
   const [ownedOnly, setOwnedOnly] = useState(false);
   const [category, setCategory] = useState<'all' | RewardSlot>('all');
   const [pending, setPending] = useState<string | null>(null);
@@ -60,15 +73,11 @@ export default function RewardsPage({ initialData, user }: Props) {
   const [notice, setNotice] = useState('');
   const inFlight = useRef(false);
   const selected = data.catalog.find((item) => item.id === selectedId);
-  const previewUser = selected
-    ? {
-        ...user,
-        rewardEquipment: {
-          ...data.wallet.equipped,
-          [selected.slot]: selected.id,
-        },
-      }
-    : { ...user, rewardEquipment: data.wallet.equipped };
+  const previewUser = { ...user, rewardEquipment: previewEquipment };
+  const selectItem = (item: RewardItem) => {
+    setSelectedId(item.id);
+    setPreviewEquipment((previous) => ({ ...previous, [item.slot]: item.id }));
+  };
   const checkedIn = Boolean(
     data.tasks.find((task) => task.id === 'checkin')?.progress
   );
@@ -124,6 +133,13 @@ export default function RewardsPage({ initialData, user }: Props) {
         return;
       }
       setData(result);
+      if (action?.action === 'unequip') {
+        setPreviewEquipment((previous) => {
+          const next = { ...previous };
+          delete next[action.id as RewardSlot];
+          return next;
+        });
+      }
       setNotice(
         t(
           action
@@ -388,8 +404,15 @@ export default function RewardsPage({ initialData, user }: Props) {
                   if (
                     event.target.checked &&
                     !data.wallet.owned.includes(selectedId ?? '')
-                  )
-                    setSelectedId(data.wallet.owned[0]);
+                  ) {
+                    const replacement = data.catalog.find(
+                      (item) =>
+                        data.wallet.owned.includes(item.id) &&
+                        (category === 'all' || item.slot === category)
+                    );
+                    if (replacement) selectItem(replacement);
+                    else setSelectedId(undefined);
+                  }
                 }}
                 className="accent-primary"
               />
@@ -443,62 +466,83 @@ export default function RewardsPage({ initialData, user }: Props) {
                         })}
                       </span>
                     </div>
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div
+                      className={cn(
+                        'grid gap-3',
+                        slot === 'frame'
+                          ? 'grid-cols-2 xl:grid-cols-3'
+                          : 'sm:grid-cols-2'
+                      )}
+                    >
                       {items.map((item) => (
                         <button
                           type="button"
                           key={item.id}
-                          onClick={() => setSelectedId(item.id)}
+                          onClick={() => selectItem(item)}
                           aria-pressed={selectedId === item.id}
                           aria-label={t('previewItem', {
                             item: itemName(item.id),
                           })}
                           className={cn(
-                            'bg-card hover:bg-muted/40 focus-visible:outline-ring space-y-3 rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
+                            'reward-shop-item bg-card hover:border-primary/50 focus-visible:outline-ring relative space-y-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
                             selectedId === item.id &&
                               'border-primary bg-primary/5'
                           )}
                         >
-                          <div
-                            className="bg-muted/40 flex h-20 items-center justify-center gap-3 rounded-lg"
-                            data-reward-accent={
-                              item.slot === 'accent' ? item.id : undefined
-                            }
-                          >
-                            {item.slot === 'accent' ? (
-                              <>
-                                <span className="bg-primary size-8 rounded-full" />
-                                <span className="text-primary text-sm">
-                                  YCOJ
-                                </span>
-                              </>
-                            ) : item.slot === 'title' ? (
-                              <RewardTitle id={item.id} />
-                            ) : (
-                              <>
-                                <UserAvatar
-                                  user={{
-                                    ...user,
-                                    rewardEquipment: { [item.slot]: item.id },
-                                  }}
-                                  className={
-                                    item.slot === 'frame' ? 'size-11' : 'size-9'
-                                  }
-                                />
-                                {item.slot === 'background' && (
-                                  <Username
+                          {selectedId === item.id && (
+                            <span className="bg-primary text-primary-foreground absolute top-5 right-5 z-20 flex size-5 items-center justify-center rounded-full">
+                              <Check className="size-3" aria-hidden="true" />
+                            </span>
+                          )}
+                          {item.slot === 'accent' ? (
+                            <RewardThemePreview id={item.id} />
+                          ) : (
+                            <div
+                              className="reward-frame-stage flex h-36 items-center justify-center gap-3 rounded-lg"
+                              data-frame-stage={
+                                item.slot === 'frame' ? item.id : undefined
+                              }
+                            >
+                              {item.slot === 'title' ? (
+                                <RewardTitle id={item.id} />
+                              ) : (
+                                <>
+                                  <UserAvatar
                                     user={{
                                       ...user,
-                                      rewardEquipment: { background: item.id },
+                                      rewardEquipment: { [item.slot]: item.id },
                                     }}
+                                    className={
+                                      item.slot === 'frame'
+                                        ? 'size-18'
+                                        : 'size-9'
+                                    }
                                   />
-                                )}
-                              </>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap justify-between gap-2">
-                            <h4 className="font-medium">{itemName(item.id)}</h4>
-                            <span className="text-sm tabular-nums">
+                                  {item.slot === 'background' && (
+                                    <Username
+                                      user={{
+                                        ...user,
+                                        rewardEquipment: {
+                                          background: item.id,
+                                        },
+                                      }}
+                                    />
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          )}
+                          <div className="space-y-1 px-1 pb-1">
+                            <h4 className="text-sm font-medium">
+                              {itemName(item.id)}
+                            </h4>
+                            <span className="text-muted-foreground inline-flex items-center gap-1 text-xs tabular-nums">
+                              {!data.wallet.owned.includes(item.id) && (
+                                <Coins
+                                  className="size-3 text-amber-700 dark:text-amber-300"
+                                  aria-hidden="true"
+                                />
+                              )}
                               {data.wallet.owned.includes(item.id)
                                 ? t(
                                     data.wallet.equipped[item.slot] === item.id
@@ -526,15 +570,40 @@ export default function RewardsPage({ initialData, user }: Props) {
               data-reward-accent={previewUser.rewardEquipment.accent}
             >
               <h2 className="font-semibold">{t('preview')}</h2>
-              <div className="flex flex-wrap items-center gap-4 rounded-lg bg-muted/40 p-4">
-                <UserAvatar user={previewUser} className="size-14" />
-                <div className="min-w-0 space-y-2">
-                  <Username user={previewUser} className="break-all" />
-                  <div>
-                    <RewardTitle id={previewUser.rewardEquipment.title} />
-                  </div>
+              <div className="reward-theme-canvas flex min-h-56 flex-col items-center justify-center gap-5 rounded-lg border px-5 py-7 text-center">
+                <UserAvatar user={previewUser} className="size-20" />
+                <div className="min-w-0 max-w-full space-y-2">
+                  <Username
+                    user={previewUser}
+                    className="break-all font-medium"
+                  />
+                  {previewUser.rewardEquipment.title && (
+                    <div>
+                      <RewardTitle id={previewUser.rewardEquipment.title} />
+                    </div>
+                  )}
+                  {previewEquipment.accent && (
+                    <p className="text-xs text-muted-foreground">
+                      {itemName(previewEquipment.accent)}
+                    </p>
+                  )}
                 </div>
               </div>
+              {previewEquipment.accent && (
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    {t('themePreviewHint')}
+                  </p>
+                  <div className="flex items-center gap-2" aria-hidden="true">
+                    <span className="size-5 rounded-full border bg-background" />
+                    <span className="size-5 rounded-full border bg-sidebar" />
+                    <span className="size-5 rounded-full bg-primary" />
+                    <span className="ml-auto rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
+                      {t('practice')}
+                    </span>
+                  </div>
+                </div>
+              )}
               {selected && (
                 <>
                   <div>

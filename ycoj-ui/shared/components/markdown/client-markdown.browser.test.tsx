@@ -8,14 +8,14 @@ describe('ClientMarkdown', () => {
       render(<ClientMarkdown>First **version**</ClientMarkdown>)
     );
 
-    expect(screen.getByText('version')).toBeVisible();
+    expect(await screen.findByText('version')).toBeVisible();
     expect(screen.queryByText(/\*\*version\*\*/)).not.toBeInTheDocument();
 
     await act(async () => {
       view.rerender(<ClientMarkdown>Second **draft**</ClientMarkdown>);
     });
 
-    expect(screen.getByText('draft')).toBeVisible();
+    expect(await screen.findByText('draft')).toBeVisible();
     expect(screen.queryByText('version')).not.toBeInTheDocument();
     expect(screen.queryByText(/\*\*draft\*\*/)).not.toBeInTheDocument();
   });

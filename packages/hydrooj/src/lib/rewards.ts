@@ -18,8 +18,13 @@ export const RETIRED_REWARD_ITEMS: RewardItem[] = [
 export const REWARD_CATALOG: RewardItem[] = [
     { id: 'frame-tiger', slot: 'frame', price: 200 },
     { id: 'frame-pixel', slot: 'frame', price: 200 },
+    { id: 'frame-racer', slot: 'frame', price: 200 },
+    { id: 'frame-orbit', slot: 'frame', price: 200 },
+    { id: 'frame-slime', slot: 'frame', price: 200 },
     { id: 'accent-forest', slot: 'accent', price: 160 },
     { id: 'accent-violet', slot: 'accent', price: 160 },
+    { id: 'accent-racing', slot: 'accent', price: 160 },
+    { id: 'accent-ocean', slot: 'accent', price: 160 },
 ];
 export const REWARD_TASKS = [
     { id: 'checkin', period: 'daily', target: 1, coins: 5 },

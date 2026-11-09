@@ -3,7 +3,7 @@ import { playwright } from '@vitest/browser-playwright';
 import { availableParallelism } from 'node:os';
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: sharedPlugins,
   resolve: sharedResolve,
   test: {
@@ -14,7 +14,10 @@ export default defineConfig({
       enabled: true,
       headless: true,
       instances: [{ browser: 'chromium' }],
-      provider: playwright(),
+      provider: playwright({
+        contextOptions:
+          mode === 'preview' ? { viewport: { width: 1600, height: 4000 } } : {},
+      }),
       // 'retain-on-failure' records a Playwright trace for every test and
       // roughly doubles the run; only enable it when debugging a failure.
       trace: 'off',
@@ -24,4 +27,4 @@ export default defineConfig({
     exclude: ['node_modules', '.next'],
     setupFiles: ['./vitest.setup.ts', './vitest.browser.setup.ts'],
   },
-});
+}));

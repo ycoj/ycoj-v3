@@ -3,6 +3,7 @@ import { getSiteBrand } from '@/features/branding/get-brand';
 import { CollapsedTrigger } from '@/features/navigation/collapsed-trigger';
 import OmnibarProvider from '@/features/navigation/omnibar-provider';
 import AppSidebar from '@/features/navigation/sidebar';
+import RewardThemeSync from '@/features/rewards/reward-theme-sync';
 import { getUser } from '@/features/user/lib/get-user';
 import ThemeLogo from '@/shared/components/theme-logo';
 import { SidebarInset, SidebarProvider } from '@/shared/components/ui/sidebar';
@@ -23,9 +24,10 @@ export default async function AppFrame({ children, banner }: Props) {
   return (
     <TooltipProvider>
       <SidebarProvider data-reward-accent={user?.rewardEquipment?.accent}>
+        <RewardThemeSync id={user?.rewardEquipment?.accent} />
         <OmnibarProvider>
           <AppSidebar />
-          <SidebarInset className="overflow-auto p-4 has-data-[app-full-width]:px-2 has-data-[app-full-width]:pb-0 md:overflow-visible">
+          <SidebarInset className="reward-theme-canvas overflow-auto p-4 has-data-[app-full-width]:px-2 has-data-[app-full-width]:pb-0 md:overflow-visible">
             <CollapsedTrigger />
             <div className="container mx-auto has-data-[app-full-width]:flex has-data-[app-full-width]:flex-1 has-data-[app-full-width]:flex-col has-data-[app-full-width]:max-w-none">
               <div className="mb-2 flex px-2 md:hidden">

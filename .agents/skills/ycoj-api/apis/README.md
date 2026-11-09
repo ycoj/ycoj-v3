@@ -14,7 +14,7 @@ The default base URL is `https://ycoj.cc/`. Every documented route is relative t
 | `/record`, `/record/*`, `/record-conn`, `/record-detail-conn` | [Record](record/README.md) | Submission search/detail, rejudge/cancel, live record streams |
 | `/status`, `/status/*` | [Status](status/README.md) | Judge/system status and updates |
 | `/checkin` | [Check-in](checkin/README.md) | Daily check-in mutation |
-| `/rewards` | [Learning rewards](rewards/README.md) | Global coin wallet, daily/weekly tasks, permanent cosmetics, equipment, and private ledger |
+| `/rewards` | [Learning rewards](rewards/README.md) | Global coin wallet, daily/weekly tasks, five permanent avatar frames, four interface themes in the `accent` slot, equipment, and private ledger |
 | `/home/realname`, `/home/realname/result`, `/manage/realname` | [Real-name](realname/README.md) | User submission/result plus super-admin review; users who have not submitted, or whose review is still unfinished/rejected after a seven-day grace period, are blocked from other feature HTTP routes except public versioned UI assets (`/lazy/*`, `/resource/*`, `/plugins/*`). WebSocket handshake does not throw `RealnameRequiredError`; `/websocket` rejects subscriptions outside the grace period. |
 | `/home/award`, `/manage/award` | [Award](award/README.md) | Real-name-approved users bind imported CCF/NOI contestant records; system administrators unbind; `importOier` script loads an OIerDb `data/` directory |
 | `/login`, `/logout`, `/register*`, `/lostpass*`, `/user/*`, `/oauth/*`, `/contestmode` | [Identity](identity/README.md) | Authentication, account recovery, profiles with full permitted Rating history, public-user Rating summaries for username colors, OAuth, sudo/TFA/WebAuthn |

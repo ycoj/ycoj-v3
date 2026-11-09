@@ -140,10 +140,17 @@ Catalog:
 | --- | --- | --- |
 | `frame-tiger` | frame | 200 |
 | `frame-pixel` | frame | 200 |
+| `frame-racer` | frame | 200 |
+| `frame-orbit` | frame | 200 |
+| `frame-slime` | frame | 200 |
 | `accent-forest` | accent | 160 |
 | `accent-violet` | accent | 160 |
+| `accent-racing` | accent | 160 |
+| `accent-ocean` | accent | 160 |
 
-Retired and no longer sold: `frame-sprout` (frame, 60), `frame-starlight` (frame, 180), `background-sky` (background, 120), `background-peach` (background, 120), `title-explorer` (title, 80), and `title-persistent` (title, 240). Those were the solid-color avatar frames, every name background, and every personal title. Decorated frames and interface accent colors stay. The `retireCosmetics` script refunds owners once, unequips the retired slots, and sends one in-site message. From a configured install, preview with `hydrooj cli script retireCosmetics '{"dryRun":true}'` and apply with `hydrooj cli script retireCosmetics '{"confirm":true}'`. The same JSON can be submitted on the system scripts page (`/manage/script`, id `retireCosmetics`); that page creates a record that starts as Waiting and becomes Accepted, with the scan and refund summary in the judge text. Omitting both flags refuses to write. A second apply does not refund or message again. Do not run the apply against a production database unless that refund is intended.
+The `accent` slot is presented as **Theme** in the frontend and controls the page background artwork, sidebar palette, surfaces, and primary colors in both light and dark modes. Existing `accent-forest` and `accent-violet` ownership and equipment remain valid: they now render as Block forest and Space voyage. `accent-racing` and `accent-ocean` render as Speed circuit and Sprite bay. The stored slot and IDs have not been renamed; continue sending `{"action":"unequip","id":"accent"}` to remove a theme. Frames and themes are independent and may be mixed. Shop previews do not mutate equipment or coins.
+
+Retired and no longer sold: `frame-sprout` (frame, 60), `frame-starlight` (frame, 180), `background-sky` (background, 120), `background-peach` (background, 120), `title-explorer` (title, 80), and `title-persistent` (title, 240). Those were the solid-color avatar frames, every name background, and every personal title. Decorated frames and interface themes stay. The `retireCosmetics` script refunds owners once, unequips the retired slots, and sends one in-site message. From a configured install, preview with `hydrooj cli script retireCosmetics '{"dryRun":true}'` and apply with `hydrooj cli script retireCosmetics '{"confirm":true}'`. The same JSON can be submitted on the system scripts page (`/manage/script`, id `retireCosmetics`); that page creates a record that starts as Waiting and becomes Accepted, with the scan and refund summary in the judge text. Omitting both flags refuses to write. A second apply does not refund or message again. Do not run the apply against a production database unless that refund is intended.
 
 Names and visual styles are localized by the frontend, not arbitrary HTML or CSS supplied by the client. Equipment affects cosmetics only, not scores, Rating, RP, or permissions.
 

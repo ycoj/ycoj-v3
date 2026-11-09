@@ -22,7 +22,11 @@ export default function UserAvatar({ user, className, ...props }: Props) {
   return (
     <Avatar
       {...props}
-      className={cn(isDecoratedFrame(frame) && 'isolate', className)}
+      className={cn(
+        isDecoratedFrame(frame) &&
+          'isolate rounded-[28%] after:rounded-[28%] [&>[data-slot=avatar-fallback]]:rounded-[28%] [&>[data-slot=avatar-image]]:rounded-[28%]',
+        className
+      )}
     >
       {isDecoratedFrame(frame) && <RewardFrameDecoration id={frame} />}
       {src && <AvatarImage src={src} alt={user.uname} />}

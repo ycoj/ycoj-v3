@@ -58,7 +58,7 @@
     "frame": "头像框",
     "background": "名字背景",
     "title": "个人称号",
-    "accent": "界面主题色"
+    "accent": "主题"
   },
   "tasks": {
     "checkin": {
@@ -97,11 +97,23 @@
     },
     "frame-tiger": {
       "name": "小老虎头像框",
-      "description": "立起耳朵，绘上虎纹，为勇敢解题的你加油。"
+      "description": "软软的虎耳、暖黄条纹和小爪印，陪小勇士一起闯关。"
     },
     "frame-pixel": {
       "name": "像素探险家头像框",
-      "description": "草方块与泥土拼成的像素边框，献给热爱探索的建造者。"
+      "description": "草方块、闪亮钻石和十字星，下一次探索从这里出发。"
+    },
+    "frame-racer": {
+      "name": "极速车手头像框",
+      "description": "挥起方格旗，装上闪电与小尾翼，向下一道题出发！"
+    },
+    "frame-orbit": {
+      "name": "星际领航员头像框",
+      "description": "小火箭已就位，带着星星与环形行星，发现更大的宇宙。"
+    },
+    "frame-slime": {
+      "name": "精灵搭档头像框",
+      "description": "带上软萌的小精灵、嫩叶和小花，开启今天的奇遇。"
     },
     "background-sky": {
       "name": "晴空名字背景",
@@ -120,12 +132,20 @@
       "description": "再想一想，再试一次。为坚持下来的自己点个赞。"
     },
     "accent-forest": {
-      "name": "森林主题色",
-      "description": "将自己的学习界面主色切换为森林绿，支持明暗模式。"
+      "name": "方块森林主题",
+      "description": "走进薄荷绿的方块森林，树木与草地铺满学习空间。支持明暗模式。"
     },
     "accent-violet": {
-      "name": "紫罗兰主题色",
-      "description": "用紫罗兰色点亮按钮与重点内容，支持明暗模式。"
+      "name": "星际漫游主题",
+      "description": "淡紫星空、行星轨道与点点星光，把学习空间变成宇宙基地。支持明暗模式。"
+    },
+    "accent-racing": {
+      "name": "极速赛道主题",
+      "description": "清爽竞速蓝配上方格旗与弯弯赛道，准备好迎接下一关。支持明暗模式。"
+    },
+    "accent-ocean": {
+      "name": "精灵海湾主题",
+      "description": "青蓝色的海湾里藏着波浪、泡泡与海星，和小精灵一起轻松练习。支持明暗模式。"
     }
   },
   "errors": {
@@ -142,6 +162,7 @@
     "frame": "环绕在头像周围的装饰。",
     "background": "用户名背后的彩色底纹。",
     "title": "显示在用户名旁的称号。",
-    "accent": "按钮和高亮处的主题色。"
-  }
+    "accent": "背景、侧栏与主色一起换，开启自己的游戏世界。"
+  },
+  "themePreviewHint": "头像框和主题可以自由搭配。预览后兑换，佩戴后应用到整个学习界面。"
 }
