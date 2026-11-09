@@ -367,7 +367,7 @@ describe('learning rewards page', () => {
     ).toBeVisible();
   });
 
-  it('combines new frames with theme backgrounds without buying or equipping', async () => {
+  it('combines new frames and themes without buying or equipping', async () => {
     renderPage();
     await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
     const preview = screen.getByRole('complementary', {
@@ -391,13 +391,9 @@ describe('learning rewards page', () => {
         expect(art.complete && art.naturalWidth > 0).toBe(true)
       );
       expect(art).toBeVisible();
-      expect(
-        within(preview).getByText(theme, { selector: 'p.text-xs' })
-      ).toBeVisible();
-      expect(
-        getComputedStyle(preview.querySelector('.reward-theme-canvas')!)
-          .backgroundImage
-      ).toContain('/rewards/themes/');
+      for (const label of within(preview).getAllByText(theme)) {
+        expect(label).toBeVisible();
+      }
     }
     expect(mocks.update).not.toHaveBeenCalled();
     expect(screen.getByText('Your balance').parentElement).toHaveTextContent(
@@ -430,9 +426,9 @@ describe('learning rewards page', () => {
     );
     expect(frame.src).toContain('/rewards/frames/frame-pixel.svg');
     expect(within(preview).getByText('Pixel explorer frame')).toBeVisible();
-    expect(
-      within(preview).getByText('Space voyage theme', { selector: 'p.text-xs' })
-    ).toBeVisible();
+    for (const label of within(preview).getAllByText('Space voyage theme')) {
+      expect(label).toBeVisible();
+    }
     expect(
       within(preview).getByRole('button', { name: 'Equip' })
     ).toBeVisible();

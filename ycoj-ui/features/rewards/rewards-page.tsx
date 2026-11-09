@@ -49,6 +49,11 @@ const RETIRED_ITEM_IDS = new Set([
 
 type Props = { initialData: RewardsData; user: BaseUser };
 
+/**
+ * Maintains tentative cosmetic combinations separately from the server wallet.
+ * Selecting previews never spends coins or equips items; confirmed actions update
+ * the wallet, and unequipping clears only the affected preview slot.
+ */
 export default function RewardsPage({ initialData, user }: Props) {
   const t = useTranslations('rewards');
   const format = useFormatter();
@@ -103,6 +108,10 @@ export default function RewardsPage({ initialData, user }: Props) {
     }))
     .filter((group) => group.items.length > 0);
 
+  /**
+   * Serializes wallet requests and applies server-confirmed results.
+   * Check-in also refreshes the wallet; equipment changes refresh user data.
+   */
   const run = async (key: string, action?: RewardAction) => {
     if (inFlight.current) return;
     inFlight.current = true;

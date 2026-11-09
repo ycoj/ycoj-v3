@@ -15,6 +15,11 @@ type Props = ComponentProps<typeof Avatar> & {
   user: BaseUser;
 };
 
+/**
+ * Keeps the avatar image or fallback aligned with an equipped sticker frame.
+ * Decorated avatars share the frame's rounded-square corners, while decorations
+ * may extend beyond the avatar without intercepting interactions.
+ */
 export default function UserAvatar({ user, className, ...props }: Props) {
   const src = avatarUrl(user.avatar);
   const frame = user.rewardEquipment?.frame;
