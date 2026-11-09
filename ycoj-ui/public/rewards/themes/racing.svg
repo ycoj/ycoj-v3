@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" fill="none">
+  <path d="M-100 1000C180 660 320 1080 690 980S1340 650 1700 910" stroke="#7aa8dc" stroke-width="95" opacity=".12"/>
+  <path d="M-100 1000C180 660 320 1080 690 980S1340 650 1700 910" stroke="#7aa8dc" stroke-width="3" stroke-dasharray="20 22" opacity=".28"/>
+  <g fill="#e9bc72" opacity=".16">
+    <path d="M1500 55H1530V85H1500ZM1530 85H1560V115H1530ZM1560 55H1590V85H1560ZM1500 115H1530V145H1500ZM1560 115H1590V145H1560Z"/>
+    <path d="M45 740H75V770H45ZM75 770H105V800H75ZM105 740H135V770H105Z"/>
+  </g>
+  <g stroke="#7aa8dc" stroke-width="4" stroke-linecap="round" opacity=".2">
+    <path d="M40 140H150M55 158H115M1480 550H1590M1520 568H1580"/>
+  </g>
+</svg>

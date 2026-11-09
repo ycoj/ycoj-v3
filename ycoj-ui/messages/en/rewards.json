@@ -58,7 +58,7 @@
     "frame": "Avatar frame",
     "background": "Name background",
     "title": "Personal title",
-    "accent": "Interface accent"
+    "accent": "Theme"
   },
   "tasks": {
     "checkin": {
@@ -97,11 +97,23 @@
     },
     "frame-tiger": {
       "name": "Little tiger frame",
-      "description": "Pointed ears and bold stripes for a fearless problem solver."
+      "description": "Soft tiger ears, golden stripes, and a little paw for your next adventure."
     },
     "frame-pixel": {
       "name": "Pixel explorer frame",
-      "description": "A blocky grass-and-dirt border for builders who love to explore."
+      "description": "Grass blocks, a bright diamond, and a little star for curious builders."
+    },
+    "frame-racer": {
+      "name": "Speed racer frame",
+      "description": "A checkered flag, lightning bolt, and tiny spoiler. Ready for the next challenge!"
+    },
+    "frame-orbit": {
+      "name": "Space navigator frame",
+      "description": "Your little rocket is ready. Explore a bigger universe with stars and a ringed planet."
+    },
+    "frame-slime": {
+      "name": "Sprite companion frame",
+      "description": "A friendly little sprite, fresh leaves, and a flower for today's adventure."
     },
     "background-sky": {
       "name": "Clear sky name",
@@ -120,12 +132,20 @@
       "description": "Think a little more, try once again. Celebrate your persistence."
     },
     "accent-forest": {
-      "name": "Forest accent",
-      "description": "Use forest green across your learning interface, in light and dark mode."
+      "name": "Block forest theme",
+      "description": "Mint greens, blocky trees, and grassy hills for your learning space. Supports light and dark mode."
     },
     "accent-violet": {
-      "name": "Violet accent",
-      "description": "Brighten buttons and highlights with violet, in light and dark mode."
+      "name": "Space voyage theme",
+      "description": "Lavender skies, planetary orbits, and distant stars turn your learning space into a cosmic base. Supports light and dark mode."
+    },
+    "accent-racing": {
+      "name": "Speed circuit theme",
+      "description": "Racing blue, checkered flags, and a sweeping circuit for your next challenge. Supports light and dark mode."
+    },
+    "accent-ocean": {
+      "name": "Sprite bay theme",
+      "description": "A turquoise bay with waves, bubbles, and starfish for a little adventure between problems. Supports light and dark mode."
     }
   },
   "errors": {
@@ -142,6 +162,7 @@
     "frame": "Decorations that surround your avatar.",
     "background": "A colored highlight behind your name.",
     "title": "A label shown next to your name.",
-    "accent": "A color theme for buttons and highlights."
-  }
+    "accent": "Matching backgrounds, sidebar, and colors for your own game world."
+  },
+  "themePreviewHint": "Mix any frame with any theme. Preview before redeeming; equip to apply across your learning interface."
 }

@@ -1,7 +1,19 @@
 import '@/app/globals.css';
 import './rewards.css';
+import RewardThemeSync from './reward-theme-sync';
 import RewardsPage from './rewards-page';
+import UserAvatar from '@/features/user/user-avatar';
 import messages from '@/messages/en';
+import zhMessages from '@/messages/zh';
+import { Button } from '@/shared/components/ui/button';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarInset,
+  SidebarProvider,
+} from '@/shared/components/ui/sidebar';
 import type { RewardsData } from '@/shared/types/rewards';
 import {
   act,
@@ -12,7 +24,9 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Coins, Code2, Home, Dumbbell } from 'lucide-react';
 import { NextIntlClientProvider } from 'next-intl';
+import { createPortal } from 'react-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { page } from 'vitest/browser';
 
@@ -32,6 +46,18 @@ vi.mock('@/api/client/method', () => ({
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mocks.refresh }),
 }));
+vi.mock('@/features/user/lib/avatar-url', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/features/user/lib/avatar-url')>();
+  const robot =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#e7eff5"/><path d="M50 25V16" stroke="#7a9dab" stroke-width="4"/><circle cx="50" cy="13" r="5" fill="#8dcaa6"/><rect x="18" y="29" width="64" height="48" rx="19" fill="#fff"/><rect x="27" y="40" width="46" height="25" rx="11" fill="#385b73"/><circle cx="40" cy="52" r="4" fill="#a5e6e1"/><circle cx="60" cy="52" r="4" fill="#a5e6e1"/><path d="M44 70Q50 74 56 70" fill="none" stroke="#9fbdc8" stroke-width="3" stroke-linecap="round"/><path d="M27 100V90Q50 73 73 90V100" fill="#8dcaa6"/></svg>';
+  return {
+    default: (avatar: string) =>
+      avatar === 'preview'
+        ? `data:image/svg+xml,${encodeURIComponent(robot)}`
+        : actual.default(avatar),
+  };
+});
 
 function fixture(): RewardsData {
   return {
@@ -128,8 +154,13 @@ function fixture(): RewardsData {
     catalog: [
       { id: 'frame-tiger', slot: 'frame', price: 200 },
       { id: 'frame-pixel', slot: 'frame', price: 200 },
+      { id: 'frame-racer', slot: 'frame', price: 200 },
+      { id: 'frame-orbit', slot: 'frame', price: 200 },
+      { id: 'frame-slime', slot: 'frame', price: 200 },
       { id: 'accent-forest', slot: 'accent', price: 160 },
       { id: 'accent-violet', slot: 'accent', price: 160 },
+      { id: 'accent-racing', slot: 'accent', price: 160 },
+      { id: 'accent-ocean', slot: 'accent', price: 160 },
     ],
   };
 }
@@ -268,7 +299,7 @@ describe('learning rewards page', () => {
       screen.getByText('Save 40 more coins by completing learning tasks.')
     ).toBeVisible();
     fireEvent.click(
-      screen.getByRole('button', { name: 'Preview Forest accent' })
+      screen.getByRole('button', { name: 'Preview Block forest theme' })
     );
     fireEvent.click(
       screen.getByRole('button', { name: 'Confirm redemption · 160 coins' })
@@ -287,7 +318,7 @@ describe('learning rewards page', () => {
   it('groups shop items by category and filters to a single category', async () => {
     renderPage();
     await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
-    for (const name of ['Avatar frame', 'Interface accent']) {
+    for (const name of ['Avatar frame', 'Theme']) {
       expect(await screen.findByRole('region', { name })).toBeVisible();
     }
     expect(
@@ -305,17 +336,13 @@ describe('learning rewards page', () => {
         name: 'Preview Pixel explorer frame',
       })
     ).toBeVisible();
-    expect(within(frames).getByText('0 of 2 owned')).toBeVisible();
+    expect(within(frames).getByText('0 of 5 owned')).toBeVisible();
 
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Interface accent' })
-    );
+    await userEvent.click(screen.getByRole('button', { name: 'Theme' }));
     expect(
       screen.queryByRole('region', { name: 'Avatar frame' })
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('region', { name: 'Interface accent' })
-    ).toBeVisible();
+    expect(screen.getByRole('region', { name: 'Theme' })).toBeVisible();
     await userEvent.click(screen.getByRole('button', { name: 'All' }));
     expect(screen.getByRole('region', { name: 'Avatar frame' })).toBeVisible();
   });
@@ -339,6 +366,188 @@ describe('learning rewards page', () => {
       preview.querySelector('[data-reward-frame="frame-pixel"]')
     ).toBeVisible();
   });
+
+  it('combines new frames and themes without buying or equipping', async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
+    const preview = screen.getByRole('complementary', {
+      name: 'Appearance preview',
+    });
+    for (const [frame, theme] of [
+      ['Speed racer frame', 'Speed circuit theme'],
+      ['Space navigator frame', 'Space voyage theme'],
+      ['Sprite companion frame', 'Sprite bay theme'],
+    ]) {
+      await userEvent.click(
+        screen.getByRole('button', { name: `Preview ${frame}` })
+      );
+      await userEvent.click(
+        screen.getByRole('button', { name: `Preview ${theme}` })
+      );
+      const art = preview.querySelector(
+        'img[data-reward-frame]'
+      ) as HTMLImageElement;
+      await waitFor(() =>
+        expect(art.complete && art.naturalWidth > 0).toBe(true)
+      );
+      expect(art).toBeVisible();
+      for (const label of within(preview).getAllByText(theme)) {
+        expect(label).toBeVisible();
+      }
+    }
+    expect(mocks.update).not.toHaveBeenCalled();
+    expect(screen.getByText('Your balance').parentElement).toHaveTextContent(
+      '100 coins'
+    );
+  });
+
+  it('updates the pictured frame when owned-only filtering replaces an unowned selection', async () => {
+    const data = fixture();
+    data.wallet.owned = ['frame-pixel', 'accent-forest'];
+    renderPage(data);
+    await userEvent.click(screen.getByRole('tab', { name: 'Appearance shop' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Preview Speed racer frame' })
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Preview Space voyage theme' })
+    );
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Owned items only' })
+    );
+    const preview = screen.getByRole('complementary', {
+      name: 'Appearance preview',
+    });
+    const frame = preview.querySelector(
+      'img[data-reward-frame]'
+    ) as HTMLImageElement;
+    await waitFor(() =>
+      expect(frame.complete && frame.naturalWidth > 0).toBe(true)
+    );
+    expect(frame.src).toContain('/rewards/frames/frame-pixel.svg');
+    expect(within(preview).getByText('Pixel explorer frame')).toBeVisible();
+    for (const label of within(preview).getAllByText('Space voyage theme')) {
+      expect(label).toBeVisible();
+    }
+    expect(
+      within(preview).getByRole('button', { name: 'Equip' })
+    ).toBeVisible();
+    expect(mocks.update).not.toHaveBeenCalled();
+    if (import.meta.env.MODE === 'preview') {
+      await page.screenshot({
+        path: '../../test-results/rewards-owned-filter.png',
+        element: preview,
+      });
+    }
+  });
+
+  it('applies equipped themes to portaled surfaces and restores defaults on removal', () => {
+    const defaultBackground = getComputedStyle(document.body).backgroundColor;
+    const view = render(
+      <>
+        <RewardThemeSync id="accent-forest" />
+        {createPortal(
+          <div
+            role="dialog"
+            aria-label="Theme sample"
+            className="bg-card text-foreground"
+          >
+            Sample
+          </div>,
+          document.body
+        )}
+      </>
+    );
+    const sample = screen.getByRole('dialog', { name: 'Theme sample' });
+    const forestColor = getComputedStyle(sample).backgroundColor;
+    view.rerender(
+      <>
+        <RewardThemeSync id="accent-violet" />
+        {createPortal(
+          <div
+            role="dialog"
+            aria-label="Theme sample"
+            className="bg-card text-foreground"
+          >
+            Sample
+          </div>,
+          document.body
+        )}
+      </>
+    );
+    expect(getComputedStyle(sample).backgroundColor).not.toBe(forestColor);
+    view.unmount();
+    expect(getComputedStyle(document.body).backgroundColor).toBe(
+      defaultBackground
+    );
+  });
+
+  it.each([false, true])(
+    'keeps theme text and actions readable with dark mode %s',
+    (dark) => {
+      document.documentElement.classList.toggle('dark', dark);
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 1;
+      const context = canvas.getContext('2d', { willReadFrequently: true })!;
+      const luminance = (color: string) => {
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        const channels = Array.from(context.getImageData(0, 0, 1, 1).data)
+          .slice(0, 3)
+          .map((channel) => {
+            const value = channel / 255;
+            return value <= 0.04045
+              ? value / 12.92
+              : ((value + 0.055) / 1.055) ** 2.4;
+          });
+        return (
+          channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
+        );
+      };
+      const contrast = (color: string, background: string) => {
+        const values = [luminance(color), luminance(background)].sort(
+          (a, b) => b - a
+        );
+        return (values[0] + 0.05) / (values[1] + 0.05);
+      };
+      try {
+        render(
+          <>
+            {fixture()
+              .catalog.filter((item) => item.slot === 'accent')
+              .map((item) => (
+                <section
+                  key={item.id}
+                  aria-label={item.id}
+                  data-reward-accent={item.id}
+                  className="reward-theme-canvas p-4"
+                >
+                  <p className="text-foreground">Learning space</p>
+                  <p className="text-muted-foreground">Your next challenge</p>
+                  <Button>Practice</Button>
+                </section>
+              ))}
+          </>
+        );
+        for (const sample of screen.getAllByRole('region')) {
+          const background = getComputedStyle(sample).backgroundColor;
+          for (const text of within(sample).getAllByText(
+            /Learning space|Your next challenge/
+          )) {
+            expect(
+              contrast(getComputedStyle(text).color, background)
+            ).toBeGreaterThanOrEqual(4.5);
+          }
+          const action = getComputedStyle(within(sample).getByRole('button'));
+          expect(
+            contrast(action.color, action.backgroundColor)
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      } finally {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  );
 
   it.each([375, 1280])(
     'keeps tasks, previews, and history readable at %ipx',
@@ -381,4 +590,110 @@ describe('learning rewards page', () => {
       }
     }
   );
+});
+
+describe.runIf(import.meta.env.MODE === 'preview')('PR previews', () => {
+  it.each([
+    ['desktop', 1440, 'accent-forest', 'frame-pixel', false],
+    ['space', 1440, 'accent-violet', 'frame-orbit', false],
+    ['racing', 1440, 'accent-racing', 'frame-racer', false],
+    ['ocean', 1440, 'accent-ocean', 'frame-slime', false],
+    ['dark', 1440, 'accent-violet', 'frame-orbit', true],
+    ['mobile', 390, 'accent-ocean', 'frame-slime', false],
+  ] as const)('captures %s', async (name, width, theme, frame, dark) => {
+    await page.viewport(width, 1100);
+    const font = await new FontFace(
+      'Inter',
+      'url("/fonts/Inter[opsz,wght].ttf")'
+    ).load();
+    document.fonts.add(font);
+    document.documentElement.classList.toggle('dark', dark);
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    const data = fixture();
+    data.wallet.balance = 360;
+    data.wallet.earned = 720;
+    data.wallet.spent = 360;
+    data.wallet.owned = [frame, theme];
+    data.wallet.equipped = { frame, accent: theme };
+    const user = {
+      _id: 2,
+      uname: '小小冒险家',
+      mail: '',
+      avatar: 'preview',
+      rewardEquipment: data.wallet.equipped,
+    };
+    const view = render(
+      <NextIntlClientProvider
+        locale="zh"
+        messages={zhMessages}
+        timeZone="Asia/Shanghai"
+      >
+        <SidebarProvider
+          data-reward-accent={theme}
+          style={{ fontFamily: 'Inter, "Microsoft YaHei", sans-serif' }}
+        >
+          <RewardThemeSync id={theme} />
+          <Sidebar>
+            <SidebarHeader className="px-6 py-7 text-xl font-bold text-primary">
+              YCOJ
+            </SidebarHeader>
+            <SidebarContent className="gap-1 px-3">
+              {[
+                [Home, '首页'],
+                [Code2, '题库'],
+                [Dumbbell, '训练'],
+                [Coins, '成长与金币'],
+              ].map(([Icon, label]) => (
+                <div
+                  key={String(label)}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${label === '成长与金币' ? 'bg-sidebar-accent font-medium text-sidebar-primary' : 'text-muted-foreground'}`}
+                >
+                  {typeof Icon !== 'string' && <Icon className="size-4" />}
+                  {String(label)}
+                </div>
+              ))}
+            </SidebarContent>
+            <SidebarFooter className="flex-row items-center gap-3 px-6 py-5">
+              <UserAvatar user={user} />
+              <span className="text-sm">{user.uname}</span>
+            </SidebarFooter>
+          </Sidebar>
+          <SidebarInset className="reward-theme-canvas px-4 py-6 md:p-8">
+            <p className="mb-5 text-xs text-muted-foreground">
+              界面预览 · 示例账号
+            </p>
+            <RewardsPage initialData={data} user={user} />
+          </SidebarInset>
+        </SidebarProvider>
+      </NextIntlClientProvider>
+    );
+    try {
+      await userEvent.click(screen.getByRole('tab', { name: '装扮商店' }));
+      await userEvent.click(
+        screen.getByRole('button', {
+          name: `预览${zhMessages.rewards.items[frame].name}`,
+        })
+      );
+      await waitFor(() => {
+        for (const img of document.querySelectorAll('img'))
+          expect(img.complete && img.naturalWidth > 0).toBe(true);
+      });
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
+      const surface = document.querySelector(
+        '[data-slot="sidebar-wrapper"]'
+      ) as HTMLElement;
+      await page.viewport(width, Math.max(1100, surface.scrollHeight + 32));
+      window.scrollTo(0, 0);
+      await page.screenshot({
+        path: `../../test-results/rewards-${name}.png`,
+        element: surface,
+      });
+    } finally {
+      view.unmount();
+      document.fonts.delete(font);
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = '';
+      await page.viewport(1280, 900);
+    }
+  });
 });

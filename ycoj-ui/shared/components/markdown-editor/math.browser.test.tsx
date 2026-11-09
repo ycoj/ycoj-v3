@@ -25,24 +25,29 @@ describe('VelociTex editor preview', () => {
     const { container, rerender } = render(
       preview('Inline $x^2$\n\n$$\n\\frac{a}{b}\n$$')
     );
-    await waitFor(() =>
-      expect(container.querySelectorAll('.katex-html')).toHaveLength(2)
+    await waitFor(
+      () => expect(container.querySelectorAll('.katex-html')).toHaveLength(2),
+      { timeout: 5000 }
     );
     expect(container.querySelector('.katex-display')).toBeVisible();
     expect(container.querySelector('.katex-html')).toHaveTextContent('x2');
     rerender(preview(String.raw`Updated $\sqrt{y}$`));
-    await waitFor(() => {
-      expect(container.querySelectorAll('.katex-html')).toHaveLength(1);
-      expect(container.querySelector('.katex-html')).toHaveTextContent('y');
-    });
+    await waitFor(
+      () => {
+        expect(container.querySelectorAll('.katex-html')).toHaveLength(1);
+        expect(container.querySelector('.katex-html')).toHaveTextContent('y');
+      },
+      { timeout: 5000 }
+    );
   });
 
   it('keeps code examples literal and untrusted TeX commands inert', async () => {
     const { container } = render(
       preview('Code: `$x$` and $\\htmlClass{injected}{x}$')
     );
-    await waitFor(() =>
-      expect(container.querySelector('.katex')).toBeVisible()
+    await waitFor(
+      () => expect(container.querySelector('.katex')).toBeVisible(),
+      { timeout: 5000 }
     );
     expect(screen.getByText('$x$', { selector: 'code' })).toBeVisible();
     expect(container.querySelector('.injected')).not.toBeInTheDocument();

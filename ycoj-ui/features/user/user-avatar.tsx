@@ -15,6 +15,11 @@ type Props = ComponentProps<typeof Avatar> & {
   user: BaseUser;
 };
 
+/**
+ * Keeps the avatar image or fallback aligned with an equipped sticker frame.
+ * Decorated avatars share the frame's rounded-square corners, while decorations
+ * may extend beyond the avatar without intercepting interactions.
+ */
 export default function UserAvatar({ user, className, ...props }: Props) {
   const src = avatarUrl(user.avatar);
   const frame = user.rewardEquipment?.frame;
@@ -22,7 +27,11 @@ export default function UserAvatar({ user, className, ...props }: Props) {
   return (
     <Avatar
       {...props}
-      className={cn(isDecoratedFrame(frame) && 'isolate', className)}
+      className={cn(
+        isDecoratedFrame(frame) &&
+          'isolate rounded-[28%] after:rounded-[28%] [&>[data-slot=avatar-fallback]]:rounded-[28%] [&>[data-slot=avatar-image]]:rounded-[28%]',
+        className
+      )}
     >
       {isDecoratedFrame(frame) && <RewardFrameDecoration id={frame} />}
       {src && <AvatarImage src={src} alt={user.uname} />}
