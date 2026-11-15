@@ -128,11 +128,46 @@ describe('OpenVJudge protocol conversion', () => {
             'cc.cc17': { display: 'C++17', validAs: { judgeclient: 'judgeclient.0', 'open-vjudge': 'judgeclient.0' } },
             c: { display: 'C', validAs: { 'open-vjudge': 'c' } },
         };
-        assert.equal(resolveOpenVJudgeLanguage('cc.cc17', 'codeforces', langs), '/GNU [CG]\\+\\+17/i');
-        assert.equal(resolveOpenVJudgeLanguage('judgeclient.0', 'atcoder', langs), '/C\\+\\+17.*GCC/i');
+        assert.deepEqual(resolveOpenVJudgeLanguage('cc.cc17', 'codeforces', langs), ['/GNU [CG]\\+\\+17\\b/i', '/[CG]\\+\\+/i']);
+        assert.deepEqual(resolveOpenVJudgeLanguage('judgeclient.0', 'atcoder', langs), ['/C\\+\\+\\s*17\\b/i', '/[CG]\\+\\+/i']);
         assert.equal(resolveOpenVJudgeLanguage('codeforces.54', 'codeforces', langs), '54');
-        assert.equal(resolveOpenVJudgeLanguage('c', 'atcoder', langs), '/C11.*GCC/i');
+        assert.deepEqual(resolveOpenVJudgeLanguage('c', 'atcoder', langs), ['/C11\\b/i', '/(?:^|\\s)C(?:\\d|\\s|$)/i']);
         assert.throws(() => resolveOpenVJudgeLanguage('judgeclient.99', 'codeforces', langs), /legacy language/);
+    });
+
+    it('prioritizes the requested C++ version and falls back to any C++ compiler', () => {
+        const langs = {
+            'cc.cc17': { display: 'C++17' },
+            'cc.cc20o2': { display: 'C++20 (O2)' },
+            'cc.cc23': { display: 'C++23' },
+        };
+        // Model the remote API's ordered selector lookup, including remote-list order.
+        const select = (selectors, available: string[]) => selectors
+            .map((selector: string) => {
+                const [, pattern, flags] = /^\/(.*)\/([a-z]*)$/.exec(selector);
+                return available.find((name) => new RegExp(pattern, flags).test(name));
+            }).find(Boolean);
+        for (const key of Object.keys(langs)) {
+            const selectors = resolveOpenVJudgeLanguage(key, 'atcoder', langs);
+            assert.equal(select(selectors, ['C++23 (GCC 15.2)']), 'C++23 (GCC 15.2)');
+        }
+        const selectors = resolveOpenVJudgeLanguage('cc.cc17', 'atcoder', langs);
+        assert.equal(select(selectors, ['C++23 (GCC 15.2)', 'C++17 (Clang 16)']), 'C++17 (Clang 16)');
+        assert.equal(select(selectors, ['C11 (GCC 15.2)', 'C# 13', 'Python 3']), undefined);
+        assert.deepEqual(resolveOpenVJudgeLanguage('cc.cc17', 'atcoder', { 'cc.cc17': {} }), selectors);
+    });
+
+    it('keeps explicit remote language IDs and selectors unchanged', () => {
+        for (const language of ['54', '/C\\+\\+23/i', 'open-vjudge.6017', 'open-vjudge./C\\+\\+23/i']) {
+            assert.equal(resolveOpenVJudgeLanguage(language, 'atcoder', {}), language.replace(/^open-vjudge\./, ''));
+        }
+    });
+
+    it('falls back within the same language for other versioned mappings', () => {
+        const langs = { c: { display: 'C17' }, 'py.py3': { display: 'Python 3' }, 'py.pypy3': { display: 'PyPy 3' } };
+        assert.deepEqual(resolveOpenVJudgeLanguage('c', 'atcoder', langs), ['/C17\\b/i', '/(?:^|\\s)C(?:\\d|\\s|$)/i']);
+        assert.deepEqual(resolveOpenVJudgeLanguage('py.py3', 'atcoder', langs), ['/Python.*3/i', '/Python/i']);
+        assert.deepEqual(resolveOpenVJudgeLanguage('py.pypy3', 'atcoder', langs), ['/PyPy.*3/i', '/PyPy/i']);
     });
 });
 
@@ -197,16 +232,16 @@ describe('OpenVJudge HTTP provider', () => {
         const end = (payload) => ends.push(payload);
         const cfJob = await provider.submitProblem('CF4A', 'cc.cc17', 'int main() {}', { rid: 'cf-record' }, () => { }, end);
         const atJob = await provider.submitProblem('abc097c', 'cc.cc17', 'int main() {}', { rid: 'at-record' }, () => { }, end);
+        assert.deepEqual(ends, []);
         assert.equal(cfJob, 'cf-job');
         assert.equal(atJob, 'at-job');
-        assert.equal(ends.length, 0);
         assert.deepEqual(submissions['cf-job'].problem, '4A');
-        assert.equal(submissions['cf-job'].language, '/GNU [CG]\\+\\+17/i');
+        assert.deepEqual(submissions['cf-job'].language, ['/GNU [CG]\\+\\+17\\b/i', '/[CG]\\+\\+/i']);
         assert.equal(submissions['cf-job'].source, 'int main() {}');
         assert.equal(submissions['cf-job'].meta.rid, 'cf-record');
         assert.equal(submissions['at-job'].contest, 'abc097');
         assert.equal(submissions['at-job'].task, 'abc097_c');
-        assert.equal(submissions['at-job'].language, '/C\\+\\+17.*GCC/i');
+        assert.deepEqual(submissions['at-job'].language, ['/C\\+\\+\\s*17\\b/i', '/[CG]\\+\\+/i']);
 
         await provider.waitForSubmission(cfJob, () => { }, end);
         await provider.waitForSubmission(atJob, () => { }, end);

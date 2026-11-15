@@ -130,6 +130,8 @@ type SubmitBody = { lang: string; code?: string; file?: File; pretest: boolean; 
 type HackBody = { input?: string; file?: File; autoOrganizeInput?: boolean; tid?: string };
 ```
 
+For `remote_judge` problems using `open-vjudge` (AtCoder/Codeforces), `lang` remains a single local language key. The provider forwards versioned C, C++, Python, and PyPy mappings as ordered language selectors to the remote `/api/submit`: first the requested version, then the same language without a version requirement. For example, AtCoder `cc.cc17` produces `language: ["/C\\+\\+\\s*17\\b/i", "/[CG]\\+\\+/i"]`; if only C++23 is available, the second selector matches it. Exact C++ version matching does not require GCC. Explicit remote language IDs and regex selectors remain unchanged, and unversioned mappings keep a single selector. This changes remote compiler selection, while the YCOJ request and response types below stay the same.
+
 Contest-context preparation and the submit or hack method read `tid` from the same merged request parameters. Whether `tid` is supplied in the query string or only in the mutation body, the route loads the contest and applies problem membership, not-started, and attendance validation before creating a record. For file upload use `multipart/form-data`, field `file`; otherwise use normal mutation request data. Pretests require at least one input and only default/remote-judge problem types. Hack input files must be at most 2 MiB.
 
 ```http

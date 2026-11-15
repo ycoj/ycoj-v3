@@ -123,15 +123,24 @@ export function addOpenVJudgeLanguageMappings(source: string) {
 function languageFromDisplay(key: string, config: LangConfig | undefined, judge: OpenVJudgeJudge) {
     const display = config?.display || key;
     if (key === 'c' || /^C\d*$/i.test(display)) {
-        return judge === 'codeforces' ? '/GNU C11/i' : '/C11.*GCC/i';
+        const version = /^C(\d+)$/i.exec(display)?.[1] || '11';
+        return [
+            judge === 'codeforces' ? `/GNU C${version}\\b/i` : `/C${version}\\b/i`,
+            '/(?:^|\\s)C(?:\\d|\\s|$)/i',
+        ];
     }
     if (key === 'cc' || key.startsWith('cc.') || /C\+\+/i.test(display)) {
-        const version = /C\+\+\s*(\d{2})/i.exec(display)?.[1] || (key === 'cc' ? '14' : '');
-        if (!version) return judge === 'codeforces' ? '/GNU [CG]\\+\\+/i' : 'C++';
-        return judge === 'codeforces' ? `/GNU [CG]\\+\\+${version}/i` : `/C\\+\\+${version}.*GCC/i`;
+        const version = /C\+\+\s*(\d{2})/i.exec(display)?.[1]
+            || /^cc\.cc(\d{2})/.exec(key)?.[1] || (key === 'cc' ? '14' : '');
+        const generic = '/[CG]\\+\\+/i';
+        if (!version) return generic;
+        return [
+            judge === 'codeforces' ? `/GNU [CG]\\+\\+${version}\\b/i` : `/C\\+\\+\\s*${version}\\b/i`,
+            generic,
+        ];
     }
-    if (key === 'py.pypy3' || /pypy/i.test(display)) return '/PyPy.*3/i';
-    if (key === 'py' || key === 'py.py3' || /^Python/i.test(display)) return '/Python.*3/i';
+    if (key === 'py.pypy3' || /pypy/i.test(display)) return ['/PyPy.*3/i', '/PyPy/i'];
+    if (key === 'py' || key === 'py.py3' || /^Python/i.test(display)) return ['/Python.*3/i', '/Python/i'];
     if (key === 'js') return judge === 'codeforces' ? '/JavaScript/i' : '/Node\\.js/i';
     if (key === 'go') return '/^Go(?:\\s|$)/i';
     if (key === 'r') return '/^R(?:\\s|$)/i';
@@ -142,7 +151,7 @@ export function resolveOpenVJudgeLanguage(
     language: string,
     judge: OpenVJudgeJudge,
     langs: Record<string, LangConfig>,
-): string {
+): string | string[] {
     const value = String(language || '').trim();
     if (!value) return value;
     if (value.startsWith('open-vjudge.')) return value.slice('open-vjudge.'.length);
