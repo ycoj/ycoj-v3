@@ -1,7 +1,7 @@
 import {
     Context, db, ObjectId, SettingModel, SystemModel,
 } from 'hydrooj';
-import { migrateOpenVJudgeProblems } from './migration';
+import { migrateOpenVJudgeProblems, migrateYbtOpenVJudgeProblems } from './migration';
 import OpenVJudgeProvider from './open-vjudge';
 import { addOpenVJudgeLanguageMappings, OPEN_VJUDGE_PROVIDER } from './open-vjudge-utils';
 import JudgeClientProvider from './provider';
@@ -47,7 +47,7 @@ export async function apply(ctx: Context) {
     ctx.setting.SystemSetting(
         SettingModel.Setting(
             'setting_server', 'open-vjudge.endpoint', '', 'text',
-            'OpenVJudge Endpoint', 'Base URL of the OpenVJudge service used for AtCoder and Codeforces submissions.',
+            'OpenVJudge Endpoint', 'Base URL of the OpenVJudge service used for AtCoder, Codeforces, and YBT submissions.',
         ),
         SettingModel.Setting(
             'setting_server', 'open-vjudge.apiKey', '', 'password',
@@ -59,6 +59,9 @@ export async function apply(ctx: Context) {
         c.migration.registerChannel('judge-client', [
             async function migrateToOpenVJudge() {
                 return await migrateOpenVJudgeProblems();
+            },
+            async function migrateYbtToOpenVJudge() {
+                return await migrateYbtOpenVJudgeProblems();
             },
         ]);
     });

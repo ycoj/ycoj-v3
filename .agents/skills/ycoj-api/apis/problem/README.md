@@ -4,7 +4,7 @@ All paths are domain-relative: on a non-system domain prefix them with `/d/{doma
 
 - [Problem set and random selection](problem-set.md): ordinary lists include a read-only domain-wide `pendingSolutionCount` for solution reviewers; quick/PJAX lists omit it
 - [Legacy category compatibility redirect](problem-category-compat.md)
-- [Remote submission language selection](problem-detail-submit.md#getpost-ppidsubmit-and-ppidhackrid): OpenVJudge sends ordered selectors for versioned languages, preferring the exact version before falling back to the same language without a version requirement; the public `lang` field remains a single key.
+- [Remote submission language selection](problem-detail-submit.md#getpost-ppidsubmit-and-ppidhackrid): OpenVJudge supports AtCoder, Codeforces, and YBT (`YBT1001`); startup migrates existing YBT remote problems without local testdata. Versioned language selectors prefer the exact version before falling back to the same language, with YBT GCC/G++ naming handled; the public `lang` field remains a single key.
 - [Problem detail, actions, submission, hacking, and statistics](problem-detail-submit.md): includes asynchronous HTML-to-Markdown submission via POST `/p/:pid/html-to-markdown` (HTTP 202) backed by a persistent, cluster-shared job store with atomic per-owner (10) and global (100) capacity, and GET `/p/:pid/html-to-markdown/:jobId` polling that any worker can serve; the submit and poll contest context validates a decorated `tid` (query or body) into a real ObjectId and loads the contest inside the route
 - HTML-to-Markdown submit and poll ownership includes maintainers with self-edit permission; job payloads exclude API keys, and completed Markdown may be empty. See the conversion contracts and polling workflow in the detail document above.
 - [Problem feedback](problem-feedback.md): logged-in users who can view a problem may submit a trimmed 1–1000-character report with POST `/p/:pid/feedback`; system administrators list and update report statuses at GET/POST `/manage/problem-feedback`
@@ -13,7 +13,7 @@ All paths are domain-relative: on a non-system domain prefix them with `/d/{doma
 - [Problem solutions](problem-solutions.md)
 - [Problem solution review and domain-wide author blocks](problem-solution-review.md): GET claims one solution for 60 seconds; review requires the current reviewer's valid claim; includes domain statistics and an unpaginated blocked-author list
 - [Hydro, FPS, QDUOJ, and HOJ imports](problem-import-archives.md)
-- [ZSHFOJ import](problem-import-zshfoj.md)
+- [ZSHFOJ import](problem-import-zshfoj.md): CF, AtCoder, and numeric YBT targets use OpenVJudge; YBTBAS retains the legacy provider
 - [Problem API operations](problem-api.md)
 
 Workflows: [create a problem from local files](../../workflows/create-problem-from-local-files.md) and [bulk edit problems](../../workflows/bulk-edit-problems.md).

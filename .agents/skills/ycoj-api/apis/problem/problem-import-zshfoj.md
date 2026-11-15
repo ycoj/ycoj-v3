@@ -2,7 +2,7 @@
 
 ## Description
 
-Displays the importer or fetches a remote ZSHFOJ problem via the configured judge-server token, creating a remote-judge problem if it is absent. Targets with the `CF` prefix or lowercase `abc`/`arc`/`agc` AtCoder prefixes use `remote_judge`/`open-vjudge`; other targets retain `remote_judge`/`judgeclient`. Requires `PERM_CREATE_PROBLEM`; a missing system `judgeserver.token` causes a permission error.
+Displays the importer or fetches a remote ZSHFOJ problem via the configured judge-server token, creating a remote-judge problem if it is absent. Targets with the `CF` prefix, lowercase `abc`/`arc`/`agc` AtCoder prefixes, or `YBT` followed by 1–6 digits (for example `YBT1001`) use `remote_judge`/`open-vjudge`; other targets, including `YBTBAS`, retain `remote_judge`/`judgeclient`. Requires `PERM_CREATE_PROBLEM`; a missing system `judgeserver.token` causes a permission error.
 
 ## Request format
 
@@ -30,3 +30,5 @@ type ZshfojImportResponse = { url: string }; // under JSON accept
 ```
 
 GET renders `problem_import_zshfoj.html`; representative body is `{}`. POST derives the remote target as `oj + pid`; if the returned `data.pid` already exists it returns the same URL envelope without creating a duplicate.
+
+For YBT, POST `{"oj":"YBT","pid":"1001"}`. When absent, the imported problem is created with `type: remote_judge`, `subType: open-vjudge`, and `target: YBT1001`; the JSON response is `{"url":"/p/YBT1001"}` when the source returns `data.pid: "YBT1001"`. Submission converts that target to OpenVJudge `{"judge":"ybt","problem":"1001"}`. Import still fetches the title, statement, tags, difficulty, and limits from ZSHFOJ.

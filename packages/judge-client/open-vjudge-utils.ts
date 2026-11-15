@@ -3,7 +3,7 @@ import { yaml } from 'hydrooj';
 
 export const OPEN_VJUDGE_PROVIDER = 'open-vjudge';
 
-export type OpenVJudgeJudge = 'atcoder' | 'codeforces';
+export type OpenVJudgeJudge = 'atcoder' | 'codeforces' | 'ybt';
 
 export interface OpenVJudgeSubmissionTarget {
     judge: OpenVJudgeJudge;
@@ -36,7 +36,7 @@ export interface OpenVJudgeResult {
 }
 
 export function isOpenVJudgePid(pid: string) {
-    return /^(?:CF|abc|arc|agc)/.test(pid || '');
+    return /^(?:CF|abc|arc|agc|YBT\d{1,6}$)/.test(pid || '');
 }
 
 export function parseOpenVJudgeProblem(pid: string): OpenVJudgeSubmissionTarget {
@@ -48,6 +48,8 @@ export function parseOpenVJudgeProblem(pid: string): OpenVJudgeSubmissionTarget 
         const contest = `${atcoder[1].toLowerCase()}${atcoder[2]}`;
         return { judge: 'atcoder', contest, task: `${contest}_${atcoder[3].toLowerCase()}` };
     }
+    const ybt = /^YBT(\d{1,6})$/i.exec(source);
+    if (ybt) return { judge: 'ybt', problem: ybt[1] };
     throw new Error(`Unsupported OpenVJudge problem ID: ${source}`);
 }
 
@@ -123,6 +125,7 @@ export function addOpenVJudgeLanguageMappings(source: string) {
 function languageFromDisplay(key: string, config: LangConfig | undefined, judge: OpenVJudgeJudge) {
     const display = config?.display || key;
     if (key === 'c' || /^C\d*$/i.test(display)) {
+        if (judge === 'ybt') return '/^GCC$/i';
         const version = /^C(\d+)$/i.exec(display)?.[1] || '11';
         return [
             judge === 'codeforces' ? `/GNU C${version}\\b/i` : `/C${version}\\b/i`,
@@ -134,6 +137,7 @@ function languageFromDisplay(key: string, config: LangConfig | undefined, judge:
             || /^cc\.cc(\d{2})/.exec(key)?.[1] || (key === 'cc' ? '14' : '');
         const generic = '/[CG]\\+\\+/i';
         if (!version) return generic;
+        if (judge === 'ybt') return [`/[CG]\\+\\+\\s*${version}\\b/i`, generic];
         return [
             judge === 'codeforces' ? `/GNU [CG]\\+\\+${version}\\b/i` : `/C\\+\\+\\s*${version}\\b/i`,
             generic,

@@ -12,15 +12,17 @@ interface MigrationStore {
     saveConfig: (domainId: string, docId: number, config: string) => Promise<unknown>;
 }
 
-const defaultStore: MigrationStore = {
-    findProblems: () => DocumentModel.coll.find({
-        docType: DocumentModel.TYPE_PROBLEM,
-        pid: { $regex: /^(?:CF|abc|arc|agc)/ },
-    }).project({
-        domainId: 1, docId: 1, pid: 1, config: 1, data: 1, reference: 1,
-    }),
-    saveConfig: (domainId, docId, config) => ProblemModel.addTestdata(domainId, docId, 'config.yaml', Buffer.from(config)),
-};
+function createMigrationStore(pid = /^(?:CF|abc|arc|agc|YBT\d{1,6}$)/): MigrationStore {
+    return {
+        findProblems: () => DocumentModel.coll.find({
+            docType: DocumentModel.TYPE_PROBLEM,
+            pid: { $regex: pid },
+        }).project({
+            domainId: 1, docId: 1, pid: 1, config: 1, data: 1, reference: 1,
+        }),
+        saveConfig: (domainId, docId, config) => ProblemModel.addTestdata(domainId, docId, 'config.yaml', Buffer.from(config)),
+    };
+}
 
 export function hasLocalTestdata(files: ProblemDoc['data'] = []) {
     return (files || []).some((file) => !/^config\.ya?ml$/i.test(file.name));
@@ -39,7 +41,7 @@ export function openVJudgeMigrationConfig(pdoc: MigrationProblem) {
     };
 }
 
-export async function migrateOpenVJudgeProblems(store: MigrationStore = defaultStore) {
+export async function migrateOpenVJudgeProblems(store: MigrationStore = createMigrationStore()) {
     let migrated = 0;
     for await (const pdoc of store.findProblems()) {
         const config = openVJudgeMigrationConfig(pdoc);
@@ -47,6 +49,10 @@ export async function migrateOpenVJudgeProblems(store: MigrationStore = defaultS
         await store.saveConfig(pdoc.domainId, pdoc.docId, yaml.dump(config));
         migrated++;
     }
-    logger.info('Migrated %d AtCoder/Codeforces problem(s) to OpenVJudge.', migrated);
+    logger.info('Migrated %d remote problem(s) to OpenVJudge.', migrated);
     return true;
+}
+
+export async function migrateYbtOpenVJudgeProblems(store: MigrationStore = createMigrationStore(/^YBT\d{1,6}$/)) {
+    return await migrateOpenVJudgeProblems(store);
 }
