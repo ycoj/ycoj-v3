@@ -14,6 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/shared/components/ui/sidebar';
+import { Toaster } from '@/shared/components/ui/sonner';
 import type { RewardsData } from '@/shared/types/rewards';
 import {
   act,
@@ -27,6 +28,7 @@ import userEvent from '@testing-library/user-event';
 import { Coins, Code2, Home, Dumbbell } from 'lucide-react';
 import { NextIntlClientProvider } from 'next-intl';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { page } from 'vitest/browser';
 
@@ -35,7 +37,25 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   checkin: vi.fn(),
   refresh: vi.fn(),
+  toastSuccess: vi.fn(),
+  toastError: vi.fn(),
 }));
+vi.mock('sonner', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('sonner')>();
+  const success = actual.toast.success.bind(actual.toast);
+  const error = actual.toast.error.bind(actual.toast);
+  const toast = Object.assign(actual.toast, {
+    success: (message: string) => {
+      mocks.toastSuccess(message);
+      return success(message);
+    },
+    error: (message: string) => {
+      mocks.toastError(message);
+      return error(message);
+    },
+  });
+  return { ...actual, toast };
+});
 vi.mock('@/api/client/method/rewards', () => ({
   updateRewards: mocks.update,
   getRewards: mocks.get,
@@ -212,7 +232,9 @@ describe('learning rewards page', () => {
       })
     ).toBeDisabled();
     expect(screen.getByText('115')).toBeVisible();
-    expect(screen.getByRole('status')).toHaveTextContent('Coins received');
+    expect(mocks.toastSuccess).toHaveBeenCalledWith(
+      'Coins received. Keep learning at your own pace!'
+    );
   });
 
   it('checks in before exposing a claim and never awards client-side coins', async () => {
@@ -258,9 +280,7 @@ describe('learning rewards page', () => {
     );
     fireEvent.click(await screen.findByRole('button', { name: 'Equip' }));
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent(
-        'Appearance equipped'
-      )
+      expect(mocks.toastSuccess).toHaveBeenCalledWith('Appearance equipped.')
     );
     expect(mocks.update).toHaveBeenLastCalledWith({
       action: 'equip',
@@ -271,8 +291,8 @@ describe('learning rewards page', () => {
       screen.getByRole('button', { name: 'Remove Avatar frame' })
     );
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent(
-        'Default appearance restored'
+      expect(mocks.toastSuccess).toHaveBeenCalledWith(
+        'Default appearance restored. Your item stays in your inventory.'
       )
     );
     expect(screen.getByRole('button', { name: 'Equip' })).toBeVisible();
@@ -304,8 +324,10 @@ describe('learning rewards page', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'Confirm redemption · 160 coins' })
     );
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'You need more coins'
+    await waitFor(() =>
+      expect(mocks.toastError).toHaveBeenCalledWith(
+        'You need more coins. Refresh your balance and complete a few tasks first.'
+      )
     );
     expect(screen.getByText('Your balance').parentElement).toHaveTextContent(
       '160 coins'
@@ -693,6 +715,107 @@ describe.runIf(import.meta.env.MODE === 'preview')('PR previews', () => {
       document.fonts.delete(font);
       document.documentElement.classList.remove('dark');
       document.documentElement.style.colorScheme = '';
+      await page.viewport(1280, 900);
+    }
+  });
+});
+
+describe.runIf(import.meta.env.MODE === 'preview')('toast previews', () => {
+  const user = { _id: 2, uname: '小小冒险家', mail: '', avatar: 'preview' };
+
+  function renderToastPage(
+    data: RewardsData,
+    send: () => Promise<
+      RewardsData | { error: { name: string; message: string } }
+    >
+  ) {
+    mocks.update.mockReturnValue({ send });
+    return render(
+      <NextIntlClientProvider
+        locale="zh"
+        messages={zhMessages}
+        timeZone="Asia/Shanghai"
+      >
+        <div
+          id="rewards-toast-preview"
+          className="bg-background h-[860px] overflow-hidden"
+        >
+          <div className="container mx-auto px-4 py-6 md:p-8">
+            <RewardsPage initialData={data} user={user} />
+          </div>
+          <Toaster richColors position="top-right" duration={60_000} />
+        </div>
+      </NextIntlClientProvider>
+    );
+  }
+
+  async function openFrameAndRedeem() {
+    await userEvent.click(screen.getByRole('tab', { name: '装扮商店' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: '预览小老虎头像框' })
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: '确认兑换 · 200 金币' })
+    );
+  }
+
+  async function expectVisibleToast(message: string) {
+    await waitFor(() => {
+      const shown = Array.from(
+        document.querySelectorAll(
+          '[data-sonner-toast][data-visible="true"][data-mounted="true"]'
+        )
+      ).some((element) => element.textContent?.includes(message));
+      expect(shown).toBe(true);
+    });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  it('captures the purchase success toast', async () => {
+    await page.viewport(1280, 860);
+    toast.dismiss();
+    const data = fixture();
+    data.wallet.balance = 400;
+    data.wallet.earned = 400;
+    const next = structuredClone(data);
+    next.wallet.balance = 200;
+    next.wallet.owned = ['frame-tiger'];
+    const view = renderToastPage(data, async () => next);
+    try {
+      await openFrameAndRedeem();
+      await expectVisibleToast(zhMessages.rewards.buySuccess);
+      await page.screenshot({
+        path: '../../test-results/rewards-toast-success.png',
+        element: document.querySelector(
+          '#rewards-toast-preview'
+        ) as HTMLElement,
+      });
+    } finally {
+      view.unmount();
+      await page.viewport(1280, 900);
+    }
+  });
+
+  it('captures the insufficient-coins toast', async () => {
+    await page.viewport(1280, 860);
+    toast.dismiss();
+    const data = fixture();
+    data.wallet.balance = 400;
+    data.wallet.earned = 400;
+    const view = renderToastPage(data, async () => ({
+      error: { name: 'RewardError', message: 'insufficient-coins' },
+    }));
+    try {
+      await openFrameAndRedeem();
+      await expectVisibleToast(zhMessages.rewards.errors['insufficient-coins']);
+      await page.screenshot({
+        path: '../../test-results/rewards-toast-error.png',
+        element: document.querySelector(
+          '#rewards-toast-preview'
+        ) as HTMLElement,
+      });
+    } finally {
+      view.unmount();
       await page.viewport(1280, 900);
     }
   });
