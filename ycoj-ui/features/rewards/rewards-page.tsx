@@ -6,7 +6,6 @@ import ClientApis from '@/api/client/method';
 import { getRewards, updateRewards } from '@/api/client/method/rewards';
 import UserAvatar from '@/features/user/user-avatar';
 import Username from '@/features/user/username';
-import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -36,6 +35,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 const SLOT_ORDER: RewardSlot[] = ['frame', 'background', 'title', 'accent'];
 const RETIRED_ITEM_IDS = new Set([
@@ -74,8 +74,6 @@ export default function RewardsPage({ initialData, user }: Props) {
   const [ownedOnly, setOwnedOnly] = useState(false);
   const [category, setCategory] = useState<'all' | RewardSlot>('all');
   const [pending, setPending] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState('');
   const inFlight = useRef(false);
   const selected = data.catalog.find((item) => item.id === selectedId);
   const previewUser = { ...user, rewardEquipment: previewEquipment };
@@ -116,8 +114,6 @@ export default function RewardsPage({ initialData, user }: Props) {
     if (inFlight.current) return;
     inFlight.current = true;
     setPending(key);
-    setError(null);
-    setNotice('');
     try {
       if (key === 'checkin') {
         const result = await ClientApis.Checkin.checkin().send();
@@ -128,16 +124,18 @@ export default function RewardsPage({ initialData, user }: Props) {
       ).send();
       if ('error' in result) {
         const code = result.error.message;
-        setError(
-          code &&
-            [
-              'insufficient-coins',
-              'task-incomplete',
-              'item-not-owned',
-              'busy',
-            ].includes(code)
-            ? code
-            : 'request-failed'
+        toast.error(
+          t(
+            code &&
+              [
+                'insufficient-coins',
+                'task-incomplete',
+                'item-not-owned',
+                'busy',
+              ].includes(code)
+              ? `errors.${code}`
+              : 'errors.request-failed'
+          )
         );
         return;
       }
@@ -149,7 +147,7 @@ export default function RewardsPage({ initialData, user }: Props) {
           return next;
         });
       }
-      setNotice(
+      toast.success(
         t(
           action
             ? `${action.action}Success`
@@ -161,7 +159,7 @@ export default function RewardsPage({ initialData, user }: Props) {
       if (action?.action === 'equip' || action?.action === 'unequip')
         router.refresh();
     } catch {
-      setError('request-failed');
+      toast.error(t('errors.request-failed'));
     } finally {
       inFlight.current = false;
       setPending(null);
@@ -250,18 +248,6 @@ export default function RewardsPage({ initialData, user }: Props) {
           </div>
         </div>
       </header>
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{t(`errors.${error}`)}</AlertDescription>
-        </Alert>
-      )}
-      <p
-        role="status"
-        aria-live="polite"
-        className="text-sm text-primary empty:hidden"
-      >
-        {notice}
-      </p>
       <Tabs defaultValue="tasks">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <TabsList>

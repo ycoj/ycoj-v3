@@ -8,6 +8,13 @@ Before changing frontend code, read `ycoj-ui/AGENTS.md` and its required code-st
 
 When a user asks you to modify the frontend in the current code, default to the new `ycoj-ui/`. There is no need to modify Hydro's legacy UI.
 
+## Keep preview screenshots out of Git
+
+- Do not commit preview screenshots, recordings, or other review captures to the repository. Write generated captures to ignored local output such as `test-results/` until they are uploaded.
+- Upload every preview capture to GitHub and reference the resulting `https://github.com/user-attachments/assets/...` URL in the pull request description or a comment. The asset is hosted by GitHub; the Git repository must not contain it.
+- Fetch the repository id with `gh api repos/:owner/:repo --jq .id`, then POST the file to `https://uploads.github.com/user-attachments/assets?name=<file>&content_type=<mime>&repository_id=<id>` with the `gh auth token` bearer token. If that upload path is unavailable, ask the user to attach the files in the pull request instead of committing them.
+- Preview documentation may describe how to regenerate captures, but must not link to image files stored in the repository.
+
 ## Track Hydro upstream merges
 
 - Keep a tracked file named `HYDRO_COMMIT` at the repository root. It must contain exactly one full 40-character upstream Hydro commit SHA followed by a newline.
