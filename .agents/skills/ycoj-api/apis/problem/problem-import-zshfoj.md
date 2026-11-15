@@ -2,7 +2,7 @@
 
 ## Description
 
-Displays the importer or fetches a remote ZSHFOJ problem via the configured judge-server token, creating a `remote_judge`/`judgeclient` configured problem if it is absent. Requires `PERM_CREATE_PROBLEM`; a missing system `judgeserver.token` causes a permission error.
+Displays the importer or fetches a remote ZSHFOJ problem via the configured judge-server token, creating a remote-judge problem if it is absent. Targets with the `CF` prefix or lowercase `abc`/`arc`/`agc` AtCoder prefixes use `remote_judge`/`open-vjudge`; other targets retain `remote_judge`/`judgeclient`. Requires `PERM_CREATE_PROBLEM`; a missing system `judgeserver.token` causes a permission error.
 
 ## Request format
 

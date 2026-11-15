@@ -1,6 +1,9 @@
 import {
-    Context, db, ObjectId,
+    Context, db, ObjectId, SettingModel, SystemModel,
 } from 'hydrooj';
+import { migrateOpenVJudgeProblems } from './migration';
+import OpenVJudgeProvider from './open-vjudge';
+import { addOpenVJudgeLanguageMappings, OPEN_VJUDGE_PROVIDER } from './open-vjudge-utils';
 import JudgeClientProvider from './provider';
 
 declare module 'hydrooj' {
@@ -8,6 +11,10 @@ declare module 'hydrooj' {
         judgeclient: {
             addAccount: typeof addAccount;
         };
+    }
+    interface SystemKeys {
+        'open-vjudge.endpoint': string;
+        'open-vjudge.apiKey': string;
     }
 }
 
@@ -30,9 +37,44 @@ global.Hydro.model.judgeclient = {
     addAccount,
 };
 
+async function updateOpenVJudgeLanguages() {
+    const current = SystemModel.get('hydrooj.langs');
+    const updated = addOpenVJudgeLanguageMappings(current);
+    if (updated !== current) await SystemModel.set('hydrooj.langs', updated);
+}
+
 export async function apply(ctx: Context) {
-    ctx.inject(['vjudge'], (c) => {
-        // @ts-ignore
-        c.vjudge.addProvider('judgeclient', JudgeClientProvider);
+    ctx.setting.SystemSetting(
+        SettingModel.Setting(
+            'setting_server', 'open-vjudge.endpoint', '', 'text',
+            'OpenVJudge Endpoint', 'Base URL of the OpenVJudge service used for AtCoder and Codeforces submissions.',
+        ),
+        SettingModel.Setting(
+            'setting_server', 'open-vjudge.apiKey', '', 'password',
+            'OpenVJudge User API Key', 'User API key for OpenVJudge submissions. Leave blank to keep the current key.',
+            SettingModel.FLAG_SECRET,
+        ),
+    );
+    ctx.inject(['migration'], (c) => {
+        c.migration.registerChannel('judge-client', [
+            async function migrateToOpenVJudge() {
+                return await migrateOpenVJudgeProblems();
+            },
+        ]);
+    });
+    ctx.inject(['vjudge'], async (c) => {
+        const vjudge = (c as any).vjudge;
+        vjudge.addProvider('judgeclient', JudgeClientProvider);
+        await updateOpenVJudgeLanguages();
+        if (process.env.NODE_APP_INSTANCE === '0' && !process.env.HYDRO_CLI
+            && !vjudge.accounts.some((account) => account.type === OPEN_VJUDGE_PROVIDER)) {
+            vjudge.accounts.push({
+                _id: OPEN_VJUDGE_PROVIDER,
+                type: OPEN_VJUDGE_PROVIDER,
+                handle: 'OpenVJudge',
+                password: '',
+            });
+        }
+        vjudge.addProvider(OPEN_VJUDGE_PROVIDER, OpenVJudgeProvider);
     });
 }

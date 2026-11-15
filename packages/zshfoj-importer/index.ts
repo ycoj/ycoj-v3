@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isOpenVJudgePid, OPEN_VJUDGE_PROVIDER } from '@hydrooj/judge-client/open-vjudge-utils';
 import {
     Context, Handler, param, PERM, PermissionError, ProblemModel, SystemModel, Types, yaml,
 } from 'hydrooj';
@@ -33,7 +34,7 @@ class ZSHFOJImportHandler extends Handler {
         });
         await ProblemModel.addTestdata(domainId, npid, 'config.yaml', Buffer.from(yaml.dump({
             type: 'remote_judge',
-            subType: 'judgeclient',
+            subType: isOpenVJudgePid(target) ? OPEN_VJUDGE_PROVIDER : 'judgeclient',
             target,
             time: data.config.timeMin || 0,
             memory: data.config.memoryMin || 0,
