@@ -37,25 +37,7 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   checkin: vi.fn(),
   refresh: vi.fn(),
-  toastSuccess: vi.fn(),
-  toastError: vi.fn(),
 }));
-vi.mock('sonner', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('sonner')>();
-  const success = actual.toast.success.bind(actual.toast);
-  const error = actual.toast.error.bind(actual.toast);
-  const toast = Object.assign(actual.toast, {
-    success: (message: string) => {
-      mocks.toastSuccess(message);
-      return success(message);
-    },
-    error: (message: string) => {
-      mocks.toastError(message);
-      return error(message);
-    },
-  });
-  return { ...actual, toast };
-});
 vi.mock('@/api/client/method/rewards', () => ({
   updateRewards: mocks.update,
   getRewards: mocks.get,
@@ -196,11 +178,21 @@ function renderPage(data = fixture(), uname = 'Alice') {
         initialData={data}
         user={{ _id: 2, uname, mail: '', avatar: '' }}
       />
+      <Toaster richColors position="top-right" duration={60_000} />
     </NextIntlClientProvider>
   );
 }
 
-beforeEach(() => vi.clearAllMocks());
+async function expectVisibleToast(message: string) {
+  await waitFor(() => {
+    expect(screen.getByText(message)).toBeVisible();
+  });
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  toast.dismiss();
+});
 
 describe('learning rewards page', () => {
   it('claims a completed task once, blocks repeat clicks while pending, and displays the new balance', async () => {
@@ -232,9 +224,7 @@ describe('learning rewards page', () => {
       })
     ).toBeDisabled();
     expect(screen.getByText('115')).toBeVisible();
-    expect(mocks.toastSuccess).toHaveBeenCalledWith(
-      'Coins received. Keep learning at your own pace!'
-    );
+    await expectVisibleToast('Coins received. Keep learning at your own pace!');
   });
 
   it('checks in before exposing a claim and never awards client-side coins', async () => {
@@ -279,9 +269,7 @@ describe('learning rewards page', () => {
       })
     );
     fireEvent.click(await screen.findByRole('button', { name: 'Equip' }));
-    await waitFor(() =>
-      expect(mocks.toastSuccess).toHaveBeenCalledWith('Appearance equipped.')
-    );
+    await expectVisibleToast('Appearance equipped.');
     expect(mocks.update).toHaveBeenLastCalledWith({
       action: 'equip',
       id: 'frame-tiger',
@@ -290,10 +278,8 @@ describe('learning rewards page', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'Remove Avatar frame' })
     );
-    await waitFor(() =>
-      expect(mocks.toastSuccess).toHaveBeenCalledWith(
-        'Default appearance restored. Your item stays in your inventory.'
-      )
+    await expectVisibleToast(
+      'Default appearance restored. Your item stays in your inventory.'
     );
     expect(screen.getByRole('button', { name: 'Equip' })).toBeVisible();
     expect(screen.getByText('Your balance').parentElement).toHaveTextContent(
@@ -324,10 +310,8 @@ describe('learning rewards page', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'Confirm redemption · 160 coins' })
     );
-    await waitFor(() =>
-      expect(mocks.toastError).toHaveBeenCalledWith(
-        'You need more coins. Refresh your balance and complete a few tasks first.'
-      )
+    await expectVisibleToast(
+      'You need more coins. Refresh your balance and complete a few tasks first.'
     );
     expect(screen.getByText('Your balance').parentElement).toHaveTextContent(
       '160 coins'
@@ -759,18 +743,6 @@ describe.runIf(import.meta.env.MODE === 'preview')('toast previews', () => {
     );
   }
 
-  async function expectVisibleToast(message: string) {
-    await waitFor(() => {
-      const shown = Array.from(
-        document.querySelectorAll(
-          '[data-sonner-toast][data-visible="true"][data-mounted="true"]'
-        )
-      ).some((element) => element.textContent?.includes(message));
-      expect(shown).toBe(true);
-    });
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-
   it('captures the purchase success toast', async () => {
     await page.viewport(1280, 860);
     toast.dismiss();
@@ -784,6 +756,7 @@ describe.runIf(import.meta.env.MODE === 'preview')('toast previews', () => {
     try {
       await openFrameAndRedeem();
       await expectVisibleToast(zhMessages.rewards.buySuccess);
+      await new Promise((resolve) => setTimeout(resolve, 500));
       await page.screenshot({
         path: '../../test-results/rewards-toast-success.png',
         element: document.querySelector(
@@ -808,6 +781,7 @@ describe.runIf(import.meta.env.MODE === 'preview')('toast previews', () => {
     try {
       await openFrameAndRedeem();
       await expectVisibleToast(zhMessages.rewards.errors['insufficient-coins']);
+      await new Promise((resolve) => setTimeout(resolve, 500));
       await page.screenshot({
         path: '../../test-results/rewards-toast-error.png',
         element: document.querySelector(
