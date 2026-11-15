@@ -9,7 +9,7 @@ import RecordDetail from '@/features/record/detail/record-detail';
 import RecordSidebar from '@/features/record/detail/record-sidebar';
 import { RecordTestcases } from '@/features/record/detail/record-testcases';
 import { useRecordSocket } from '@/shared/hooks/use-record-socket';
-import TwoColumnLayout from '@/shared/layout/two-column';
+import { cn } from '@/shared/lib/utils';
 import type { ProblemDoc } from '@/shared/types/problem';
 import type { RecordDoc } from '@/shared/types/record';
 import type { User } from '@/shared/types/user';
@@ -120,17 +120,19 @@ export default function RecordDetailLive({
   return (
     <div className="space-y-6">
       <RecordDetail rdoc={rdoc} pdoc={pdoc} udoc={udoc} languages={languages} />
-      <TwoColumnLayout
-        ratio="8-2"
-        left={
-          <div className="space-y-6">
-            {rdoc.code && <RecordCode rdoc={rdoc} />}
-            <RecordCompilerMessage rdoc={rdoc} />
-            <RecordTestcases rdoc={rdoc} />
-          </div>
-        }
-        right={
-          showSidebar ? (
+      <div
+        className={cn(
+          'grid min-w-0 grid-cols-1 items-start gap-6',
+          showSidebar && 'lg:grid-cols-[minmax(0,1fr)_14rem]'
+        )}
+      >
+        <div className="min-w-0 space-y-6">
+          <RecordCompilerMessage rdoc={rdoc} />
+          <RecordTestcases rdoc={rdoc} />
+          {rdoc.code && <RecordCode key={rdoc._id} rdoc={rdoc} />}
+        </div>
+        {showSidebar && (
+          <aside className="min-w-0 lg:sticky lg:top-6">
             <RecordSidebar
               allRevs={allRevs}
               selectedRev={selectedRev}
@@ -139,9 +141,9 @@ export default function RecordDetailLive({
               onCancel={handleCancel}
               hackHref={hackHref}
             />
-          ) : undefined
-        }
-      />
+          </aside>
+        )}
+      </div>
     </div>
   );
 }

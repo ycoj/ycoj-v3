@@ -59,7 +59,7 @@ export default function RecordDetail({ rdoc, pdoc, udoc, languages }: Props) {
   };
 
   return (
-    <Table className="table-fixed" data-llm-visible="true">
+    <Table className="min-w-6xl table-fixed" data-llm-visible="true">
       <colgroup>
         <col className="w-20 md:w-32" />
         <col className="w-14" />

@@ -5,12 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/components/ui/accordion';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/shared/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
 import {
   Tooltip,
   TooltipContent,
@@ -44,7 +39,7 @@ function RecordTestcaseList({
           const content = (
             <div
               key={`testcase-${testcase.id}`}
-              className="h-28 w-28 rounded-md border dark:brightness-150"
+              className="relative h-28 min-w-0 rounded-md border dark:brightness-150"
               style={{
                 borderColor: STATUS_BACKGROUND_COLOR[testcase.status],
               }}
@@ -78,8 +73,12 @@ function RecordTestcaseList({
 
           return (
             <Tooltip key={`testcase-${testcase.id}-tooltip`}>
-              <TooltipTrigger asChild>{content}</TooltipTrigger>
-              <TooltipContent className="whitespace-pre-wrap">
+              <TooltipTrigger asChild>
+                <div tabIndex={0} className="rounded-md outline-offset-2">
+                  {content}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm whitespace-pre-wrap break-words">
                 {message}
               </TooltipContent>
             </Tooltip>
@@ -120,7 +119,7 @@ function RecordSubtask({
       <AccordionContent className="h-auto">
         <RecordTestcaseList
           testcases={testcases}
-          className="flex flex-wrap h-max gap-4 mt-2 px-2"
+          className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3 px-2"
         />
       </AccordionContent>
     </>
@@ -140,17 +139,18 @@ export function RecordTestcases({ rdoc }: Props) {
 
   return (
     <Card>
-      {isSingleSubtask && (
-        <CardHeader>
-          <CardTitle>{t('testcaseDetails')}</CardTitle>
-        </CardHeader>
-      )}
+      <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-medium">{t('testcaseDetails')}</h2>
+        <span className="text-muted-foreground text-sm tabular-nums">
+          {t('testcaseCount', { count: rdoc.testCases.length })}
+        </span>
+      </CardHeader>
       <CardContent>
         {isSingleSubtask ? (
           <div>
             <RecordTestcaseList
               testcases={getSubtaskTestcases(rdoc, singleSubtaskId)}
-              className="flex flex-wrap h-max gap-4"
+              className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3"
             />
           </div>
         ) : (
