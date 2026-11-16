@@ -40,12 +40,49 @@ git cat-file -e "$commit^{commit}"
 git merge-base --is-ancestor "$commit" FETCH_HEAD
 git merge-base --is-ancestor HEAD "$commit"
 
+# Corepack may add a Yarn packageManager pin and reformat the root manifest.
+# Both the index and worktree must otherwise match HEAD or the release exactly.
+package_manifest_base() {
+  node - "$commit" <<'NODE'
+const fs = require('node:fs');
+const { execFileSync } = require('node:child_process');
+const { isDeepStrictEqual } = require('node:util');
+const readRevision = ref => JSON.parse(execFileSync('git', ['show', `${ref}:package.json`], { encoding: 'utf8' }));
+const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const matches = (manifest, baseline) => {
+  if (!isObject(manifest) || !isObject(baseline)) return false;
+  const normalized = { ...manifest };
+  if (!Object.hasOwn(baseline, 'packageManager') && typeof normalized.packageManager === 'string'
+      && /^yarn@\d+\.\d+\.\d+(?:\+sha(?:224|256|384|512)\.[a-f0-9]+)?$/.test(normalized.packageManager)) {
+    delete normalized.packageManager;
+  }
+  return isDeepStrictEqual(normalized, baseline);
+};
+try {
+  const baselines = ['HEAD', process.argv[2]].map(ref => [ref, readRevision(ref)]);
+  const index = JSON.parse(execFileSync('git', ['show', ':package.json'], { encoding: 'utf8' }));
+  const worktree = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  const baseline = baselines.find(([, manifest]) => matches(worktree, manifest));
+  if (!baseline || !baselines.some(([, manifest]) => matches(index, manifest))) process.exit(1);
+  process.stdout.write(baseline[0]);
+} catch {
+  process.exit(1);
+}
+NODE
+}
+
 # Local production fixes can become tracked upstream. Only stage files whose
 # current contents already match the target commit; never discard local edits.
 matching=()
+manifest_base=
 while IFS= read -r -d '' path; do
   if ! git diff --quiet "$commit" -- "$path"; then
+    if [[ "$path" = package.json && -f "$path" && ! -L "$path" ]] &&
+      manifest_base=$(package_manifest_base); then
+      continue
+    fi
     echo "Backend has local changes not included in this release: $path" >&2
+    printf 'Inspect server changes with: git diff HEAD -- %q\n' "$path" >&2
     exit 1
   fi
   matching+=("$path")
@@ -59,6 +96,18 @@ while IFS= read -r -d '' path; do
   fi
   matching+=("$path")
 done < <(git ls-files --others --exclude-standard -z)
+if [[ -n "$manifest_base" ]]; then
+  backup_root=$(git rev-parse --git-path ycoj-deploy-backups)
+  backup=$(umask 077; mkdir -p -- "$backup_root"; mktemp -d "$backup_root/package-json-XXXXXXXX")
+  (
+    umask 077
+    cp -- package.json "$backup/package.json"
+    git show :package.json > "$backup/package.json.index"
+  )
+  git restore --source="$manifest_base" --staged --worktree -- package.json
+  if [[ "$manifest_base" = "$commit" ]]; then matching+=(package.json); fi
+  echo "Normalized generated package.json changes; original worktree and index saved in $backup."
+fi
 if [[ "${#matching[@]}" -gt 0 ]]; then
   git --literal-pathspecs add -- "${matching[@]}"
   git --literal-pathspecs diff --cached --quiet "$commit" -- "${matching[@]}"
@@ -69,7 +118,7 @@ test "$(git rev-parse HEAD)" = "$commit"
 
 echo "Installing backend dependencies for $commit (legacy UI build skipped)."
 # This repository intentionally does not track a root yarn.lock.
-YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+COREPACK_ENABLE_AUTO_PIN=0 YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
 node -r @hydrooj/register -e 'require.resolve("hydrooj")'
 pm2 restart "$process_name"
 

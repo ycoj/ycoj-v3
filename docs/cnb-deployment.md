@@ -6,7 +6,9 @@
 
 后端保留在 `/srv/ycoj-v3`，仍使用原有 PM2 进程 `ycoj`。流水线在服务器执行 `git fetch origin master`，将本地 `master` 快进到本次构建的准确提交，然后执行 `yarn install`、加载器检查、`pm2 restart ycoj`、健康检查和 `pm2 save`。后端启动时通过 `@hydrooj/register` 加载 TypeScript，不需要独立编译；不会执行 `yarn build ui`、`yarn build:ui` 或其他旧 UI 构建。
 
-服务器沿用已有 Git `origin` 和读取凭据，需能无交互拉取代码。源码必须位于 `master`，且可快进到目标提交；服务器已有更新提交时会拒绝降级。服务器本地修改若已原样纳入待发布提交，脚本会将匹配文件暂存后快进，保留其内容，包括已存在的相同 Yarn 发行文件；内容不一致时停止。未跟踪且不与新源码冲突的配置、插件和原有旧 UI 产物保留。首次运行前用 `git -C /srv/ycoj-v3 status` 检查；脚本不会自动清除不匹配的修改。
+服务器沿用已有 Git `origin` 和读取凭据，需能无交互拉取代码。源码必须位于 `master`，且可快进到目标提交；服务器已有更新提交时会拒绝降级。服务器本地修改若已原样纳入待发布提交，脚本会将匹配文件暂存后快进，保留其内容，包括已存在的相同 Yarn 发行文件。根目录 `package.json` 另允许纯 JSON 格式变化，以及 Corepack 补写的 `packageManager: "yarn@<版本>[+sha…]"`：工作区和暂存区中的内容分别去除新增的 Yarn 固定版本字段后，必须与当前提交或目标提交语义一致。脚本先将原始工作区文件和暂存区内容备份到 Git 目录的 `ycoj-deploy-backups/package-json-*`，再恢复对应版本并快进；备份路径会打印到日志。安装依赖时设置 `COREPACK_ENABLE_AUTO_PIN=0`，避免再次自动补写。其他内容不一致时停止。未跟踪且不与新源码冲突的配置、插件和原有旧 UI 产物保留。首次运行前用 `git -C /srv/ycoj-v3 status` 检查。
+
+若发布提示 `Backend has local changes not included in this release: package.json`，在服务器执行 `git -C /srv/ycoj-v3 diff HEAD -- package.json`，并用 `git -C /srv/ycoj-v3 diff --cached -- package.json` 检查暂存区。符合上述规则的 Corepack 元数据或格式变化会在包含此修复的新流水线中自动备份处理；脚本、依赖、其他字段、已有固定版本字段的更改或非 Yarn 固定版本仍需人工核对并纳入源码或妥善保存后再发布。
 
 前端改为运行 `/srv/ycoj-ui/releases/<版本>/server.js`。完成首次迁移后，前端发布不再需要在生产服务器上执行 `pnpm install` 或 `pnpm build`。当前每次推送都会更新后端并重启 `ycoj`。暂时保留 `/srv/ycoj-v3/ycoj-ui` 和原来的构建产物，供首次迁移回退使用。
 

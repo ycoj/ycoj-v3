@@ -12,10 +12,25 @@ git init -q -b master "$fixture/upstream"
 git -C "$fixture/upstream" config user.name Test
 git -C "$fixture/upstream" config user.email test@example.com
 echo initial > "$fixture/upstream/source.txt"
-git -C "$fixture/upstream" add source.txt
+cat > "$fixture/upstream/package.json" <<'JSON'
+{
+    "name": "backend-fixture",
+    "private": true,
+    "scripts": { "start": "node server.js", "test": "old-tests" },
+    "dependencies": { "example": "^1.0.0" }
+}
+JSON
+git -C "$fixture/upstream" add source.txt package.json
 git -C "$fixture/upstream" commit -qm initial
 base=$(git -C "$fixture/upstream" rev-parse HEAD)
 echo next > "$fixture/upstream/source.txt"
+"$REAL_NODE" - "$fixture/upstream/package.json" <<'NODE'
+const fs = require('node:fs');
+const path = process.argv[2];
+const manifest = JSON.parse(fs.readFileSync(path, 'utf8'));
+manifest.scripts.test = 'release-tests';
+fs.writeFileSync(path, JSON.stringify(manifest, null, 4) + '\n');
+NODE
 mkdir -p "$fixture/upstream/.yarn/releases"
 echo bundled-yarn > "$fixture/upstream/.yarn/releases/yarn.cjs"
 git -C "$fixture/upstream" add .yarn/releases/yarn.cjs
@@ -26,8 +41,10 @@ git -C "$fixture/upstream" commit -qam future
 
 cat > "$fixture/bin/yarn" <<'MOCK'
 #!/usr/bin/env bash
+set -eu
 echo "yarn $*" >> "$BACKEND_TEST_LOG"
 [[ "$*" = install && "${YARN_ENABLE_IMMUTABLE_INSTALLS:-}" = false ]]
+[[ "${COREPACK_ENABLE_AUTO_PIN:-}" = 0 ]]
 [[ "${FAIL_INSTALL:-false}" = false ]]
 MOCK
 cat > "$fixture/bin/pm2" <<'MOCK'
@@ -69,6 +86,27 @@ deploy() {
   bash "$repository/.cnb/update-backend.sh" "$server" "$target" ycoj http://127.0.0.1:2333/health
 }
 
+rewrite_manifest() {
+  "$REAL_NODE" - "$server/package.json" "${1-yarn@4.13.0+sha512.aaaaaaaa}" <<'NODE'
+const fs = require('node:fs');
+const path = process.argv[2];
+const manifest = JSON.parse(fs.readFileSync(path, 'utf8'));
+if (process.argv[3]) manifest.packageManager = process.argv[3];
+fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + '\n');
+NODE
+}
+
+expect_manifest_rejection() {
+  cp "$server/package.json" "$fixture/rejected-package.json"
+  git -C "$server" show :package.json > "$fixture/rejected-index.json"
+  if deploy; then echo 'Expected manifest conflict rejection' >&2; exit 1; fi
+  cmp "$server/package.json" "$fixture/rejected-package.json"
+  git -C "$server" show :package.json > "$fixture/index-after-rejection.json"
+  cmp "$fixture/index-after-rejection.json" "$fixture/rejected-index.json"
+  [[ ! -e "$server/.git/ycoj-deploy-backups" ]]
+  if grep -q '^pm2 restart\|^yarn ' "$BACKEND_TEST_LOG"; then exit 1; fi
+}
+
 setup success
 echo keep > "$server/config.yaml"
 deploy
@@ -87,6 +125,83 @@ deploy
 [[ "$(git -C "$server" rev-parse HEAD)" = "$target" ]]
 [[ -z "$(git -C "$server" status --porcelain)" ]]
 echo 'PASS: matching tracked fixes and untracked Yarn release are preserved and become clean'
+
+setup corepack-pin
+rewrite_manifest
+cp "$server/package.json" "$fixture/generated-package.json"
+deploy
+backups=("$server/.git/ycoj-deploy-backups"/package-json-*)
+[[ "${#backups[@]}" = 1 ]]
+cmp "$fixture/generated-package.json" "${backups[0]}/package.json"
+git -C "$server" show "$base:package.json" > "$fixture/base-package.json"
+cmp "$fixture/base-package.json" "${backups[0]}/package.json.index"
+[[ -z "$(git -C "$server" status --porcelain)" ]]
+deploy
+backups=("$server/.git/ycoj-deploy-backups"/package-json-*)
+[[ "${#backups[@]}" = 1 ]]
+echo 'PASS: Corepack pin and formatting are backed up, normalized and safe to redeploy'
+
+setup staged-corepack-pin
+rewrite_manifest yarn@4.13.0
+git -C "$server" add package.json
+git -C "$server" show :package.json > "$fixture/staged-package.json"
+deploy
+backups=("$server/.git/ycoj-deploy-backups"/package-json-*)
+cmp "$fixture/staged-package.json" "${backups[0]}/package.json.index"
+[[ -z "$(git -C "$server" status --porcelain)" ]]
+echo 'PASS: staged Corepack metadata is also backed up and normalized'
+
+setup target-corepack-pin
+git -C "$server" show "$target:package.json" > "$server/package.json"
+rewrite_manifest
+deploy
+[[ -z "$(git -C "$server" status --porcelain)" ]]
+echo 'PASS: a manifest already matching the release plus Corepack metadata can fast-forward'
+
+setup manifest-formatting
+rewrite_manifest ''
+deploy
+[[ -z "$(git -C "$server" status --porcelain)" ]]
+echo 'PASS: formatting-only manifest changes can fast-forward'
+
+for section in scripts dependencies; do
+  setup "dirty-manifest-$section"
+  rewrite_manifest
+  "$REAL_NODE" - "$server/package.json" "$section" <<'NODE'
+const fs = require('node:fs');
+const path = process.argv[2];
+const manifest = JSON.parse(fs.readFileSync(path, 'utf8'));
+manifest[process.argv[3]].local = 'server-customization';
+fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + '\n');
+NODE
+  expect_manifest_rejection
+done
+echo 'PASS: local script and dependency changes remain untouched and block deployment'
+
+setup staged-manifest-conflict
+rewrite_manifest
+"$REAL_NODE" - "$server/package.json" <<'NODE'
+const fs = require('node:fs');
+const path = process.argv[2];
+const manifest = JSON.parse(fs.readFileSync(path, 'utf8'));
+manifest.dependencies.local = 'staged-customization';
+fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + '\n');
+NODE
+git -C "$server" add package.json
+git -C "$server" show "$base:package.json" > "$server/package.json"
+rewrite_manifest
+expect_manifest_rejection
+echo 'PASS: a generated worktree cannot hide conflicting staged dependency changes'
+
+setup different-package-manager
+rewrite_manifest pnpm@10.11.1
+expect_manifest_rejection
+echo 'PASS: a different package manager is not treated as Corepack Yarn metadata'
+
+setup malformed-manifest
+printf '{broken JSON\n' > "$server/package.json"
+expect_manifest_rejection
+echo 'PASS: malformed manifests are preserved and rejected'
 
 setup conflicting-untracked
 mkdir -p "$server/.yarn/releases"
